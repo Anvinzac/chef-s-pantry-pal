@@ -5,11 +5,19 @@ import { defaultIngredients } from '@/data/defaultIngredients';
 const STORAGE_KEY_INGREDIENTS = 'chef-ingredients';
 const STORAGE_KEY_ORDERS = 'chef-current-order';
 const STORAGE_KEY_HISTORY = 'chef-order-history';
+const DATA_VERSION_KEY = 'chef-data-version';
+const CURRENT_DATA_VERSION = 2;
 
 function loadIngredients(): Ingredient[] {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY_INGREDIENTS);
-    if (stored) return JSON.parse(stored);
+    const version = localStorage.getItem(DATA_VERSION_KEY);
+    if (version && parseInt(version) === CURRENT_DATA_VERSION) {
+      const stored = localStorage.getItem(STORAGE_KEY_INGREDIENTS);
+      if (stored) return JSON.parse(stored);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_INGREDIENTS);
+      localStorage.setItem(DATA_VERSION_KEY, String(CURRENT_DATA_VERSION));
+    }
   } catch {}
   return defaultIngredients;
 }
