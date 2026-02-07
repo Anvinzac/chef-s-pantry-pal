@@ -1,7 +1,15 @@
 import { Category, Ingredient } from '@/types/ingredient';
 
 export const categories: Category[] = [
-  { id: 'vegetables', name: 'Vegetables', emoji: '🥬', color: 'hsl(130, 55%, 45%)' },
+  {
+    id: 'vegetables', name: 'Vegetables', emoji: '🥬', color: 'hsl(130, 55%, 45%)',
+    subcategories: [
+      { id: 'root', name: 'Root', emoji: '🥕' },
+      { id: 'leaf1', name: 'Leaf 1', emoji: '🥬' },
+      { id: 'leaf2', name: 'Leaf 2', emoji: '🌿' },
+      { id: 'others', name: 'Others', emoji: '🍄' },
+    ],
+  },
   { id: 'sauces', name: 'Sauces', emoji: '🫙', color: 'hsl(0, 70%, 55%)' },
   { id: 'spices', name: 'Spices', emoji: '🧂', color: 'hsl(35, 85%, 50%)' },
   { id: 'grains', name: 'Grains', emoji: '🌾', color: 'hsl(42, 70%, 55%)' },
@@ -14,27 +22,55 @@ export const categories: Category[] = [
 ];
 
 export const defaultIngredients: Ingredient[] = [
-  // Vegetables
-  { id: 'v1', name: 'Carrot', emoji: '🥕', unit: 'kg', category: 'vegetables', quickQuantities: [1, 2], referencePrice: 1.5 },
-  { id: 'v2', name: 'Potato', emoji: '🥔', unit: 'kg', category: 'vegetables', quickQuantities: [2, 5], referencePrice: 1.2 },
-  { id: 'v3', name: 'Onion', emoji: '🧅', unit: 'kg', category: 'vegetables', quickQuantities: [1, 3], referencePrice: 1.0 },
-  { id: 'v4', name: 'Garlic', emoji: '🧄', unit: 'kg', category: 'vegetables', quickQuantities: [0.5, 1], referencePrice: 5.0 },
-  { id: 'v5', name: 'Tomato', emoji: '🍅', unit: 'kg', category: 'vegetables', quickQuantities: [1, 2], referencePrice: 2.5 },
-  { id: 'v6', name: 'Lettuce', emoji: '🥬', unit: 'piece', category: 'vegetables', quickQuantities: [2, 5], referencePrice: 1.0 },
-  { id: 'v7', name: 'Cucumber', emoji: '🥒', unit: 'piece', category: 'vegetables', quickQuantities: [3, 6], referencePrice: 0.8 },
-  { id: 'v8', name: 'Bell Pepper', emoji: '🫑', unit: 'piece', category: 'vegetables', quickQuantities: [3, 6], referencePrice: 1.5 },
-  { id: 'v9', name: 'Broccoli', emoji: '🥦', unit: 'piece', category: 'vegetables', quickQuantities: [2, 4], referencePrice: 2.0 },
-  { id: 'v10', name: 'Spinach', emoji: '🌿', unit: 'bag', category: 'vegetables', quickQuantities: [1, 3], referencePrice: 2.5 },
-  { id: 'v11', name: 'Mushroom', emoji: '🍄', unit: 'pack', category: 'vegetables', quickQuantities: [1, 2], referencePrice: 3.0 },
-  { id: 'v12', name: 'Corn', emoji: '🌽', unit: 'piece', category: 'vegetables', quickQuantities: [4, 8], referencePrice: 0.5 },
-  { id: 'v13', name: 'Celery', emoji: '🌱', unit: 'piece', category: 'vegetables', quickQuantities: [1, 2], referencePrice: 1.5 },
-  { id: 'v14', name: 'Zucchini', emoji: '🥒', unit: 'piece', category: 'vegetables', quickQuantities: [2, 4], referencePrice: 1.2 },
-  { id: 'v15', name: 'Eggplant', emoji: '🍆', unit: 'piece', category: 'vegetables', quickQuantities: [2, 4], referencePrice: 1.8 },
-  { id: 'v16', name: 'Cabbage', emoji: '🥬', unit: 'piece', category: 'vegetables', quickQuantities: [1, 2], referencePrice: 1.5 },
-  { id: 'v17', name: 'Green Beans', emoji: '🫘', unit: 'kg', category: 'vegetables', quickQuantities: [0.5, 1], referencePrice: 4.0 },
-  { id: 'v18', name: 'Peas', emoji: '🟢', unit: 'kg', category: 'vegetables', quickQuantities: [0.5, 1], referencePrice: 3.5 },
-  { id: 'v19', name: 'Chili', emoji: '🌶️', unit: 'kg', category: 'vegetables', quickQuantities: [0.2, 0.5], referencePrice: 6.0 },
-  { id: 'v20', name: 'Ginger', emoji: '🫚', unit: 'kg', category: 'vegetables', quickQuantities: [0.2, 0.5], referencePrice: 8.0 },
+  // Vegetables - Root
+  { id: 'v1', name: 'Carrot', emoji: '🥕', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 2], referencePrice: 1.5 },
+  { id: 'v2', name: 'Potato', emoji: '🥔', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [2, 5], referencePrice: 1.2 },
+  { id: 'v3', name: 'Onion', emoji: '🧅', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 3], referencePrice: 1.0 },
+  { id: 'v4', name: 'Garlic', emoji: '🧄', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [0.5, 1], referencePrice: 5.0 },
+  { id: 'v20', name: 'Ginger', emoji: '🫚', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [0.2, 0.5], referencePrice: 8.0 },
+  { id: 'v21', name: 'Beetroot', emoji: '🟣', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v22', name: 'Radish', emoji: '🔴', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [0.5, 1], referencePrice: 2.5 },
+  { id: 'v23', name: 'Turnip', emoji: '⚪', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 2], referencePrice: 1.8 },
+  { id: 'v24', name: 'Sweet Potato', emoji: '🍠', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 3], referencePrice: 2.0 },
+  { id: 'v25', name: 'Taro', emoji: '🟤', unit: 'kg', category: 'vegetables', subcategory: 'root', quickQuantities: [1, 2], referencePrice: 3.0 },
+
+  // Vegetables - Leaf 1 (common leafy greens)
+  { id: 'v6', name: 'Lettuce', emoji: '🥬', unit: 'piece', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [2, 5], referencePrice: 1.0 },
+  { id: 'v10', name: 'Spinach', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 3], referencePrice: 2.5 },
+  { id: 'v16', name: 'Cabbage', emoji: '🥬', unit: 'piece', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 1.5 },
+  { id: 'v26', name: 'Bok Choy', emoji: '🥬', unit: 'kg', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v27', name: 'Kale', emoji: '🥬', unit: 'bag', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 3.0 },
+  { id: 'v28', name: 'Swiss Chard', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 2.5 },
+  { id: 'v29', name: 'Arugula', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 3.0 },
+  { id: 'v30', name: 'Watercress', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf1', quickQuantities: [1, 2], referencePrice: 3.0 },
+
+  // Vegetables - Leaf 2 (herbs & specialty greens)
+  { id: 'v13', name: 'Celery', emoji: '🌱', unit: 'piece', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 1.5 },
+  { id: 'v31', name: 'Spring Onion', emoji: '🧅', unit: 'kg', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [0.5, 1], referencePrice: 2.0 },
+  { id: 'v32', name: 'Cilantro', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 1.5 },
+  { id: 'v33', name: 'Mint', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v34', name: 'Basil', emoji: '🌱', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 2.5 },
+  { id: 'v35', name: 'Dill', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v36', name: 'Parsley', emoji: '🌿', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 1.5 },
+  { id: 'v37', name: 'Lemongrass', emoji: '🌿', unit: 'kg', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [0.5, 1], referencePrice: 3.0 },
+  { id: 'v38', name: 'Chives', emoji: '🌱', unit: 'bag', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v39', name: 'Morning Glory', emoji: '🌿', unit: 'kg', category: 'vegetables', subcategory: 'leaf2', quickQuantities: [1, 2], referencePrice: 1.5 },
+
+  // Vegetables - Others
+  { id: 'v5', name: 'Tomato', emoji: '🍅', unit: 'kg', category: 'vegetables', subcategory: 'others', quickQuantities: [1, 2], referencePrice: 2.5 },
+  { id: 'v7', name: 'Cucumber', emoji: '🥒', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [3, 6], referencePrice: 0.8 },
+  { id: 'v8', name: 'Bell Pepper', emoji: '🫑', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [3, 6], referencePrice: 1.5 },
+  { id: 'v9', name: 'Broccoli', emoji: '🥦', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [2, 4], referencePrice: 2.0 },
+  { id: 'v11', name: 'Mushroom', emoji: '🍄', unit: 'pack', category: 'vegetables', subcategory: 'others', quickQuantities: [1, 2], referencePrice: 3.0 },
+  { id: 'v12', name: 'Corn', emoji: '🌽', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [4, 8], referencePrice: 0.5 },
+  { id: 'v14', name: 'Zucchini', emoji: '🥒', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [2, 4], referencePrice: 1.2 },
+  { id: 'v15', name: 'Eggplant', emoji: '🍆', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [2, 4], referencePrice: 1.8 },
+  { id: 'v17', name: 'Green Beans', emoji: '🫘', unit: 'kg', category: 'vegetables', subcategory: 'others', quickQuantities: [0.5, 1], referencePrice: 4.0 },
+  { id: 'v18', name: 'Peas', emoji: '🟢', unit: 'kg', category: 'vegetables', subcategory: 'others', quickQuantities: [0.5, 1], referencePrice: 3.5 },
+  { id: 'v19', name: 'Chili', emoji: '🌶️', unit: 'kg', category: 'vegetables', subcategory: 'others', quickQuantities: [0.2, 0.5], referencePrice: 6.0 },
+  { id: 'v40', name: 'Cauliflower', emoji: '🥦', unit: 'piece', category: 'vegetables', subcategory: 'others', quickQuantities: [1, 2], referencePrice: 2.5 },
+  { id: 'v41', name: 'Bamboo Shoots', emoji: '🎋', unit: 'can', category: 'vegetables', subcategory: 'others', quickQuantities: [1, 2], referencePrice: 2.0 },
+  { id: 'v42', name: 'Bean Sprouts', emoji: '🌱', unit: 'kg', category: 'vegetables', subcategory: 'others', quickQuantities: [1, 2], referencePrice: 1.5 },
 
   // Sauces
   { id: 's1', name: 'Soy Sauce', emoji: '🫗', unit: 'bottle', category: 'sauces', quickQuantities: [1, 2], referencePrice: 3.0 },

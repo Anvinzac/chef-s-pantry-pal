@@ -6,6 +6,7 @@ export interface Ingredient {
   emoji: string;
   unit: UnitOfMeasurement;
   category: string;
+  subcategory?: string;
   referencePrice?: number;
   quickQuantities: number[];
   lastOrderedQuantity?: number;
@@ -27,6 +28,13 @@ export interface Category {
   name: string;
   emoji: string;
   color: string;
+  subcategories?: Subcategory[];
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  emoji?: string;
 }
 
 export const UNIT_LABELS: Record<UnitOfMeasurement, string> = {
