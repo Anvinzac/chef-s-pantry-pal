@@ -24,7 +24,7 @@ export function IngredientCard({
   const unit = UNIT_LABELS[ingredient.unit];
 
   const handleQuickAdd = (qty: number) => {
-    onQuickAdd((orderQuantity || 0) + qty);
+    onQuickAdd(Math.round(((orderQuantity || 0) + qty) * 1000) / 1000);
   };
 
   return (
