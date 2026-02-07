@@ -10,17 +10,6 @@ interface SubcategoryBarProps {
 export function SubcategoryBar({ subcategories, activeSubcategory, onSelect }: SubcategoryBarProps) {
   return (
     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2">
-      <button
-        onClick={() => onSelect(null)}
-        className={cn(
-          "px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0",
-          activeSubcategory === null
-            ? "bg-secondary text-secondary-foreground"
-            : "bg-muted text-muted-foreground hover:bg-secondary/30"
-        )}
-      >
-        All
-      </button>
       {subcategories.map(sub => (
         <button
           key={sub.id}
