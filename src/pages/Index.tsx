@@ -12,7 +12,8 @@ import { Plus, ChefHat } from 'lucide-react';
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
-  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(firstSubcategory);
   const [numpadIngredient, setNumpadIngredient] = useState<Ingredient | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
@@ -39,7 +40,8 @@ const Index = () => {
 
   const handleCategoryChange = (catId: string) => {
     setActiveCategory(catId);
-    setActiveSubcategory(null);
+    const cat = categories.find(c => c.id === catId);
+    setActiveSubcategory(cat?.subcategories?.[0]?.id ?? null);
   };
 
   return (
