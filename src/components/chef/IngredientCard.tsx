@@ -24,11 +24,7 @@ export function IngredientCard({
   const unit = UNIT_LABELS[ingredient.unit];
 
   const handleQuickAdd = (qty: number) => {
-    if (isInOrder && orderQuantity === qty) {
-      onQuickAdd(orderQuantity + qty);
-    } else {
-      onQuickAdd(qty);
-    }
+    onQuickAdd((orderQuantity || 0) + qty);
   };
 
   return (
@@ -73,12 +69,7 @@ export function IngredientCard({
           <button
             key={i}
             onClick={() => handleQuickAdd(qty)}
-            className={cn(
-              "flex-1 py-1 rounded-lg text-[11px] font-bold transition-all duration-150 active:scale-95",
-              isInOrder && orderQuantity === qty
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
-            )}
+            className="flex-1 py-1 rounded-lg text-[11px] font-bold transition-all duration-150 active:scale-95 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
           >
             {qty}{unit}
           </button>
