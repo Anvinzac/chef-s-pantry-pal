@@ -96,7 +96,7 @@ const Index = () => {
       </div>
 
       {/* Ingredient list — single column horizontal cards */}
-      <div className="px-4 pb-32 flex flex-col gap-1.5">
+      <div className="px-3 pb-32 grid grid-cols-2 gap-1.5">
         {filteredIngredients.map(ingredient => {
           const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
           return (
