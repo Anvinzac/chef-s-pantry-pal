@@ -3,6 +3,7 @@ import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
 import { useOrder } from '@/hooks/useOrder';
 import { CategoryBar } from '@/components/chef/CategoryBar';
+import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
@@ -11,6 +12,7 @@ import { Plus, ChefHat } from 'lucide-react';
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [numpadIngredient, setNumpadIngredient] = useState<Ingredient | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
@@ -29,8 +31,16 @@ const Index = () => {
     getIngredientsByCategory,
   } = useOrder();
 
-  const filteredIngredients = getIngredientsByCategory(activeCategory);
   const activeCat = categories.find(c => c.id === activeCategory);
+  const allCategoryIngredients = getIngredientsByCategory(activeCategory);
+  const filteredIngredients = activeSubcategory
+    ? allCategoryIngredients.filter(ing => ing.subcategory === activeSubcategory)
+    : allCategoryIngredients;
+
+  const handleCategoryChange = (catId: string) => {
+    setActiveCategory(catId);
+    setActiveSubcategory(null);
+  };
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative">
@@ -51,8 +61,17 @@ const Index = () => {
         <CategoryBar
           categories={categories}
           activeCategory={activeCategory}
-          onSelect={setActiveCategory}
+          onSelect={handleCategoryChange}
         />
+
+        {/* Subcategory bar */}
+        {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
+          <SubcategoryBar
+            subcategories={activeCat.subcategories}
+            activeSubcategory={activeSubcategory}
+            onSelect={setActiveSubcategory}
+          />
+        )}
       </header>
 
       {/* Category header */}
@@ -60,6 +79,11 @@ const Index = () => {
         <h2 className="font-extrabold text-sm text-foreground flex items-center gap-2">
           <span>{activeCat?.emoji}</span>
           {activeCat?.name}
+          {activeSubcategory && (
+            <span className="text-primary">
+              › {activeCat?.subcategories?.find(s => s.id === activeSubcategory)?.name}
+            </span>
+          )}
           <span className="text-muted-foreground font-semibold">({filteredIngredients.length})</span>
         </h2>
         <button
@@ -71,8 +95,8 @@ const Index = () => {
         </button>
       </div>
 
-      {/* Ingredient grid */}
-      <div className="px-4 pb-32 grid grid-cols-2 gap-2.5">
+      {/* Ingredient list — single column horizontal cards */}
+      <div className="px-4 pb-32 flex flex-col gap-1.5">
         {filteredIngredients.map(ingredient => {
           const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
           return (
@@ -84,6 +108,7 @@ const Index = () => {
               onQuickAdd={(qty) => addToOrder(ingredient, qty)}
               onCustomQuantity={() => setNumpadIngredient(ingredient)}
               onEdit={() => { setEditIngredient(ingredient); setAddModalOpen(true); }}
+              onClear={() => removeFromOrder(ingredient.id)}
             />
           );
         })}

@@ -100,8 +100,12 @@ export function useOrder() {
     }).join('\n');
   }, [currentOrder]);
 
-  const getIngredientsByCategory = useCallback((categoryId: string) => {
-    return ingredients.filter(ing => ing.category === categoryId);
+  const getIngredientsByCategory = useCallback((categoryId: string, subcategoryId?: string | null) => {
+    return ingredients.filter(ing => {
+      if (ing.category !== categoryId) return false;
+      if (subcategoryId) return ing.subcategory === subcategoryId;
+      return true;
+    });
   }, [ingredients]);
 
   return {
