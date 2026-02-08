@@ -1,6 +1,7 @@
 import { Ingredient, UNIT_LABELS } from '@/types/ingredient';
 import { cn } from '@/lib/utils';
 import { Settings2, Keyboard, X } from 'lucide-react';
+import { getPriceK, formatPriceK } from '@/data/referencePrices';
 
 interface IngredientCardProps {
   ingredient: Ingredient;
@@ -22,6 +23,7 @@ export function IngredientCard({
   onClear,
 }: IngredientCardProps) {
   const unit = UNIT_LABELS[ingredient.unit];
+  const priceK = getPriceK(ingredient.id);
 
   const handleQuickAdd = (qty: number) => {
     onQuickAdd(Math.round(((orderQuantity || 0) + qty) * 1000) / 1000);
@@ -54,6 +56,11 @@ export function IngredientCard({
         <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
           {ingredient.name}
         </span>
+        {priceK !== undefined && (
+          <span className="text-[9px] text-muted-foreground/70 font-medium flex-shrink-0">
+            {formatPriceK(priceK)}
+          </span>
+        )}
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(); }}
           className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"

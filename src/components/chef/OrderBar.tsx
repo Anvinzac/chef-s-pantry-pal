@@ -2,6 +2,7 @@ import { OrderItem, UNIT_LABELS } from '@/types/ingredient';
 import { ShoppingCart, ChevronUp, Copy, Trash2, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { estimateCostK, formatPriceK } from '@/data/referencePrices';
 
 interface OrderBarProps {
   currentOrder: OrderItem[];
@@ -33,6 +34,14 @@ export function OrderBar({
       toast.success('Order list copied!', { description: 'Paste it into your messaging app' });
     });
   };
+
+  // Calculate totals
+  const itemCosts = currentOrder.map(item => ({
+    ...item,
+    costK: estimateCostK(item.ingredientId, item.quantity),
+  }));
+  const totalCostK = itemCosts.reduce((sum, item) => sum + (item.costK ?? 0), 0);
+  const roundedTotal = Math.round(totalCostK * 10) / 10;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
@@ -66,19 +75,32 @@ export function OrderBar({
               </div>
 
               <div className="space-y-1.5">
-                {currentOrder.map(item => (
+                {itemCosts.map(item => (
                   <div key={item.ingredientId} className="flex items-center justify-between bg-muted rounded-xl px-3 py-2">
-                    <span className="text-sm font-semibold text-foreground">
-                      {item.quantity}{UNIT_LABELS[item.unit]} {item.name}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-foreground">
+                        {item.quantity}{UNIT_LABELS[item.unit]} {item.name}
+                      </span>
+                      {item.costK !== undefined && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ~{formatPriceK(item.costK)}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => onRemoveItem(item.ingredientId)}
-                      className="text-destructive hover:text-destructive/80 p-1"
+                      className="text-destructive hover:text-destructive/80 p-1 flex-shrink-0"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
+              </div>
+
+              {/* Total */}
+              <div className="mt-3 pt-2 border-t border-border flex items-center justify-between">
+                <span className="text-sm font-extrabold text-foreground">Estimated Total</span>
+                <span className="text-sm font-extrabold text-primary">~{formatPriceK(roundedTotal)}</span>
               </div>
             </div>
           </motion.div>
@@ -99,7 +121,7 @@ export function OrderBar({
           </div>
           <div>
             <p className="font-extrabold text-sm">
-              {currentOrder.length} item{currentOrder.length !== 1 ? 's' : ''} in order
+              {currentOrder.length} item{currentOrder.length !== 1 ? 's' : ''} ~{formatPriceK(roundedTotal)}
             </p>
             {recentItems.length > 0 && !expanded && (
               <p className="text-[10px] opacity-80">
