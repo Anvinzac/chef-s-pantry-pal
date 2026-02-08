@@ -32,7 +32,7 @@ export function IngredientCard({
   return (
     <div
       className={cn(
-        "relative bg-card rounded-xl p-2 flex flex-col gap-1 transition-all duration-200 border-2 cursor-pointer",
+        "relative bg-card rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2 cursor-pointer",
         isInOrder
           ? "border-primary shadow-md shadow-primary/15"
           : "border-transparent shadow-sm"
@@ -46,7 +46,7 @@ export function IngredientCard({
           className="absolute -top-2 -left-1.5 bg-primary text-primary-foreground text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in gap-0.5 z-10 hover:bg-destructive transition-colors"
         >
           <span>{orderQuantity}{unit}</span>
-          <X size={9} />
+          <X size={10} />
         </button>
       )}
 
@@ -70,21 +70,21 @@ export function IngredientCard({
       </div>
 
       {/* Bottom row: quick buttons + keypad */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {ingredient.quickQuantities.map((qty, i) => (
           <button
             key={i}
             onClick={(e) => { e.stopPropagation(); handleQuickAdd(qty); }}
-            className="flex-1 py-1 rounded-lg text-[11px] font-bold transition-all duration-150 active:scale-95 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+            className="flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary min-h-[36px]"
           >
             {qty}{unit}
           </button>
         ))}
         <button
           onClick={(e) => { e.stopPropagation(); onCustomQuantity(); }}
-          className="p-1 rounded-lg text-secondary hover:bg-muted transition-colors flex-shrink-0"
+          className="p-2 rounded-lg text-secondary hover:bg-muted transition-colors flex-shrink-0 min-h-[36px] flex items-center justify-center"
         >
-          <Keyboard size={14} />
+          <Keyboard size={16} />
         </button>
       </div>
     </div>

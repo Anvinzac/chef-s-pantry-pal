@@ -76,20 +76,18 @@ export function OrderBar({
 
               <div className="space-y-1.5">
                 {itemCosts.map(item => (
-                  <div key={item.ingredientId} className="flex items-center justify-between bg-muted rounded-xl px-3 py-2">
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-foreground">
-                        {item.quantity}{UNIT_LABELS[item.unit]} {item.name}
+                  <div key={item.ingredientId} className="flex items-center bg-muted/50 rounded-xl px-3 py-2.5">
+                    <span className="text-sm font-semibold text-foreground flex-1 min-w-0 truncate">
+                      {item.quantity}{UNIT_LABELS[item.unit]} {item.name}
+                    </span>
+                    {item.costK !== undefined && (
+                      <span className="text-xs font-semibold text-muted-foreground bg-muted rounded-lg px-2 py-1 flex-shrink-0 ml-2">
+                        ~{formatPriceK(item.costK)}
                       </span>
-                      {item.costK !== undefined && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ~{formatPriceK(item.costK)}
-                        </span>
-                      )}
-                    </div>
+                    )}
                     <button
                       onClick={() => onRemoveItem(item.ingredientId)}
-                      className="text-destructive hover:text-destructive/80 p-1 flex-shrink-0"
+                      className="text-destructive hover:text-destructive/80 p-1.5 flex-shrink-0 ml-1.5"
                     >
                       <Trash2 size={14} />
                     </button>
