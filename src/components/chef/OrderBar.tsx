@@ -44,9 +44,23 @@ export function OrderBar({
   const roundedTotal = Math.round(totalCostK * 10) / 10;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+    <>
+      {/* Backdrop overlay when expanded */}
       <AnimatePresence>
         {expanded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-30 bg-black/40"
+            onClick={onToggleExpand}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+        <AnimatePresence>
+          {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -140,5 +154,6 @@ export function OrderBar({
         </div>
       </div>
     </div>
+    </>
   );
 }
