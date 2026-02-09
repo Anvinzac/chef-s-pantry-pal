@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      order_items: {
+        Row: {
+          category: string
+          cost_k: number | null
+          created_at: string
+          id: string
+          ingredient_id: string
+          name: string
+          order_id: string
+          quantity: number
+          unit: string
+        }
+        Insert: {
+          category: string
+          cost_k?: number | null
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          name: string
+          order_id: string
+          quantity: number
+          unit: string
+        }
+        Update: {
+          category?: string
+          cost_k?: number | null
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          name?: string
+          order_id?: string
+          quantity?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_date: string
+          total_cost_k: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_date?: string
+          total_cost_k?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_date?: string
+          total_cost_k?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
