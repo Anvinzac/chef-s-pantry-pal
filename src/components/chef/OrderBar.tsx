@@ -11,6 +11,7 @@ interface OrderBarProps {
   onRemoveItem: (ingredientId: string) => void;
   onClearOrder: () => void;
   getOrderText: (onlyNew?: boolean) => string;
+  onSaveOrder?: () => void;
 }
 
 export function OrderBar({
@@ -20,6 +21,7 @@ export function OrderBar({
   onRemoveItem,
   onClearOrder,
   getOrderText,
+  onSaveOrder,
 }: OrderBarProps) {
   if (currentOrder.length === 0) return null;
 
@@ -32,6 +34,10 @@ export function OrderBar({
     const text = getOrderText(!full);
     navigator.clipboard.writeText(text).then(() => {
       toast.success('Order list copied!', { description: 'Paste it into your messaging app' });
+      // Save order to database when copying full list
+      if (full && onSaveOrder) {
+        onSaveOrder();
+      }
     });
   };
 

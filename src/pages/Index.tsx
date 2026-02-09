@@ -1,16 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
 import { useOrder } from '@/hooks/useOrder';
+import { useOrderHistory } from '@/hooks/useOrderHistory';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
-import { Plus, ChefHat } from 'lucide-react';
+import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
+import { Plus, ChefHat, Clock } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(firstSubcategory);
@@ -19,6 +23,7 @@ const Index = () => {
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
 
   const {
+    ingredients,
     currentOrder,
     expandedOrder,
     setExpandedOrder,
@@ -31,6 +36,11 @@ const Index = () => {
     getOrderText,
     getIngredientsByCategory,
   } = useOrder();
+
+  const { saveOrder } = useOrderHistory();
+
+  const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
+  const specialDay = getSpecialDay(tomorrowIso);
 
   const activeCat = categories.find(c => c.id === activeCategory);
   const allCategoryIngredients = getIngredientsByCategory(activeCategory);
@@ -57,6 +67,22 @@ const Index = () => {
               <h1 className="font-extrabold text-base text-foreground leading-tight">Chef's Order</h1>
               <p className="text-[10px] text-muted-foreground font-semibold">Quick ingredient ordering</p>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-xs font-bold text-foreground leading-tight">{tomorrowFormatted}</p>
+              {specialDay && (
+                <p className={`text-[9px] font-semibold leading-tight ${specialDay.impact === 'high' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {specialDay.emoji} {specialDay.label}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => navigate('/history')}
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+            >
+              <Clock size={18} className="text-muted-foreground" />
+            </button>
           </div>
         </div>
 
@@ -124,6 +150,7 @@ const Index = () => {
         onRemoveItem={removeFromOrder}
         onClearOrder={clearOrder}
         getOrderText={getOrderText}
+        onSaveOrder={() => saveOrder(currentOrder, ingredients)}
       />
 
       {/* Numpad modal */}
