@@ -83,7 +83,7 @@ export function AddIngredientModal({
         >
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-extrabold text-lg text-foreground">
-              {isEditing ? 'Edit Ingredient' : 'Add Ingredient'}
+              {isEditing ? 'Chỉnh Sửa' : 'Thêm Nguyên Liệu'}
             </h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
               <X size={20} className="text-muted-foreground" />
@@ -91,7 +91,7 @@ export function AddIngredientModal({
           </div>
 
           {/* Emoji picker */}
-          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Emoji</label>
+          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Biểu tượng</label>
           <div className="flex gap-1.5 flex-wrap mb-4">
             {EMOJIS.map(e => (
               <button
@@ -105,16 +105,16 @@ export function AddIngredientModal({
           </div>
 
           {/* Name */}
-          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Name</label>
+          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Tên</label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Ingredient name"
+            placeholder="Tên nguyên liệu"
             className="w-full px-4 py-3 bg-muted rounded-xl text-sm font-semibold text-foreground placeholder:text-muted-foreground/50 mb-4 outline-none focus:ring-2 focus:ring-primary"
           />
 
           {/* Unit */}
-          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Unit of measurement</label>
+          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Đơn vị</label>
           <div className="flex gap-1.5 flex-wrap mb-4">
             {UNITS.map(u => (
               <button
@@ -128,7 +128,7 @@ export function AddIngredientModal({
           </div>
 
           {/* Reference price */}
-          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Reference price</label>
+          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Giá tham khảo</label>
           <input
             value={price}
             onChange={e => setPrice(e.target.value)}
@@ -139,7 +139,7 @@ export function AddIngredientModal({
           />
 
           {/* Quick quantities */}
-          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Quick buttons</label>
+          <label className="text-xs font-bold text-muted-foreground mb-1.5 block">Nút nhanh</label>
           <div className="flex gap-2 mb-6">
             <input
               value={q1}
@@ -175,7 +175,7 @@ export function AddIngredientModal({
               className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-extrabold text-sm flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-all"
             >
               {isEditing ? <Save size={18} /> : <Plus size={18} />}
-              {isEditing ? 'Save Changes' : 'Add Ingredient'}
+              {isEditing ? 'Lưu' : 'Thêm'}
             </button>
           </div>
         </motion.div>

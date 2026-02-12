@@ -6,7 +6,7 @@ const STORAGE_KEY_INGREDIENTS = 'chef-ingredients';
 const STORAGE_KEY_ORDERS = 'chef-current-order';
 const STORAGE_KEY_HISTORY = 'chef-order-history';
 const DATA_VERSION_KEY = 'chef-data-version';
-const CURRENT_DATA_VERSION = 2;
+const CURRENT_DATA_VERSION = 3;
 
 function loadIngredients(): Ingredient[] {
   try {

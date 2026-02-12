@@ -63,7 +63,7 @@ export function NumpadModal({ ingredient, onConfirm, onClose }: NumpadModalProps
               <span className="text-3xl">{ingredient.emoji}</span>
               <div>
                 <p className="font-bold text-card-foreground">{ingredient.name}</p>
-                <p className="text-xs text-muted-foreground">Enter quantity in {unit}</p>
+                <p className="text-xs text-muted-foreground">Nhập số lượng ({unit})</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
@@ -99,7 +99,7 @@ export function NumpadModal({ ingredient, onConfirm, onClose }: NumpadModalProps
             className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-extrabold text-lg flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-all"
           >
             <Check size={22} />
-            Add {value || '0'}{unit} {ingredient.name}
+            Thêm {value || '0'}{unit} {ingredient.name}
           </button>
         </motion.div>
       </motion.div>

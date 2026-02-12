@@ -4,6 +4,7 @@ import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
 import { useOrder } from '@/hooks/useOrder';
 import { useOrderHistory } from '@/hooks/useOrderHistory';
+import { useReorderAlerts } from '@/hooks/useReorderAlerts';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
@@ -11,7 +12,7 @@ import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock } from 'lucide-react';
+import { Plus, ChefHat, Clock, X } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -38,6 +39,13 @@ const Index = () => {
   } = useOrder();
 
   const { saveOrder } = useOrderHistory();
+  const {
+    getAlertCountForCategory,
+    dismissCategory,
+    isIngredientAlerted,
+    highlightedCategory,
+    clearHighlight,
+  } = useReorderAlerts(ingredients);
 
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
@@ -54,6 +62,16 @@ const Index = () => {
     setActiveSubcategory(cat?.subcategories?.[0]?.id ?? null);
   };
 
+  // Build alert counts map
+  const alertCounts: Record<string, number> = {};
+  for (const cat of categories) {
+    alertCounts[cat.id] = getAlertCountForCategory(cat.id);
+  }
+
+  const handleBadgeClick = (categoryId: string) => {
+    dismissCategory(categoryId);
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative">
       {/* Header */}
@@ -64,8 +82,8 @@ const Index = () => {
               <ChefHat size={20} className="text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-extrabold text-base text-foreground leading-tight">Chef's Order</h1>
-              <p className="text-[10px] text-muted-foreground font-semibold">Quick ingredient ordering</p>
+              <h1 className="font-extrabold text-base text-foreground leading-tight">Đặt Hàng Bếp</h1>
+              <p className="text-[10px] text-muted-foreground font-semibold">Đặt nguyên liệu nhanh</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -90,6 +108,8 @@ const Index = () => {
           categories={categories}
           activeCategory={activeCategory}
           onSelect={handleCategoryChange}
+          alertCounts={alertCounts}
+          onBadgeClick={handleBadgeClick}
         />
 
         {/* Subcategory bar */}
@@ -101,6 +121,18 @@ const Index = () => {
           />
         )}
       </header>
+
+      {/* Highlight mode banner */}
+      {highlightedCategory && highlightedCategory === activeCategory && (
+        <div className="mx-3 mt-2 px-3 py-2 rounded-xl bg-[hsl(var(--reorder-glow)/0.12)] border border-[hsl(var(--reorder-glow)/0.3)] flex items-center justify-between">
+          <span className="text-xs font-bold text-[hsl(var(--reorder-glow))]">
+            ⚡ Đang hiện nguyên liệu cần mua lại
+          </span>
+          <button onClick={clearHighlight} className="p-1 rounded-full hover:bg-muted">
+            <X size={14} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
 
       {/* Category header */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
@@ -119,14 +151,15 @@ const Index = () => {
           className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
         >
           <Plus size={14} />
-          Add
+          Thêm
         </button>
       </div>
 
-      {/* Ingredient list — single column horizontal cards */}
+      {/* Ingredient grid */}
       <div className="px-3 pb-32 grid grid-cols-2 gap-1.5">
         {filteredIngredients.map(ingredient => {
           const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
+          const alert = isIngredientAlerted(ingredient.id);
           return (
             <IngredientCard
               key={ingredient.id}
@@ -137,6 +170,7 @@ const Index = () => {
               onCustomQuantity={() => setNumpadIngredient(ingredient)}
               onEdit={() => { setEditIngredient(ingredient); setAddModalOpen(true); }}
               onClear={() => removeFromOrder(ingredient.id)}
+              reorderAlert={alert}
             />
           );
         })}
