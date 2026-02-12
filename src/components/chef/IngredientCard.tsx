@@ -2,6 +2,7 @@ import { Ingredient, UNIT_LABELS } from '@/types/ingredient';
 import { cn } from '@/lib/utils';
 import { Settings2, Keyboard, X } from 'lucide-react';
 import { getPriceK, formatPriceK } from '@/data/referencePrices';
+import { ReorderAlert } from '@/hooks/useReorderAlerts';
 
 interface IngredientCardProps {
   ingredient: Ingredient;
@@ -11,6 +12,7 @@ interface IngredientCardProps {
   onCustomQuantity: () => void;
   onEdit: () => void;
   onClear: () => void;
+  reorderAlert?: ReorderAlert;
 }
 
 export function IngredientCard({
@@ -21,6 +23,7 @@ export function IngredientCard({
   onCustomQuantity,
   onEdit,
   onClear,
+  reorderAlert,
 }: IngredientCardProps) {
   const unit = UNIT_LABELS[ingredient.unit];
   const priceK = getPriceK(ingredient.id);
@@ -29,13 +32,17 @@ export function IngredientCard({
     onQuickAdd(Math.round(((orderQuantity || 0) + qty) * 1000) / 1000);
   };
 
+  const isAlerted = !!reorderAlert;
+
   return (
     <div
       className={cn(
-        "relative bg-card rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2 cursor-pointer",
-        isInOrder
-          ? "border-primary shadow-md shadow-primary/15"
-          : "border-transparent shadow-sm"
+        "relative rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2 cursor-pointer",
+        isAlerted
+          ? "border-[hsl(var(--reorder-glow))] bg-[hsl(var(--reorder-glow)/0.08)] shadow-[0_0_12px_hsl(var(--reorder-glow)/0.25)]"
+          : isInOrder
+            ? "border-primary bg-card shadow-md shadow-primary/15"
+            : "border-transparent bg-card shadow-sm"
       )}
       onClick={onCustomQuantity}
     >
@@ -48,6 +55,13 @@ export function IngredientCard({
           <span>{orderQuantity}{unit}</span>
           <X size={10} />
         </button>
+      )}
+
+      {/* Reorder alert tag */}
+      {isAlerted && (
+        <span className="absolute -top-2 -right-1.5 bg-[hsl(var(--reorder-glow))] text-[hsl(220,30%,15%)] text-[9px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in z-10">
+          {reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder}d`}
+        </span>
       )}
 
       {/* Top row: emoji + name + edit */}
@@ -75,7 +89,12 @@ export function IngredientCard({
           <button
             key={i}
             onClick={(e) => { e.stopPropagation(); handleQuickAdd(qty); }}
-            className="flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary min-h-[36px]"
+            className={cn(
+              "flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 min-h-[36px]",
+              isAlerted
+                ? "bg-[hsl(var(--reorder-glow)/0.15)] text-[hsl(var(--reorder-glow))] hover:bg-[hsl(var(--reorder-glow)/0.25)]"
+                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+            )}
           >
             {qty}{unit}
           </button>

@@ -7,16 +7,16 @@ import { formatPriceK } from '@/data/referencePrices';
 import { UNIT_LABELS, UnitOfMeasurement } from '@/types/ingredient';
 
 const TIME_RANGES: { value: TimeRange; label: string }[] = [
-  { value: 'week', label: '1 Week' },
-  { value: '2weeks', label: '2 Weeks' },
-  { value: 'month', label: '1 Month' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'year', label: '1 Year' },
-  { value: 'all', label: 'All' },
+  { value: 'week', label: '1 Tuần' },
+  { value: '2weeks', label: '2 Tuần' },
+  { value: 'month', label: '1 Tháng' },
+  { value: 'quarter', label: 'Quý' },
+  { value: 'year', label: '1 Năm' },
+  { value: 'all', label: 'Tất Cả' },
 ];
 
 const ALL_CATEGORIES = [
-  { id: 'all', name: 'All Categories', emoji: '📋' },
+  { id: 'all', name: 'Tất Cả', emoji: '📋' },
   ...categories,
 ];
 
@@ -32,9 +32,8 @@ function groupOrdersByDate(orders: SavedOrder[]): Record<string, SavedOrder[]> {
 
 function formatDateLabel(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00');
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  return `${days[date.getDay()]}, ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
 function groupItemsByCategory(items: { category: string; name: string; quantity: number; unit: string; cost_k: number | null }[]) {
@@ -68,14 +67,13 @@ const History = () => {
             <ArrowLeft size={20} className="text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="font-extrabold text-base text-foreground leading-tight">Order History</h1>
-            <p className="text-[10px] text-muted-foreground font-semibold">Review past orders</p>
+            <h1 className="font-extrabold text-base text-foreground leading-tight">Lịch Sử Đặt Hàng</h1>
+            <p className="text-[10px] text-muted-foreground font-semibold">Xem lại đơn đã đặt</p>
           </div>
         </div>
 
         {/* Filters */}
         <div className="px-4 pb-2 space-y-2">
-          {/* Time range */}
           <div className="flex items-center gap-1.5">
             <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
             <div className="flex gap-1 overflow-x-auto no-scrollbar">
@@ -94,7 +92,6 @@ const History = () => {
               ))}
             </div>
           </div>
-          {/* Category filter */}
           <div className="flex items-center gap-1.5">
             <Filter size={14} className="text-muted-foreground flex-shrink-0" />
             <div className="flex gap-1 overflow-x-auto no-scrollbar">
@@ -119,19 +116,18 @@ const History = () => {
       {/* Content */}
       <div className="px-3 py-3 pb-8 space-y-4">
         {loading && (
-          <div className="text-center py-12 text-muted-foreground text-sm font-semibold">Loading...</div>
+          <div className="text-center py-12 text-muted-foreground text-sm font-semibold">Đang tải...</div>
         )}
 
         {!loading && dateKeys.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground text-sm font-semibold">No orders found</p>
-            <p className="text-muted-foreground/60 text-xs mt-1">Try changing the time range or category filter</p>
+            <p className="text-muted-foreground text-sm font-semibold">Không tìm thấy đơn hàng</p>
+            <p className="text-muted-foreground/60 text-xs mt-1">Thử thay đổi bộ lọc thời gian hoặc danh mục</p>
           </div>
         )}
 
         {dateKeys.map(dateKey => {
           const dayOrders = grouped[dateKey];
-          // Merge all items from all orders on this day
           const allItems = dayOrders.flatMap(o => o.items);
           const categoryGroups = groupItemsByCategory(allItems);
           const categoryKeys = Object.keys(categoryGroups);
@@ -139,7 +135,6 @@ const History = () => {
 
           return (
             <div key={dateKey} className="space-y-2">
-              {/* Date header */}
               <div className="flex items-center justify-between px-1">
                 <h2 className="font-extrabold text-sm text-foreground">
                   📅 {formatDateLabel(dateKey)}
@@ -149,7 +144,6 @@ const History = () => {
                 </span>
               </div>
 
-              {/* Category groups */}
               {categoryKeys.map(catKey => {
                 const cat = categories.find(c => c.id === catKey);
                 const items = categoryGroups[catKey];
@@ -157,7 +151,6 @@ const History = () => {
 
                 return (
                   <div key={catKey} className="bg-card rounded-xl border border-border overflow-hidden">
-                    {/* Category header */}
                     <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b border-border">
                       <span className="text-xs font-bold text-foreground">
                         {cat?.emoji ?? '📦'} {cat?.name ?? catKey}
@@ -167,7 +160,6 @@ const History = () => {
                       </span>
                     </div>
 
-                    {/* Items */}
                     <div className="divide-y divide-border">
                       {items.map((item, idx) => (
                         <div key={idx} className="flex items-center justify-between px-3 py-2">

@@ -5,26 +5,44 @@ interface CategoryBarProps {
   categories: Category[];
   activeCategory: string;
   onSelect: (id: string) => void;
+  alertCounts?: Record<string, number>;
+  onBadgeClick?: (categoryId: string) => void;
 }
 
-export function CategoryBar({ categories, activeCategory, onSelect }: CategoryBarProps) {
+export function CategoryBar({ categories, activeCategory, onSelect, alertCounts, onBadgeClick }: CategoryBarProps) {
   return (
     <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-3">
-      {categories.map(cat => (
-        <button
-          key={cat.id}
-          onClick={() => onSelect(cat.id)}
-          className={cn(
-            "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 shrink-0",
-            activeCategory === cat.id
-              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
-              : "bg-card text-card-foreground border border-border hover:border-primary/30"
-          )}
-        >
-          <span className="text-base">{cat.emoji}</span>
-          <span>{cat.name}</span>
-        </button>
-      ))}
+      {categories.map(cat => {
+        const alertCount = alertCounts?.[cat.id] ?? 0;
+        return (
+          <button
+            key={cat.id}
+            onClick={() => onSelect(cat.id)}
+            className={cn(
+              "relative flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 shrink-0",
+              activeCategory === cat.id
+                ? "text-primary-foreground shadow-lg scale-105"
+                : "bg-card text-card-foreground border border-border hover:border-primary/30"
+            )}
+            style={activeCategory === cat.id ? { backgroundColor: cat.color } : undefined}
+          >
+            <span className="text-base">{cat.emoji}</span>
+            <span>{cat.name}</span>
+            {alertCount > 0 && (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(cat.id);
+                  onBadgeClick?.(cat.id);
+                }}
+                className="absolute -top-1.5 -right-1.5 bg-[hsl(var(--reorder-glow))] text-[hsl(220,30%,15%)] text-[10px] font-extrabold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse z-10"
+              >
+                {alertCount}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

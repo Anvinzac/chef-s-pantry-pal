@@ -6,52 +6,6 @@
 
 @layer base {
   :root {
-    --background: 30 25% 97%;
-    --foreground: 220 30% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 30% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 15%;
-
-    --primary: 16 100% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 172 66% 44%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 30 15% 92%;
-    --muted-foreground: 220 15% 50%;
-
-    --accent: 45 93% 58%;
-    --accent-foreground: 220 30% 15%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 16 100% 60%;
-
-    --radius: 1rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    --success: 152 60% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 55%;
-    --warning-foreground: 220 30% 15%;
-  }
-
-  .dark {
     --background: 220 25% 10%;
     --foreground: 30 15% 95%;
     --card: 220 25% 14%;
@@ -66,11 +20,13 @@
     --muted-foreground: 220 15% 60%;
     --accent: 45 93% 58%;
     --accent-foreground: 220 30% 15%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 20% 22%;
     --input: 220 20% 22%;
     --ring: 16 100% 60%;
+    --radius: 1rem;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -79,6 +35,25 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 220 30% 15%;
+
+    /* Colorful category palette */
+    --cat-vegetables: 145 65% 42%;
+    --cat-sauces: 0 72% 55%;
+    --cat-spices: 32 90% 52%;
+    --cat-grains: 42 75% 50%;
+    --cat-oils: 62 55% 42%;
+    --cat-proteins: 348 70% 52%;
+    --cat-dairy: 48 85% 60%;
+    --cat-gas: 210 65% 50%;
+    --cat-equipment: 220 20% 50%;
+    --cat-tissue: 188 55% 48%;
+
+    --reorder-glow: 38 100% 60%;
   }
 }
 

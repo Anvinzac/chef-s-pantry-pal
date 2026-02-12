@@ -33,15 +33,13 @@ export function OrderBar({
   const handleCopy = (full: boolean) => {
     const text = getOrderText(!full);
     navigator.clipboard.writeText(text).then(() => {
-      toast.success('Order list copied!', { description: 'Paste it into your messaging app' });
-      // Save order to database when copying full list
+      toast.success('Đã sao chép!', { description: 'Dán vào ứng dụng nhắn tin' });
       if (full && onSaveOrder) {
         onSaveOrder();
       }
     });
   };
 
-  // Calculate totals
   const itemCosts = currentOrder.map(item => ({
     ...item,
     costK: estimateCostK(item.ingredientId, item.quantity),
@@ -51,7 +49,6 @@ export function OrderBar({
 
   return (
     <>
-      {/* Backdrop overlay when expanded */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -75,21 +72,21 @@ export function OrderBar({
           >
             <div className="p-4 max-h-[50vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-extrabold text-sm text-foreground">Full Shopping List</h3>
+                <h3 className="font-extrabold text-sm text-foreground">Danh Sách Đặt Hàng</h3>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleCopy(true)}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold"
                   >
                     <Copy size={12} />
-                    Copy All
+                    Sao Chép
                   </button>
                   <button
                     onClick={onClearOrder}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold"
                   >
                     <Trash2 size={12} />
-                    Clear
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -115,9 +112,8 @@ export function OrderBar({
                 ))}
               </div>
 
-              {/* Total */}
               <div className="mt-3 pt-2 border-t border-border flex items-center justify-between">
-                <span className="text-sm font-extrabold text-foreground">Estimated Total</span>
+                <span className="text-sm font-extrabold text-foreground">Tổng Ước Tính</span>
                 <span className="text-sm font-extrabold text-primary">~{formatPriceK(roundedTotal)}</span>
               </div>
             </div>
@@ -125,7 +121,6 @@ export function OrderBar({
         )}
       </AnimatePresence>
 
-      {/* Bottom bar */}
       <div
         className="bg-primary text-primary-foreground px-4 py-3 safe-bottom flex items-center justify-between cursor-pointer"
         onClick={onToggleExpand}
@@ -139,11 +134,11 @@ export function OrderBar({
           </div>
           <div>
             <p className="font-extrabold text-sm">
-              {currentOrder.length} item{currentOrder.length !== 1 ? 's' : ''} ~{formatPriceK(roundedTotal)}
+              {currentOrder.length} món ~{formatPriceK(roundedTotal)}
             </p>
             {recentItems.length > 0 && !expanded && (
               <p className="text-[10px] opacity-80">
-                +{recentItems.length} just added • Tap to expand
+                +{recentItems.length} vừa thêm • Nhấn mở rộng
               </p>
             )}
           </div>
