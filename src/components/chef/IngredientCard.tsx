@@ -57,19 +57,17 @@ export function IngredientCard({
         </button>
       )}
 
-      {/* Reorder alert tag */}
-      {isAlerted && (
-        <span className="absolute -top-2 -right-1.5 bg-[hsl(var(--reorder-glow))] text-[hsl(220,30%,15%)] text-[9px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in z-10">
-          {reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder}d`}
-        </span>
-      )}
-
-      {/* Top row: emoji + name + edit */}
+      {/* Top row: emoji + name + alert tag + edit */}
       <div className="flex items-center gap-1.5">
         <span className="text-xl leading-none">{ingredient.emoji}</span>
         <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
           {ingredient.name}
         </span>
+        {isAlerted && (
+          <span className="bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[8px] font-extrabold rounded-full h-4 px-1.5 flex items-center justify-center shrink-0">
+            {reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder}ngày`}
+          </span>
+        )}
         {priceK !== undefined && (
           <span className="text-[9px] text-muted-foreground/70 font-medium flex-shrink-0">
             {formatPriceK(priceK)}

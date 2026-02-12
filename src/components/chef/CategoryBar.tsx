@@ -35,7 +35,7 @@ export function CategoryBar({ categories, activeCategory, onSelect, alertCounts,
                   onSelect(cat.id);
                   onBadgeClick?.(cat.id);
                 }}
-                className="absolute -top-1.5 -right-1.5 bg-[hsl(var(--reorder-glow))] text-[hsl(220,30%,15%)] text-[10px] font-extrabold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse z-10"
+                className="absolute -top-1.5 -right-1.5 bg-[hsl(38,100%,60%)] text-[hsl(220,30%,15%)] text-[10px] font-extrabold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse z-10"
               >
                 {alertCount}
               </span>
