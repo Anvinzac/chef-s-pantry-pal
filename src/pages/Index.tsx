@@ -12,7 +12,7 @@ import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, X } from 'lucide-react';
+import { Plus, ChefHat, Clock } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -41,10 +41,8 @@ const Index = () => {
   const { saveOrder } = useOrderHistory();
   const {
     getAlertCountForCategory,
-    dismissCategory,
     isIngredientAlerted,
-    highlightedCategory,
-    clearHighlight,
+    refreshAlerts,
   } = useReorderAlerts(ingredients);
 
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
@@ -68,9 +66,6 @@ const Index = () => {
     alertCounts[cat.id] = getAlertCountForCategory(cat.id);
   }
 
-  const handleBadgeClick = (categoryId: string) => {
-    dismissCategory(categoryId);
-  };
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative">
@@ -109,7 +104,6 @@ const Index = () => {
           activeCategory={activeCategory}
           onSelect={handleCategoryChange}
           alertCounts={alertCounts}
-          onBadgeClick={handleBadgeClick}
         />
 
         {/* Subcategory bar */}
@@ -122,17 +116,6 @@ const Index = () => {
         )}
       </header>
 
-      {/* Highlight mode banner */}
-      {highlightedCategory && highlightedCategory === activeCategory && (
-        <div className="mx-3 mt-2 px-3 py-2 rounded-xl bg-[hsl(var(--reorder-glow)/0.12)] border border-[hsl(var(--reorder-glow)/0.3)] flex items-center justify-between">
-          <span className="text-xs font-bold text-[hsl(var(--reorder-glow))]">
-            ⚡ Đang hiện nguyên liệu cần mua lại
-          </span>
-          <button onClick={clearHighlight} className="p-1 rounded-full hover:bg-muted">
-            <X size={14} className="text-muted-foreground" />
-          </button>
-        </div>
-      )}
 
       {/* Category header */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">

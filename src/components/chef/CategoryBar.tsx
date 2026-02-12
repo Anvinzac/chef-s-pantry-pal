@@ -6,10 +6,9 @@ interface CategoryBarProps {
   activeCategory: string;
   onSelect: (id: string) => void;
   alertCounts?: Record<string, number>;
-  onBadgeClick?: (categoryId: string) => void;
 }
 
-export function CategoryBar({ categories, activeCategory, onSelect, alertCounts, onBadgeClick }: CategoryBarProps) {
+export function CategoryBar({ categories, activeCategory, onSelect, alertCounts }: CategoryBarProps) {
   return (
     <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-3">
       {categories.map(cat => {
@@ -29,14 +28,7 @@ export function CategoryBar({ categories, activeCategory, onSelect, alertCounts,
             <span className="text-base">{cat.emoji}</span>
             <span>{cat.name}</span>
             {alertCount > 0 && (
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(cat.id);
-                  onBadgeClick?.(cat.id);
-                }}
-                className="absolute -top-1.5 -right-1.5 bg-[hsl(38,100%,60%)] text-[hsl(220,30%,15%)] text-[10px] font-extrabold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse z-10"
-              >
+              <span className="absolute -top-1.5 -right-1.5 bg-[hsl(38,100%,60%)] text-[hsl(220,30%,15%)] text-[10px] font-extrabold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse z-10">
                 {alertCount}
               </span>
             )}
