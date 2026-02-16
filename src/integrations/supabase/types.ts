@@ -82,6 +82,42 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_reports: {
+        Row: {
+          category: string
+          emoji: string
+          id: string
+          ingredient_id: string
+          name: string
+          reported_at: string
+          resolved_at: string | null
+          subcategory: string | null
+          unit: string
+        }
+        Insert: {
+          category: string
+          emoji?: string
+          id?: string
+          ingredient_id: string
+          name: string
+          reported_at?: string
+          resolved_at?: string | null
+          subcategory?: string | null
+          unit?: string
+        }
+        Update: {
+          category?: string
+          emoji?: string
+          id?: string
+          ingredient_id?: string
+          name?: string
+          reported_at?: string
+          resolved_at?: string | null
+          subcategory?: string | null
+          unit?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

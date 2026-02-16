@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
 import { useOrder } from '@/hooks/useOrder';
 import { useOrderHistory } from '@/hooks/useOrderHistory';
 import { useReorderAlerts } from '@/hooks/useReorderAlerts';
+import { useStockReports } from '@/hooks/useStockReports';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
@@ -12,10 +13,11 @@ import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(firstSubcategory);
@@ -45,6 +47,24 @@ const Index = () => {
     refreshAlerts,
   } = useReorderAlerts(ingredients);
 
+  const {
+    outOfStockCount,
+    reportOutOfStock,
+    isOutOfStock,
+  } = useStockReports();
+
+  // Handle navigation from stock report page
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    const sub = searchParams.get('subcategory');
+    if (cat) {
+      setActiveCategory(cat);
+      const catObj = categories.find(c => c.id === cat);
+      setActiveSubcategory(sub ?? catObj?.subcategories?.[0]?.id ?? null);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
 
@@ -65,7 +85,6 @@ const Index = () => {
   for (const cat of categories) {
     alertCounts[cat.id] = getAlertCountForCategory(cat.id);
   }
-
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative">
@@ -91,6 +110,17 @@ const Index = () => {
               )}
             </div>
             <button
+              onClick={() => navigate('/stock-report')}
+              className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
+            >
+              <AlertTriangle size={18} className="text-muted-foreground" />
+              {outOfStockCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                  {outOfStockCount}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => navigate('/history')}
               className="p-1.5 rounded-lg hover:bg-muted transition-colors"
             >
@@ -115,7 +145,6 @@ const Index = () => {
           />
         )}
       </header>
-
 
       {/* Category header */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
@@ -143,6 +172,7 @@ const Index = () => {
         {filteredIngredients.map(ingredient => {
           const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
           const alert = isIngredientAlerted(ingredient.id);
+          const outOfStock = isOutOfStock(ingredient.id);
           return (
             <IngredientCard
               key={ingredient.id}
@@ -154,6 +184,8 @@ const Index = () => {
               onEdit={() => { setEditIngredient(ingredient); setAddModalOpen(true); }}
               onClear={() => removeFromOrder(ingredient.id)}
               reorderAlert={alert}
+              isOutOfStock={outOfStock}
+              onReportOutOfStock={() => reportOutOfStock(ingredient)}
             />
           );
         })}
