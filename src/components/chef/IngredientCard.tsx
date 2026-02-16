@@ -15,6 +15,7 @@ interface IngredientCardProps {
   reorderAlert?: ReorderAlert;
   isOutOfStock?: boolean;
   onReportOutOfStock?: () => void;
+  reportMode?: boolean;
 }
 
 export function IngredientCard({
@@ -28,6 +29,7 @@ export function IngredientCard({
   reorderAlert,
   isOutOfStock,
   onReportOutOfStock,
+  reportMode,
 }: IngredientCardProps) {
   const unit = UNIT_LABELS[ingredient.unit];
   const priceK = getPriceK(ingredient.id);
@@ -38,6 +40,45 @@ export function IngredientCard({
 
   const isAlerted = !!reorderAlert;
 
+  // Report-only mode for kitchen members
+  if (reportMode) {
+    return (
+      <div
+        className={cn(
+          "relative rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2",
+          isOutOfStock
+            ? "border-destructive bg-destructive/10"
+            : "border-transparent bg-card shadow-sm"
+        )}
+      >
+        {/* Name row */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xl leading-none">{ingredient.emoji}</span>
+          <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
+            {ingredient.name}
+          </span>
+        </div>
+
+        {/* Report button */}
+        {isOutOfStock ? (
+          <div className="flex items-center gap-1.5 bg-destructive/15 text-destructive rounded-lg px-2.5 py-2.5 justify-center">
+            <AlertTriangle size={14} />
+            <span className="text-xs font-extrabold">Đã báo hết hàng</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => onReportOutOfStock?.()}
+            className="flex items-center gap-1.5 bg-muted hover:bg-destructive/15 hover:text-destructive text-muted-foreground rounded-lg px-2.5 py-2.5 justify-center transition-colors active:scale-95"
+          >
+            <AlertTriangle size={14} />
+            <span className="text-xs font-bold">Báo hết hàng</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Chef mode (full ordering UI)
   return (
     <div
       className={cn(
