@@ -1,6 +1,6 @@
 import { Ingredient, UNIT_LABELS } from '@/types/ingredient';
 import { cn } from '@/lib/utils';
-import { Settings2, Keyboard, X } from 'lucide-react';
+import { Settings2, Keyboard, X, AlertTriangle } from 'lucide-react';
 import { getPriceK, formatPriceK } from '@/data/referencePrices';
 import { ReorderAlert } from '@/hooks/useReorderAlerts';
 
@@ -13,6 +13,8 @@ interface IngredientCardProps {
   onEdit: () => void;
   onClear: () => void;
   reorderAlert?: ReorderAlert;
+  isOutOfStock?: boolean;
+  onReportOutOfStock?: () => void;
 }
 
 export function IngredientCard({
@@ -24,6 +26,8 @@ export function IngredientCard({
   onEdit,
   onClear,
   reorderAlert,
+  isOutOfStock,
+  onReportOutOfStock,
 }: IngredientCardProps) {
   const unit = UNIT_LABELS[ingredient.unit];
   const priceK = getPriceK(ingredient.id);
@@ -81,7 +85,7 @@ export function IngredientCard({
         </button>
       </div>
 
-      {/* Bottom row: quick buttons + keypad */}
+      {/* Bottom row: quick buttons + keypad + out of stock */}
       <div className="flex items-center gap-1.5">
         {ingredient.quickQuantities.map((qty, i) => (
           <button
@@ -103,7 +107,22 @@ export function IngredientCard({
         >
           <Keyboard size={16} />
         </button>
+        {onReportOutOfStock && !isOutOfStock && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onReportOutOfStock(); }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0 min-h-[36px] flex items-center justify-center"
+            title="Báo hết hàng"
+          >
+            <AlertTriangle size={14} />
+          </button>
+        )}
       </div>
+      {isOutOfStock && (
+        <div className="flex items-center gap-1 bg-destructive/15 text-destructive rounded-lg px-2 py-1.5">
+          <AlertTriangle size={12} />
+          <span className="text-[10px] font-extrabold">Đã báo hết hàng</span>
+        </div>
+      )}
     </div>
   );
 }
