@@ -6,6 +6,7 @@ import { useOrder } from '@/hooks/useOrder';
 import { useOrderHistory } from '@/hooks/useOrderHistory';
 import { useReorderAlerts } from '@/hooks/useReorderAlerts';
 import { useStockReports } from '@/hooks/useStockReports';
+import { useAuth } from '@/hooks/useAuth';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
@@ -13,10 +14,12 @@ import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, User } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { role, displayName, signOut } = useAuth();
+  const isChef = role === 'chef';
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
@@ -80,7 +83,6 @@ const Index = () => {
     setActiveSubcategory(cat?.subcategories?.[0]?.id ?? null);
   };
 
-  // Build alert counts map
   const alertCounts: Record<string, number> = {};
   for (const cat of categories) {
     alertCounts[cat.id] = getAlertCountForCategory(cat.id);
@@ -96,19 +98,28 @@ const Index = () => {
               <ChefHat size={20} className="text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-extrabold text-base text-foreground leading-tight">Đặt Hàng Bếp</h1>
-              <p className="text-[10px] text-muted-foreground font-semibold">Đặt nguyên liệu nhanh</p>
+              <h1 className="font-extrabold text-base text-foreground leading-tight">
+                {isChef ? 'Đặt Hàng Bếp' : 'Báo Hết Hàng'}
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                <User size={9} />
+                {displayName ?? 'User'}
+                <span className="text-muted-foreground/50">•</span>
+                <span className={isChef ? 'text-primary' : 'text-secondary'}>{isChef ? 'Bếp trưởng' : 'Nhân viên'}</span>
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-xs font-bold text-foreground leading-tight">{tomorrowFormatted}</p>
-              {specialDay && (
-                <p className={`text-[9px] font-semibold leading-tight ${specialDay.impact === 'high' ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {specialDay.emoji} {specialDay.label}
-                </p>
-              )}
-            </div>
+          <div className="flex items-center gap-1.5">
+            {isChef && (
+              <div className="text-right mr-1">
+                <p className="text-xs font-bold text-foreground leading-tight">{tomorrowFormatted}</p>
+                {specialDay && (
+                  <p className={`text-[9px] font-semibold leading-tight ${specialDay.impact === 'high' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {specialDay.emoji} {specialDay.label}
+                  </p>
+                )}
+              </div>
+            )}
             <button
               onClick={() => navigate('/stock-report')}
               className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -120,11 +131,19 @@ const Index = () => {
                 </span>
               )}
             </button>
+            {isChef && (
+              <button
+                onClick={() => navigate('/history')}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <Clock size={18} className="text-muted-foreground" />
+              </button>
+            )}
             <button
-              onClick={() => navigate('/history')}
+              onClick={signOut}
               className="p-1.5 rounded-lg hover:bg-muted transition-colors"
             >
-              <Clock size={18} className="text-muted-foreground" />
+              <LogOut size={16} className="text-muted-foreground" />
             </button>
           </div>
         </div>
@@ -133,10 +152,9 @@ const Index = () => {
           categories={categories}
           activeCategory={activeCategory}
           onSelect={handleCategoryChange}
-          alertCounts={alertCounts}
+          alertCounts={isChef ? alertCounts : undefined}
         />
 
-        {/* Subcategory bar */}
         {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
           <SubcategoryBar
             subcategories={activeCat.subcategories}
@@ -158,13 +176,15 @@ const Index = () => {
           )}
           <span className="text-muted-foreground font-semibold">({filteredIngredients.length})</span>
         </h2>
-        <button
-          onClick={() => { setEditIngredient(null); setAddModalOpen(true); }}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
-        >
-          <Plus size={14} />
-          Thêm
-        </button>
+        {isChef && (
+          <button
+            onClick={() => { setEditIngredient(null); setAddModalOpen(true); }}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
+          >
+            <Plus size={14} />
+            Thêm
+          </button>
+        )}
       </div>
 
       {/* Ingredient grid */}
@@ -177,48 +197,55 @@ const Index = () => {
             <IngredientCard
               key={ingredient.id}
               ingredient={ingredient}
-              isInOrder={!!orderItem}
-              orderQuantity={orderItem?.quantity}
-              onQuickAdd={(qty) => addToOrder(ingredient, qty)}
-              onCustomQuantity={() => setNumpadIngredient(ingredient)}
-              onEdit={() => { setEditIngredient(ingredient); setAddModalOpen(true); }}
-              onClear={() => removeFromOrder(ingredient.id)}
-              reorderAlert={alert}
+              isInOrder={isChef ? !!orderItem : false}
+              orderQuantity={isChef ? orderItem?.quantity : undefined}
+              onQuickAdd={isChef ? (qty) => addToOrder(ingredient, qty) : () => {}}
+              onCustomQuantity={isChef ? () => setNumpadIngredient(ingredient) : () => {}}
+              onEdit={isChef ? () => { setEditIngredient(ingredient); setAddModalOpen(true); } : () => {}}
+              onClear={isChef ? () => removeFromOrder(ingredient.id) : () => {}}
+              reorderAlert={isChef ? alert : undefined}
               isOutOfStock={outOfStock}
               onReportOutOfStock={() => reportOutOfStock(ingredient)}
+              reportMode={!isChef}
             />
           );
         })}
       </div>
 
-      {/* Order bar */}
-      <OrderBar
-        currentOrder={currentOrder}
-        expanded={expandedOrder}
-        onToggleExpand={() => setExpandedOrder(!expandedOrder)}
-        onRemoveItem={removeFromOrder}
-        onClearOrder={clearOrder}
-        getOrderText={getOrderText}
-        onSaveOrder={() => saveOrder(currentOrder, ingredients)}
-      />
+      {/* Order bar — chef only */}
+      {isChef && (
+        <OrderBar
+          currentOrder={currentOrder}
+          expanded={expandedOrder}
+          onToggleExpand={() => setExpandedOrder(!expandedOrder)}
+          onRemoveItem={removeFromOrder}
+          onClearOrder={clearOrder}
+          getOrderText={getOrderText}
+          onSaveOrder={() => saveOrder(currentOrder, ingredients)}
+        />
+      )}
 
-      {/* Numpad modal */}
-      <NumpadModal
-        ingredient={numpadIngredient}
-        onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
-        onClose={() => setNumpadIngredient(null)}
-      />
+      {/* Numpad modal — chef only */}
+      {isChef && (
+        <NumpadModal
+          ingredient={numpadIngredient}
+          onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
+          onClose={() => setNumpadIngredient(null)}
+        />
+      )}
 
-      {/* Add/Edit ingredient modal */}
-      <AddIngredientModal
-        isOpen={addModalOpen}
-        onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
-        onAdd={addIngredient}
-        onUpdate={updateIngredient}
-        onDelete={deleteIngredient}
-        editIngredient={editIngredient}
-        categoryId={activeCategory}
-      />
+      {/* Add/Edit ingredient modal — chef only */}
+      {isChef && (
+        <AddIngredientModal
+          isOpen={addModalOpen}
+          onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
+          onAdd={addIngredient}
+          onUpdate={updateIngredient}
+          onDelete={deleteIngredient}
+          editIngredient={editIngredient}
+          categoryId={activeCategory}
+        />
+      )}
     </div>
   );
 };
