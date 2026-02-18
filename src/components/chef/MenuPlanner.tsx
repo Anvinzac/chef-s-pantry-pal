@@ -50,8 +50,12 @@ export function MenuPlanner() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Top - Selected menu text (compact, not flex-1) */}
-      <div className="border-b border-border flex flex-col flex-shrink-0">
+      {/* Top - Header + selected dishes */}
+      <div className={cn(
+        "border-b border-border flex flex-col flex-shrink-0 transition-all duration-300",
+        expanded ? "flex-1 min-h-0" : ""
+      )}>
+        {/* Header row */}
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base text-foreground">
@@ -63,36 +67,21 @@ export function MenuPlanner() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
-            {warnings.length > 0 && (
-              <span className="text-destructive">
-                <AlertTriangle size={14} />
-              </span>
-            )}
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="p-1 rounded-lg hover:bg-muted transition-colors"
-            >
-              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-xs active:scale-95 transition-transform"
-            >
-              <Copy size={12} />
-              Sao chép
-            </button>
-          </div>
+          {warnings.length > 0 && (
+            <span className="text-destructive">
+              <AlertTriangle size={14} />
+            </span>
+          )}
         </div>
 
         {/* Selected dishes list */}
-        <div className="px-3 pb-2">
+        <div className={cn("px-3 overflow-y-auto", expanded ? "flex-1 min-h-0" : "")}>
           <p className="text-xs text-muted-foreground mb-1 italic">
             Dạ, hôm nay Lá có:
           </p>
 
           {expanded ? (
-            <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+            <div className="space-y-1">
               {selectedDishes.map(dish => (
                 <div key={dish.id} className="flex items-center justify-between group">
                   <span className="text-sm text-foreground">
@@ -109,7 +98,6 @@ export function MenuPlanner() {
                 </div>
               ))}
 
-              {/* Warnings in expanded */}
               <AnimatePresence>
                 {warnings.length > 0 && (
                   <motion.div
@@ -154,13 +142,28 @@ export function MenuPlanner() {
             })()
           )}
         </div>
+
+        {/* Action bar at bottom of top section */}
+        <div className="flex items-center justify-end gap-2 px-3 py-1.5 flex-shrink-0">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
+          >
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {expanded ? 'Thu gọn' : 'Mở rộng'}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs active:scale-95 transition-transform"
+          >
+            <Copy size={12} />
+            Sao chép
+          </button>
+        </div>
       </div>
 
-      {/* Middle - Dish grid (takes all remaining space, scrollable) */}
-      <div className={cn(
-        "flex-1 min-h-0 overflow-y-auto px-3 py-2 transition-all duration-300",
-        expanded ? "hidden" : ""
-      )}>
+      {/* Middle - Dish grid (takes remaining space, scrollable) */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm text-foreground">
             {activeCategory.vnName}
@@ -219,10 +222,7 @@ export function MenuPlanner() {
       </div>
 
       {/* Bottom - Category tabs (docked near thumb) */}
-      <div className={cn(
-        "flex flex-wrap border-t border-border px-2 gap-1.5 py-2 flex-shrink-0 safe-bottom",
-        expanded ? "hidden" : ""
-      )}>
+      <div className="flex flex-wrap border-t border-border px-2 gap-1.5 py-2 flex-shrink-0 safe-bottom">
         {menuCategories.map((cat, idx) => {
           const hasSelected = selectedDishes.some(d => d.category === cat.id && d.id !== 'fixed-cari');
           return (
