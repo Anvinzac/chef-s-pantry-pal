@@ -50,10 +50,8 @@ export function MenuPlanner() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Top - Selected dishes (takes remaining space) */}
-      <div className={cn(
-        "border-b border-border transition-all duration-300 flex flex-col flex-1 min-h-0",
-      )}>
+      {/* Top - Selected menu text (compact, not flex-1) */}
+      <div className="border-b border-border flex flex-col flex-shrink-0">
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base text-foreground">
@@ -88,14 +86,13 @@ export function MenuPlanner() {
         </div>
 
         {/* Selected dishes list */}
-        <div className="flex-1 overflow-auto px-3 pb-2">
+        <div className="px-3 pb-2">
           <p className="text-xs text-muted-foreground mb-1 italic">
             Dạ, hôm nay Lá có:
           </p>
 
           {expanded ? (
-            // Expanded: single column
-            <div className="space-y-1">
+            <div className="space-y-1 max-h-[50vh] overflow-y-auto">
               {selectedDishes.map(dish => (
                 <div key={dish.id} className="flex items-center justify-between group">
                   <span className="text-sm text-foreground">
@@ -111,15 +108,33 @@ export function MenuPlanner() {
                   )}
                 </div>
               ))}
+
+              {/* Warnings in expanded */}
+              <AnimatePresence>
+                {warnings.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 bg-destructive/10 border border-destructive/30 rounded-lg px-2.5 py-1.5"
+                  >
+                    {warnings.map((w, i) => (
+                      <p key={i} className="text-xs text-destructive flex items-center gap-1">
+                        <AlertTriangle size={10} />
+                        {w}
+                      </p>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
-            // Compact: 2 columns, sequential order (1-8 left, 9+ right)
             (() => {
               const half = Math.ceil(selectedDishes.length / 2);
               const leftCol = selectedDishes.slice(0, half);
               const rightCol = selectedDishes.slice(half);
               return (
-                <div className="grid grid-cols-2 gap-x-4 overflow-y-auto h-full">
+                <div className="grid grid-cols-2 gap-x-4">
                   <div className="flex flex-col gap-0.5">
                     {leftCol.map(dish => (
                       <span key={dish.id} className="text-sm text-foreground whitespace-nowrap leading-snug">
@@ -138,115 +153,96 @@ export function MenuPlanner() {
               );
             })()
           )}
-
-          {/* Warnings */}
-          <AnimatePresence>
-            {warnings.length > 0 && expanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-2 bg-destructive/10 border border-destructive/30 rounded-lg px-2.5 py-1.5"
-              >
-                {warnings.map((w, i) => (
-                  <p key={i} className="text-xs text-destructive flex items-center gap-1">
-                    <AlertTriangle size={10} />
-                    {w}
-                  </p>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
-      {/* Bottom - Category dish picker (docked to bottom) */}
+      {/* Middle - Dish grid (takes all remaining space, scrollable) */}
       <div className={cn(
-        "flex flex-col transition-all duration-300 flex-shrink-0",
-        expanded ? "h-0 overflow-hidden" : ""
+        "flex-1 min-h-0 overflow-y-auto px-3 py-2 transition-all duration-300",
+        expanded ? "hidden" : ""
       )}>
-        {/* Category tabs - 2 lines */}
-        <div className="flex flex-wrap border-b border-border px-2 gap-1.5 py-2 flex-shrink-0">
-          {menuCategories.map((cat, idx) => {
-            const hasSelected = selectedDishes.some(d => d.category === cat.id && d.id !== 'fixed-cari');
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm text-foreground">
+            {activeCategory.vnName}
+            {activeCategory.singleChoice && (
+              <span className="text-xs text-muted-foreground ml-1.5">
+                (chọn 1)
+              </span>
+            )}
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {activeCategory.dishes.map(dish => {
+            const selected = isDishSelected(dish.id);
+            const yesterday = isYesterdayDish(dish.id);
+            const isSingle = activeCategory.singleChoice;
+
             return (
               <button
-                key={cat.id}
-                onClick={() => setActiveCategoryIdx(idx)}
+                key={dish.id}
+                onClick={() => handleDishTap(dish)}
                 className={cn(
-                  "px-3 py-2 rounded-lg text-xs whitespace-nowrap transition-all",
-                  idx === activeCategoryIdx
-                    ? "bg-secondary text-secondary-foreground"
-                    : hasSelected
-                      ? "bg-secondary/20 text-secondary"
-                      : "bg-muted text-muted-foreground"
+                  "relative rounded-xl px-3 py-3 text-left transition-all duration-150 active:scale-95 border-2",
+                  selected
+                    ? "border-secondary bg-secondary/15 shadow-md shadow-secondary/15"
+                    : yesterday && isSingle
+                      ? "border-[hsl(var(--warning))]/40 bg-[hsl(var(--warning))]/5"
+                      : "border-transparent bg-card shadow-sm"
                 )}
               >
-                {cat.vnName}
-                {cat.singleChoice && <span className="text-[9px] opacity-70 ml-0.5">•1</span>}
+                <span className="text-sm text-card-foreground block pr-6">
+                  {dish.name}
+                </span>
+                {selected && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-secondary text-secondary-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
+                    ✓
+                  </span>
+                )}
+                {yesterday && isSingle && (
+                  <span className="text-[9px] text-[hsl(var(--warning))] mt-0.5 block">
+                    Hôm qua đã có
+                  </span>
+                )}
+                {selected && !activeCategory.singleChoice && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); removeDish(dish.id); }}
+                    className="absolute top-1/2 -translate-y-1/2 right-2 p-1 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </button>
             );
           })}
         </div>
+      </div>
 
-        {/* Dish grid */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm text-foreground">
-              {activeCategory.vnName}
-              {activeCategory.singleChoice && (
-                <span className="text-xs text-muted-foreground ml-1.5">
-                  (chọn 1)
-                </span>
+      {/* Bottom - Category tabs (docked near thumb) */}
+      <div className={cn(
+        "flex flex-wrap border-t border-border px-2 gap-1.5 py-2 flex-shrink-0 safe-bottom",
+        expanded ? "hidden" : ""
+      )}>
+        {menuCategories.map((cat, idx) => {
+          const hasSelected = selectedDishes.some(d => d.category === cat.id && d.id !== 'fixed-cari');
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategoryIdx(idx)}
+              className={cn(
+                "px-3 py-2 rounded-lg text-xs whitespace-nowrap transition-all",
+                idx === activeCategoryIdx
+                  ? "bg-secondary text-secondary-foreground"
+                  : hasSelected
+                    ? "bg-secondary/20 text-secondary"
+                    : "bg-muted text-muted-foreground"
               )}
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            {activeCategory.dishes.map(dish => {
-              const selected = isDishSelected(dish.id);
-              const yesterday = isYesterdayDish(dish.id);
-              const isSingle = activeCategory.singleChoice;
-
-              return (
-                <button
-                  key={dish.id}
-                  onClick={() => handleDishTap(dish)}
-                  className={cn(
-                    "relative rounded-xl px-3 py-3 text-left transition-all duration-150 active:scale-95 border-2",
-                    selected
-                      ? "border-secondary bg-secondary/15 shadow-md shadow-secondary/15"
-                      : yesterday && isSingle
-                        ? "border-[hsl(var(--warning))]/40 bg-[hsl(var(--warning))]/5"
-                        : "border-transparent bg-card shadow-sm"
-                  )}
-                >
-                  <span className="text-sm text-card-foreground block pr-6">
-                    {dish.name}
-                  </span>
-                  {selected && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-secondary text-secondary-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
-                      ✓
-                    </span>
-                  )}
-                  {yesterday && isSingle && (
-                    <span className="text-[9px] text-[hsl(var(--warning))] mt-0.5 block">
-                      Hôm qua đã có
-                    </span>
-                  )}
-                  {selected && !activeCategory.singleChoice && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeDish(dish.id); }}
-                      className="absolute top-1/2 -translate-y-1/2 right-2 p-1 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            >
+              {cat.vnName}
+              {cat.singleChoice && <span className="text-[9px] opacity-70 ml-0.5">•1</span>}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
