@@ -37,27 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchRole(currentUser.id);
-        await fetchProfile(currentUser.id);
-      } else {
-        setRole(null);
-        setDisplayName(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
+        } else {
+          setRole(null);
+          setDisplayName(null);
+        }
+      } catch (e) {
+        console.error('Auth state change error:', e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        fetchRole(currentUser.id);
-        fetchProfile(currentUser.id);
-      }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
