@@ -5,6 +5,7 @@ import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-reac
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
 
 export function MenuPlanner() {
   const {
@@ -25,6 +26,8 @@ export function MenuPlanner() {
 
   const warnings = validateMenu();
   const activeCategory = menuCategories[activeCategoryIdx];
+  const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
+  const specialDay = getSpecialDay(tomorrowIso);
 
   const handleCopy = () => {
     const w = validateMenu();
@@ -53,9 +56,16 @@ export function MenuPlanner() {
         expanded ? "flex-1" : "h-[30%]"
       )}>
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
-          <h2 className="text-base text-foreground">
-            📋 Menu ({selectedDishes.length}/{maxDishes})
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base text-foreground">
+              📋 Menu — {tomorrowFormatted}
+            </h2>
+            {specialDay && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
+                {specialDay.emoji} {specialDay.label}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5">
             {warnings.length > 0 && (
               <span className="text-destructive">
@@ -105,15 +115,15 @@ export function MenuPlanner() {
             </div>
           ) : (
             // Compact: multi-column equally distributed
-            <div className="grid grid-cols-3 gap-x-2 overflow-y-auto h-full">
-              {[0, 1, 2].map(col => {
-                const colDishes = selectedDishes.filter((_, i) => i % 3 === col);
+            <div className="grid grid-cols-2 gap-x-4 overflow-y-auto h-full">
+              {[0, 1].map(col => {
+                const colDishes = selectedDishes.filter((_, i) => i % 2 === col);
                 return (
                   <div key={col} className="flex flex-col gap-0.5">
                     {colDishes.map(dish => (
                       <span
                         key={dish.id}
-                        className="text-xs text-foreground whitespace-nowrap leading-snug"
+                        className="text-sm text-foreground whitespace-nowrap leading-snug"
                       >
                         {dish.order}. {dish.name}
                       </span>
