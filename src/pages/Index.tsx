@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
@@ -13,8 +13,10 @@ import { IngredientCard } from '@/components/chef/IngredientCard';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
+import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, User } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, User, UtensilsCrossed } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,6 +29,9 @@ const Index = () => {
   const [numpadIngredient, setNumpadIngredient] = useState<Ingredient | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
+  const [activeView, setActiveView] = useState<'ingredients' | 'menu'>('ingredients');
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     ingredients,
@@ -53,6 +58,7 @@ const Index = () => {
   const {
     outOfStockCount,
     reportOutOfStock,
+    resolveReport,
     isOutOfStock,
   } = useStockReports();
 
@@ -67,6 +73,26 @@ const Index = () => {
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // Scroll to active view when toggled
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const targetX = activeView === 'menu' ? 0 : container.clientWidth;
+    container.scrollTo({ left: targetX, behavior: 'smooth' });
+  }, [activeView]);
+
+  // Detect scroll snap position to update active view
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const midPoint = container.scrollLeft + container.clientWidth / 2;
+    if (midPoint < container.clientWidth) {
+      if (activeView !== 'menu') setActiveView('menu');
+    } else {
+      if (activeView !== 'ingredients') setActiveView('ingredients');
+    }
+  };
 
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
@@ -88,8 +114,9 @@ const Index = () => {
     alertCounts[cat.id] = getAlertCountForCategory(cat.id);
   }
 
-  return (
-    <div className="min-h-screen bg-background max-w-md mx-auto relative">
+  // Ingredients view content (extracted for clarity)
+  const ingredientsContent = (
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
@@ -132,12 +159,23 @@ const Index = () => {
               )}
             </button>
             {isChef && (
-              <button
-                onClick={() => navigate('/history')}
-                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-              >
-                <Clock size={18} className="text-muted-foreground" />
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveView('menu')}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-colors",
+                    activeView === 'menu' ? "bg-primary/20 text-primary" : "hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  <UtensilsCrossed size={18} />
+                </button>
+                <button
+                  onClick={() => navigate('/history')}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <Clock size={18} className="text-muted-foreground" />
+                </button>
+              </>
             )}
             <button
               onClick={signOut}
@@ -205,47 +243,72 @@ const Index = () => {
               onClear={isChef ? () => removeFromOrder(ingredient.id) : () => {}}
               reorderAlert={isChef ? alert : undefined}
               isOutOfStock={outOfStock}
-              onReportOutOfStock={() => reportOutOfStock(ingredient)}
+              onReportOutOfStock={isChef ? () => resolveReport(ingredient.id) : () => reportOutOfStock(ingredient)}
               reportMode={!isChef}
             />
           );
         })}
       </div>
+    </div>
+  );
 
-      {/* Order bar — chef only */}
-      {isChef && (
-        <OrderBar
-          currentOrder={currentOrder}
-          expanded={expandedOrder}
-          onToggleExpand={() => setExpandedOrder(!expandedOrder)}
-          onRemoveItem={removeFromOrder}
-          onClearOrder={clearOrder}
-          getOrderText={getOrderText}
-          onSaveOrder={() => saveOrder(currentOrder, ingredients)}
-        />
-      )}
+  // Non-chef: simple render without swipe
+  if (!isChef) {
+    return (
+      <div className="min-h-screen bg-background max-w-md mx-auto relative">
+        {ingredientsContent}
+      </div>
+    );
+  }
 
-      {/* Numpad modal — chef only */}
-      {isChef && (
-        <NumpadModal
-          ingredient={numpadIngredient}
-          onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
-          onClose={() => setNumpadIngredient(null)}
-        />
-      )}
+  // Chef: swipeable container with menu planner
+  return (
+    <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-hidden">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-screen"
+        style={{ scrollSnapType: 'x mandatory' }}
+      >
+        {/* Menu Planner Panel */}
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto">
+          <MenuPlanner />
+        </div>
 
-      {/* Add/Edit ingredient modal — chef only */}
-      {isChef && (
-        <AddIngredientModal
-          isOpen={addModalOpen}
-          onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
-          onAdd={addIngredient}
-          onUpdate={updateIngredient}
-          onDelete={deleteIngredient}
-          editIngredient={editIngredient}
-          categoryId={activeCategory}
-        />
-      )}
+        {/* Ingredients Panel */}
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto">
+          {ingredientsContent}
+
+          {/* Order bar */}
+          <OrderBar
+            currentOrder={currentOrder}
+            expanded={expandedOrder}
+            onToggleExpand={() => setExpandedOrder(!expandedOrder)}
+            onRemoveItem={removeFromOrder}
+            onClearOrder={clearOrder}
+            getOrderText={getOrderText}
+            onSaveOrder={() => saveOrder(currentOrder, ingredients)}
+          />
+        </div>
+      </div>
+
+      {/* Numpad modal */}
+      <NumpadModal
+        ingredient={numpadIngredient}
+        onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
+        onClose={() => setNumpadIngredient(null)}
+      />
+
+      {/* Add/Edit ingredient modal */}
+      <AddIngredientModal
+        isOpen={addModalOpen}
+        onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
+        onAdd={addIngredient}
+        onUpdate={updateIngredient}
+        onDelete={deleteIngredient}
+        editIngredient={editIngredient}
+        categoryId={activeCategory}
+      />
     </div>
   );
 };

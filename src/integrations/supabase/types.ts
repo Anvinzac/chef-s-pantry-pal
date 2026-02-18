@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_menus: {
+        Row: {
+          created_at: string
+          dishes: Json
+          id: string
+          menu_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dishes?: Json
+          id?: string
+          menu_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dishes?: Json
+          id?: string
+          menu_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           category: string

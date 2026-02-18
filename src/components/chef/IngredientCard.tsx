@@ -148,21 +148,16 @@ export function IngredientCard({
         >
           <Keyboard size={16} />
         </button>
-        {onReportOutOfStock && !isOutOfStock && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onReportOutOfStock(); }}
-            className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0 min-h-[36px] flex items-center justify-center"
-            title="Báo hết hàng"
-          >
-            <AlertTriangle size={14} />
-          </button>
-        )}
       </div>
       {isOutOfStock && (
-        <div className="flex items-center gap-1 bg-destructive/15 text-destructive rounded-lg px-2 py-1.5">
+        <button
+          onClick={(e) => { e.stopPropagation(); onReportOutOfStock?.(); }}
+          className="flex items-center gap-1 bg-destructive/15 text-destructive rounded-lg px-2 py-1.5 hover:bg-destructive/25 transition-colors"
+          title="Nhấn để xác nhận đã xem"
+        >
           <AlertTriangle size={12} />
-          <span className="text-[10px] font-extrabold">Đã báo hết hàng</span>
-        </div>
+          <span className="text-[10px] font-extrabold">Hết hàng • Nhấn để xoá</span>
+        </button>
       )}
     </div>
   );
