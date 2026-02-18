@@ -51,10 +51,7 @@ export function MenuPlanner() {
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Top - Header + selected dishes */}
-      <div className={cn(
-        "border-b border-border flex flex-col flex-shrink-0 transition-all duration-300",
-        expanded ? "flex-1 min-h-0" : ""
-      )}>
+      <div className="border-b border-border flex flex-col flex-shrink-0 transition-all duration-300">
         {/* Header row */}
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
           <div className="flex items-center gap-2">
@@ -75,7 +72,7 @@ export function MenuPlanner() {
         </div>
 
         {/* Selected dishes list */}
-        <div className={cn("px-3 overflow-y-auto", expanded ? "flex-1 min-h-0" : "")}>
+        <div className={cn("px-3", expanded ? "max-h-[60vh] overflow-y-auto" : "")}>
           <p className="text-xs text-muted-foreground mb-1 italic">
             Dạ, hôm nay Lá có:
           </p>
