@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useMenuPlanner } from '@/hooks/useMenuPlanner';
 import { menuCategories, MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
-import { Copy, X, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,7 +53,7 @@ export function MenuPlanner() {
         expanded ? "flex-1" : "h-[30%]"
       )}>
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
-          <h2 className="font-extrabold text-sm text-foreground">
+          <h2 className="text-base text-foreground">
             📋 Menu ({selectedDishes.length}/{maxDishes})
           </h2>
           <div className="flex items-center gap-1.5">
@@ -70,7 +70,7 @@ export function MenuPlanner() {
             </button>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold active:scale-95 transition-transform"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-xs active:scale-95 transition-transform"
             >
               <Copy size={12} />
               Sao chép
@@ -80,40 +80,40 @@ export function MenuPlanner() {
 
         {/* Selected dishes list */}
         <div className="flex-1 overflow-auto px-3 pb-2">
-          <p className="text-[10px] text-muted-foreground font-semibold mb-1 italic">
+          <p className="text-xs text-muted-foreground mb-1 italic">
             Dạ, hôm nay Lá có:
           </p>
 
           {expanded ? (
             // Expanded: single column
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {selectedDishes.map(dish => (
-                <div key={dish.id} className="flex items-center gap-1.5 group">
-                  <span className="text-xs font-bold text-foreground whitespace-nowrap">
+                <div key={dish.id} className="flex items-center justify-between group">
+                  <span className="text-sm text-foreground">
                     {dish.order}. {dish.name}
                   </span>
                   {dish.id !== 'fixed-cari' && (
                     <button
                       onClick={() => removeDish(dish.id)}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 text-destructive transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 p-1 text-destructive transition-opacity"
                     >
-                      <X size={10} />
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            // Compact: multi-column scrollable
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide h-full">
+            // Compact: multi-column equally distributed
+            <div className="grid grid-cols-3 gap-x-2 overflow-y-auto h-full">
               {[0, 1, 2].map(col => {
                 const colDishes = selectedDishes.filter((_, i) => i % 3 === col);
                 return (
-                  <div key={col} className="flex flex-col gap-0.5 min-w-0 flex-shrink-0">
+                  <div key={col} className="flex flex-col gap-0.5">
                     {colDishes.map(dish => (
                       <span
                         key={dish.id}
-                        className="text-[10px] font-semibold text-foreground whitespace-nowrap leading-tight"
+                        className="text-xs text-foreground whitespace-nowrap leading-snug"
                       >
                         {dish.order}. {dish.name}
                       </span>
@@ -134,7 +134,7 @@ export function MenuPlanner() {
                 className="mt-2 bg-destructive/10 border border-destructive/30 rounded-lg px-2.5 py-1.5"
               >
                 {warnings.map((w, i) => (
-                  <p key={i} className="text-[10px] font-semibold text-destructive flex items-center gap-1">
+                  <p key={i} className="text-xs text-destructive flex items-center gap-1">
                     <AlertTriangle size={10} />
                     {w}
                   </p>
@@ -150,8 +150,8 @@ export function MenuPlanner() {
         "flex flex-col transition-all duration-300",
         expanded ? "h-0 overflow-hidden" : "h-[70%]"
       )}>
-        {/* Category tabs */}
-        <div className="flex overflow-x-auto scrollbar-hide border-b border-border px-2 gap-0.5 py-1.5 flex-shrink-0">
+        {/* Category tabs - 2 lines */}
+        <div className="flex flex-wrap border-b border-border px-2 gap-1.5 py-2 flex-shrink-0">
           {menuCategories.map((cat, idx) => {
             const hasSelected = selectedDishes.some(d => d.category === cat.id && d.id !== 'fixed-cari');
             return (
@@ -159,16 +159,16 @@ export function MenuPlanner() {
                 key={cat.id}
                 onClick={() => setActiveCategoryIdx(idx)}
                 className={cn(
-                  "px-2.5 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all flex-shrink-0",
+                  "px-3 py-2 rounded-lg text-xs whitespace-nowrap transition-all",
                   idx === activeCategoryIdx
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-secondary text-secondary-foreground"
                     : hasSelected
-                      ? "bg-primary/20 text-primary"
+                      ? "bg-secondary/20 text-secondary"
                       : "bg-muted text-muted-foreground"
                 )}
               >
                 {cat.vnName}
-                {cat.singleChoice && <span className="text-[8px] opacity-70 ml-0.5">•1</span>}
+                {cat.singleChoice && <span className="text-[9px] opacity-70 ml-0.5">•1</span>}
               </button>
             );
           })}
@@ -177,17 +177,17 @@ export function MenuPlanner() {
         {/* Dish grid */}
         <div className="flex-1 overflow-y-auto px-3 py-2">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-extrabold text-foreground">
+            <h3 className="text-sm text-foreground">
               {activeCategory.vnName}
               {activeCategory.singleChoice && (
-                <span className="text-[9px] text-muted-foreground font-semibold ml-1.5">
+                <span className="text-xs text-muted-foreground ml-1.5">
                   (chọn 1)
                 </span>
               )}
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             {activeCategory.dishes.map(dish => {
               const selected = isDishSelected(dish.id);
               const yesterday = isYesterdayDish(dish.id);
@@ -200,31 +200,31 @@ export function MenuPlanner() {
                   className={cn(
                     "relative rounded-xl px-3 py-3 text-left transition-all duration-150 active:scale-95 border-2",
                     selected
-                      ? "border-primary bg-primary/15 shadow-md shadow-primary/15"
+                      ? "border-secondary bg-secondary/15 shadow-md shadow-secondary/15"
                       : yesterday && isSingle
                         ? "border-[hsl(var(--warning))]/40 bg-[hsl(var(--warning))]/5"
                         : "border-transparent bg-card shadow-sm"
                   )}
                 >
-                  <span className="text-xs font-bold text-card-foreground block">
+                  <span className="text-sm text-card-foreground block pr-6">
                     {dish.name}
                   </span>
                   {selected && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[8px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 bg-secondary text-secondary-foreground text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
                       ✓
                     </span>
                   )}
                   {yesterday && isSingle && (
-                    <span className="text-[8px] font-semibold text-[hsl(var(--warning))] mt-0.5 block">
+                    <span className="text-[9px] text-[hsl(var(--warning))] mt-0.5 block">
                       Hôm qua đã có
                     </span>
                   )}
                   {selected && !activeCategory.singleChoice && (
                     <button
                       onClick={(e) => { e.stopPropagation(); removeDish(dish.id); }}
-                      className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
+                      className="absolute top-1/2 -translate-y-1/2 right-2 p-1 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
                     >
-                      <X size={10} />
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </button>
