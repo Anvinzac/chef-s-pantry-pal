@@ -50,10 +50,9 @@ export function MenuPlanner() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Top 30% - Selected dishes */}
+      {/* Top - Selected dishes (takes remaining space) */}
       <div className={cn(
-        "border-b border-border transition-all duration-300 flex flex-col",
-        expanded ? "flex-1" : "h-[30%]"
+        "border-b border-border transition-all duration-300 flex flex-col flex-1 min-h-0",
       )}>
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
           <div className="flex items-center gap-2">
@@ -114,24 +113,30 @@ export function MenuPlanner() {
               ))}
             </div>
           ) : (
-            // Compact: multi-column equally distributed
-            <div className="grid grid-cols-2 gap-x-4 overflow-y-auto h-full">
-              {[0, 1].map(col => {
-                const colDishes = selectedDishes.filter((_, i) => i % 2 === col);
-                return (
-                  <div key={col} className="flex flex-col gap-0.5">
-                    {colDishes.map(dish => (
-                      <span
-                        key={dish.id}
-                        className="text-sm text-foreground whitespace-nowrap leading-snug"
-                      >
+            // Compact: 2 columns, sequential order (1-8 left, 9+ right)
+            (() => {
+              const half = Math.ceil(selectedDishes.length / 2);
+              const leftCol = selectedDishes.slice(0, half);
+              const rightCol = selectedDishes.slice(half);
+              return (
+                <div className="grid grid-cols-2 gap-x-4 overflow-y-auto h-full">
+                  <div className="flex flex-col gap-0.5">
+                    {leftCol.map(dish => (
+                      <span key={dish.id} className="text-sm text-foreground whitespace-nowrap leading-snug">
                         {dish.order}. {dish.name}
                       </span>
                     ))}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="flex flex-col gap-0.5">
+                    {rightCol.map(dish => (
+                      <span key={dish.id} className="text-sm text-foreground whitespace-nowrap leading-snug">
+                        {dish.order}. {dish.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()
           )}
 
           {/* Warnings */}
@@ -155,10 +160,10 @@ export function MenuPlanner() {
         </div>
       </div>
 
-      {/* Bottom 70% - Category dish picker */}
+      {/* Bottom - Category dish picker (docked to bottom) */}
       <div className={cn(
-        "flex flex-col transition-all duration-300",
-        expanded ? "h-0 overflow-hidden" : "h-[70%]"
+        "flex flex-col transition-all duration-300 flex-shrink-0",
+        expanded ? "h-0 overflow-hidden" : ""
       )}>
         {/* Category tabs - 2 lines */}
         <div className="flex flex-wrap border-b border-border px-2 gap-1.5 py-2 flex-shrink-0">
