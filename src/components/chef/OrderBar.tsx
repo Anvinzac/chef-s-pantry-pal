@@ -33,8 +33,8 @@ export function OrderBar({
   const handleCopy = (full: boolean) => {
     const text = getOrderText(!full);
     navigator.clipboard.writeText(text).then(() => {
-      toast.success('Đã sao chép!', { description: 'Dán vào ứng dụng nhắn tin' });
-      if (full && onSaveOrder) {
+      toast.success('Đã sao chép & lưu!', { description: 'Đơn hàng đã được lưu lại' });
+      if (onSaveOrder) {
         onSaveOrder();
       }
     });
