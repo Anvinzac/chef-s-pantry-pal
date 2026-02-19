@@ -198,7 +198,7 @@ export function MenuPlanner() {
         </div>
 
         {/* Action bar at bottom of top section */}
-        <div className="flex items-center justify-between px-3 py-2 flex-shrink-0 gap-6">
+        <div className="flex items-center justify-end px-3 py-2 flex-shrink-0 gap-3">
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
