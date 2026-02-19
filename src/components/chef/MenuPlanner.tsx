@@ -198,18 +198,19 @@ export function MenuPlanner() {
         </div>
 
         {/* Action bar at bottom of top section */}
-        <div className="flex items-center justify-between px-3 py-1.5 flex-shrink-0">
-          <div />
+        <div className="flex items-center justify-between px-3 py-2 flex-shrink-0 gap-6">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
+            style={{ touchAction: 'manipulation' }}
           >
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {expanded ? 'Thu gọn' : 'Mở rộng'}
           </button>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs active:scale-95 transition-transform"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-secondary text-secondary-foreground text-xs active:scale-95 transition-transform"
+            style={{ touchAction: 'manipulation' }}
           >
             <Copy size={12} />
             Sao chép
