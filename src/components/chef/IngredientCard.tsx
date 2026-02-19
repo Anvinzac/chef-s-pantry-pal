@@ -16,6 +16,8 @@ interface IngredientCardProps {
   isOutOfStock?: boolean;
   onReportOutOfStock?: () => void;
   reportMode?: boolean;
+  remainingQuantity?: number | null;
+  onReportRemaining?: () => void;
 }
 
 export function IngredientCard({
@@ -30,6 +32,8 @@ export function IngredientCard({
   isOutOfStock,
   onReportOutOfStock,
   reportMode,
+  remainingQuantity,
+  onReportRemaining,
 }: IngredientCardProps) {
   const unit = UNIT_LABELS[ingredient.unit];
   const priceK = getPriceK(ingredient.id);
@@ -45,21 +49,31 @@ export function IngredientCard({
     return (
       <div
         className={cn(
-          "relative rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2",
+          "relative rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2 cursor-pointer",
           isOutOfStock
             ? "border-destructive bg-destructive/10"
-            : "border-transparent bg-card shadow-sm"
+            : remainingQuantity != null
+              ? "border-primary/50 bg-primary/5"
+              : "border-transparent bg-card shadow-sm"
         )}
+        onClick={() => onReportRemaining?.()}
       >
-        {/* Name row */}
+        {/* Name row with remaining label */}
         <div className="flex items-center gap-1.5">
           <span className="text-xl leading-none">{ingredient.emoji}</span>
           <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
             {ingredient.name}
           </span>
+          {remainingQuantity != null ? (
+            <span className="text-[10px] font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
+              còn {remainingQuantity}{unit}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground/50 italic shrink-0">chưa báo</span>
+          )}
         </div>
 
-        {/* Report button */}
+        {/* Report buttons */}
         {isOutOfStock ? (
           <div className="flex items-center gap-1.5 bg-destructive/15 text-destructive rounded-lg px-2.5 py-2.5 justify-center">
             <AlertTriangle size={14} />
@@ -67,7 +81,7 @@ export function IngredientCard({
           </div>
         ) : (
           <button
-            onClick={() => onReportOutOfStock?.()}
+            onClick={(e) => { e.stopPropagation(); onReportOutOfStock?.(); }}
             className="flex items-center gap-1.5 bg-muted hover:bg-destructive/15 hover:text-destructive text-muted-foreground rounded-lg px-2.5 py-2.5 justify-center transition-colors active:scale-95"
           >
             <AlertTriangle size={14} />

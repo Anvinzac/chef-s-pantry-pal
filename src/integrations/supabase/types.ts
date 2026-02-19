@@ -175,6 +175,45 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_remaining: {
+        Row: {
+          category: string
+          emoji: string
+          id: string
+          ingredient_id: string
+          name: string
+          remaining_quantity: number
+          reported_at: string
+          reported_by: string | null
+          subcategory: string | null
+          unit: string
+        }
+        Insert: {
+          category: string
+          emoji?: string
+          id?: string
+          ingredient_id: string
+          name: string
+          remaining_quantity: number
+          reported_at?: string
+          reported_by?: string | null
+          subcategory?: string | null
+          unit?: string
+        }
+        Update: {
+          category?: string
+          emoji?: string
+          id?: string
+          ingredient_id?: string
+          name?: string
+          remaining_quantity?: number
+          reported_at?: string
+          reported_by?: string | null
+          subcategory?: string | null
+          unit?: string
+        }
+        Relationships: []
+      }
       stock_reports: {
         Row: {
           category: string
