@@ -6,10 +6,12 @@ import { useOrder } from '@/hooks/useOrder';
 import { useOrderHistory } from '@/hooks/useOrderHistory';
 import { useReorderAlerts } from '@/hooks/useReorderAlerts';
 import { useStockReports } from '@/hooks/useStockReports';
+import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
+import { CategoryCloud } from '@/components/chef/CategoryCloud';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
@@ -30,6 +32,8 @@ const Index = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
   const [activeView, setActiveView] = useState<'ingredients' | 'menu'>('ingredients');
+  const [categoryCloudOpen, setCategoryCloudOpen] = useState(false);
+  const [remainingNumpadIngredient, setRemainingNumpadIngredient] = useState<Ingredient | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userToggledRef = useRef(false);
@@ -62,6 +66,11 @@ const Index = () => {
     resolveReport,
     isOutOfStock,
   } = useStockReports();
+
+  const {
+    reportRemaining,
+    getRemainingQuantity,
+  } = useStockRemaining();
 
   // Handle navigation from stock report page
   useEffect(() => {
@@ -199,6 +208,7 @@ const Index = () => {
             subcategories={activeCat.subcategories}
             activeSubcategory={activeSubcategory}
             onSelect={setActiveSubcategory}
+            onExpandCategories={() => setCategoryCloudOpen(true)}
           />
         )}
       </header>
@@ -246,6 +256,8 @@ const Index = () => {
               isOutOfStock={outOfStock}
               onReportOutOfStock={isChef ? () => resolveReport(ingredient.id) : () => reportOutOfStock(ingredient)}
               reportMode={!isChef}
+              remainingQuantity={getRemainingQuantity(ingredient.id)}
+              onReportRemaining={() => setRemainingNumpadIngredient(ingredient)}
             />
           );
         })}
@@ -258,6 +270,18 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background max-w-md mx-auto relative">
         {ingredientsContent}
+        <NumpadModal
+          ingredient={remainingNumpadIngredient}
+          onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
+          onClose={() => setRemainingNumpadIngredient(null)}
+        />
+        <CategoryCloud
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelect={handleCategoryChange}
+          isOpen={categoryCloudOpen}
+          onClose={() => setCategoryCloudOpen(false)}
+        />
       </div>
     );
   }
@@ -309,6 +333,16 @@ const Index = () => {
         onDelete={deleteIngredient}
         editIngredient={editIngredient}
         categoryId={activeCategory}
+      />
+
+      {/* Category cloud modal */}
+      <CategoryCloud
+        categories={categories}
+        activeCategory={activeCategory}
+        onSelect={handleCategoryChange}
+        isOpen={categoryCloudOpen}
+        onClose={() => setCategoryCloudOpen(false)}
+        alertCounts={alertCounts}
       />
     </div>
   );
