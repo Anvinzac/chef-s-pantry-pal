@@ -6,12 +6,11 @@ interface SubcategoryBarProps {
   subcategories: Subcategory[];
   activeSubcategory: string | null;
   onSelect: (id: string | null) => void;
-  onExpandCategories?: () => void;
 }
 
-export function SubcategoryBar({ subcategories, activeSubcategory, onSelect, onExpandCategories }: SubcategoryBarProps) {
+export function SubcategoryBar({ subcategories, activeSubcategory, onSelect }: SubcategoryBarProps) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2 items-center">
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide items-center">
       {subcategories.map(sub => (
         <button
           key={sub.id}
@@ -27,15 +26,6 @@ export function SubcategoryBar({ subcategories, activeSubcategory, onSelect, onE
           {sub.name}
         </button>
       ))}
-      {onExpandCategories && (
-        <button
-          onClick={onExpandCategories}
-          className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shrink-0 active:scale-95 ml-auto"
-          title="Xem tất cả danh mục"
-        >
-          <Grid3X3 size={18} />
-        </button>
-      )}
     </div>
   );
 }
