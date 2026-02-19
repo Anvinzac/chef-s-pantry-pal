@@ -307,12 +307,12 @@ const Index = () => {
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {/* Menu Planner Panel */}
-        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto" style={{ touchAction: 'pan-y' }}>
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto">
           <MenuPlanner />
         </div>
 
         {/* Ingredients Panel */}
-        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto relative" style={{ touchAction: 'pan-y' }}>
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto relative">
           {ingredientsContent}
 
           {/* Order bar */}
