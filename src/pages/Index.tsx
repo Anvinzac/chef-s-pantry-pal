@@ -17,7 +17,7 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -206,19 +206,29 @@ const Index = () => {
         <CategoryCloud
           categories={categories}
           activeCategory={activeCategory}
-          onSelect={handleCategoryChange}
+          onSelect={(catId) => { handleCategoryChange(catId); setCategoryCloudOpen(false); }}
           isOpen={categoryCloudOpen}
           alertCounts={isChef ? alertCounts : undefined}
         />
 
-        {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
-          <SubcategoryBar
-            subcategories={activeCat.subcategories}
-            activeSubcategory={activeSubcategory}
-            onSelect={setActiveSubcategory}
-            onExpandCategories={() => setCategoryCloudOpen(!categoryCloudOpen)}
-          />
-        )}
+        <div className="flex items-center gap-1 px-4 pb-2">
+          {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
+            <div className="flex-1 overflow-hidden">
+              <SubcategoryBar
+                subcategories={activeCat.subcategories}
+                activeSubcategory={activeSubcategory}
+                onSelect={setActiveSubcategory}
+              />
+            </div>
+          )}
+          <button
+            onClick={() => setCategoryCloudOpen(!categoryCloudOpen)}
+            className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shrink-0 active:scale-95"
+            title="Xem tất cả danh mục"
+          >
+            <Grid3X3 size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Category header */}
