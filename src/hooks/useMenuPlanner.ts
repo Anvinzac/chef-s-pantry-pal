@@ -18,12 +18,12 @@ const FIXED_FIRST_DISH: SelectedDish = {
   order: 1,
 };
 
-export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
+export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: string = 'pnt') {
   const [selectedDishes, setSelectedDishes] = useState<SelectedDish[]>([FIXED_FIRST_DISH]);
   const [yesterdayDishes, setYesterdayDishes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch yesterday's menu for repetition check
+  // Fetch yesterday's menu for repetition check (branch-scoped)
   useEffect(() => {
     const fetchYesterday = async () => {
       const yesterday = new Date();
@@ -34,21 +34,23 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
+        .eq('branch_id', branchId)
         .single();
 
       if (data?.dishes) {
         const dishes = data.dishes as any[];
         setYesterdayDishes(dishes.map((d: any) => d.id));
+      } else {
+        setYesterdayDishes([]);
       }
     };
     fetchYesterday();
-  }, []);
+  }, [branchId]);
 
-  // Fetch today's menu if it exists
+  // Fetch today's menu if it exists (branch-scoped)
   useEffect(() => {
     const fetchToday = async () => {
       const today = new Date();
-      // We plan for tomorrow
       today.setDate(today.getDate() + 1);
       const dateStr = today.toISOString().split('T')[0];
 
@@ -56,6 +58,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
+        .eq('branch_id', branchId)
         .single();
 
       if (data?.dishes) {
@@ -67,11 +70,15 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
               .filter((d: any) => d.id !== 'fixed-cari')
               .map((d: any, i: number) => ({ ...d, order: i + 2 })),
           ]);
+        } else {
+          setSelectedDishes([FIXED_FIRST_DISH]);
         }
+      } else {
+        setSelectedDishes([FIXED_FIRST_DISH]);
       }
     };
     fetchToday();
-  }, []);
+  }, [branchId]);
 
   const toggleDish = useCallback((dish: MenuDish) => {
     setSelectedDishes(prev => {
@@ -196,12 +203,12 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
       order: d.order,
     }));
 
-    // Upsert
+    // Upsert with branch_id
     const { error } = await supabase
       .from('daily_menus')
       .upsert(
-        { menu_date: dateStr, dishes: dishesData as any },
-        { onConflict: 'menu_date' }
+        { menu_date: dateStr, branch_id: branchId, dishes: dishesData as any },
+        { onConflict: 'menu_date,branch_id' }
       );
 
     if (error) {
@@ -210,7 +217,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
     } else {
       toast.success('Đã lưu menu!');
     }
-  }, [selectedDishes]);
+  }, [selectedDishes, branchId]);
 
   return {
     selectedDishes,
