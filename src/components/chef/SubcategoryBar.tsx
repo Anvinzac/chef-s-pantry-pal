@@ -12,15 +12,6 @@ interface SubcategoryBarProps {
 export function SubcategoryBar({ subcategories, activeSubcategory, onSelect, onExpandCategories }: SubcategoryBarProps) {
   return (
     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2 items-center">
-      {onExpandCategories && (
-        <button
-          onClick={onExpandCategories}
-          className="p-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shrink-0 active:scale-95"
-          title="Xem tất cả danh mục"
-        >
-          <Grid3X3 size={14} />
-        </button>
-      )}
       {subcategories.map(sub => (
         <button
           key={sub.id}
@@ -36,6 +27,15 @@ export function SubcategoryBar({ subcategories, activeSubcategory, onSelect, onE
           {sub.name}
         </button>
       ))}
+      {onExpandCategories && (
+        <button
+          onClick={onExpandCategories}
+          className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shrink-0 active:scale-95 ml-auto"
+          title="Xem tất cả danh mục"
+        >
+          <Grid3X3 size={18} />
+        </button>
+      )}
     </div>
   );
 }
