@@ -1,6 +1,6 @@
 import { Ingredient, UNIT_LABELS } from '@/types/ingredient';
 import { cn } from '@/lib/utils';
-import { Settings2, Keyboard, X, AlertTriangle } from 'lucide-react';
+import { Settings2, X, AlertTriangle } from 'lucide-react';
 import { getPriceK, formatPriceK } from '@/data/referencePrices';
 import { ReorderAlert } from '@/hooks/useReorderAlerts';
 
@@ -102,17 +102,17 @@ export function IngredientCard({
         </button>
       )}
 
-      {/* Top row: emoji + name + alert tag + edit */}
+      {/* Top row: emoji + name + price + edit */}
       <div className="flex items-center gap-1.5">
         <span className="text-xl leading-none">{ingredient.emoji}</span>
+        {isAlerted && (
+          <span className="bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[8px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center shrink-0" title={reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder} ngày`}>
+            {reorderAlert.daysSinceLastOrder >= 999 ? '!' : reorderAlert.daysSinceLastOrder}
+          </span>
+        )}
         <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
           {ingredient.name}
         </span>
-        {isAlerted && (
-          <span className="bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[8px] font-extrabold rounded-full h-4 px-1.5 flex items-center justify-center shrink-0">
-            {reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder}ngày`}
-          </span>
-        )}
         {priceK !== undefined && (
           <span className="text-[9px] text-muted-foreground/70 font-medium flex-shrink-0">
             {formatPriceK(priceK)}
@@ -142,12 +142,6 @@ export function IngredientCard({
             {qty}{unit}
           </button>
         ))}
-        <button
-          onClick={(e) => { e.stopPropagation(); onCustomQuantity(); }}
-          className="p-2 rounded-lg text-secondary hover:bg-muted transition-colors flex-shrink-0 min-h-[36px] flex items-center justify-center"
-        >
-          <Keyboard size={16} />
-        </button>
       </div>
       {isOutOfStock && (
         <button
