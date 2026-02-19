@@ -30,7 +30,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       yesterday.setDate(yesterday.getDate() - 1);
       const dateStr = yesterday.toISOString().split('T')[0];
 
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
@@ -54,7 +54,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       today.setDate(today.getDate() + 1);
       const dateStr = today.toISOString().split('T')[0];
 
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
@@ -204,10 +204,10 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
     }));
 
     // Upsert with branch_id
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('daily_menus')
       .upsert(
-        { menu_date: dateStr, branch_id: branchId, dishes: dishesData as any },
+        { menu_date: dateStr, branch_id: branchId, dishes: dishesData },
         { onConflict: 'menu_date,branch_id' }
       );
 

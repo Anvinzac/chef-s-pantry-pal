@@ -39,10 +39,10 @@ export function MenuPlanner() {
   // Fetch branches from DB
   useEffect(() => {
     const fetchBranches = async () => {
-      const { data } = await supabase
-        .from('branches')
+      const { data } = await (supabase
+        .from('branches' as any)
         .select('id, name')
-        .order('sort_order', { ascending: true });
+        .order('sort_order', { ascending: true }) as any);
       if (data && data.length > 0) {
         setBranches(data);
       }
