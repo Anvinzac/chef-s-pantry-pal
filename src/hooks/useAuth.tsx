@@ -37,24 +37,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    let resolved = false;
+
+    const initSession = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (resolved) return;
+        resolved = true;
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         if (currentUser) {
           await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
-        } else {
-          setRole(null);
-          setDisplayName(null);
         }
       } catch (e) {
-        console.error('Auth state change error:', e);
+        console.error('Initial session error:', e);
       } finally {
         setLoading(false);
       }
+    };
+
+    // Timeout fallback: if getSession hangs, resolve after 3s
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        setLoading(false);
+      }
+    }, 3000);
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
+      } else {
+        setRole(null);
+        setDisplayName(null);
+      }
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
