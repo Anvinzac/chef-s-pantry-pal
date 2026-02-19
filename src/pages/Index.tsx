@@ -203,12 +203,20 @@ const Index = () => {
           alertCounts={isChef ? alertCounts : undefined}
         />
 
+        <CategoryCloud
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelect={handleCategoryChange}
+          isOpen={categoryCloudOpen}
+          alertCounts={isChef ? alertCounts : undefined}
+        />
+
         {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
           <SubcategoryBar
             subcategories={activeCat.subcategories}
             activeSubcategory={activeSubcategory}
             onSelect={setActiveSubcategory}
-            onExpandCategories={() => setCategoryCloudOpen(true)}
+            onExpandCategories={() => setCategoryCloudOpen(!categoryCloudOpen)}
           />
         )}
       </header>
@@ -275,13 +283,6 @@ const Index = () => {
           onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
           onClose={() => setRemainingNumpadIngredient(null)}
         />
-        <CategoryCloud
-          categories={categories}
-          activeCategory={activeCategory}
-          onSelect={handleCategoryChange}
-          isOpen={categoryCloudOpen}
-          onClose={() => setCategoryCloudOpen(false)}
-        />
       </div>
     );
   }
@@ -335,15 +336,6 @@ const Index = () => {
         categoryId={activeCategory}
       />
 
-      {/* Category cloud modal */}
-      <CategoryCloud
-        categories={categories}
-        activeCategory={activeCategory}
-        onSelect={handleCategoryChange}
-        isOpen={categoryCloudOpen}
-        onClose={() => setCategoryCloudOpen(false)}
-        alertCounts={alertCounts}
-      />
     </div>
   );
 };
