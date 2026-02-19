@@ -325,12 +325,12 @@ const Index = () => {
         style={{ scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain' }}
       >
         {/* Menu Planner Panel */}
-        <div className={cn("w-full flex-shrink-0 snap-center h-screen overflow-y-auto overflow-x-hidden", activeView !== 'menu' && "pointer-events-none")}>
+        <div className={cn("w-full flex-shrink-0 snap-start h-screen overflow-y-auto overflow-x-hidden", activeView !== 'menu' && "pointer-events-none")}>
           <MenuPlanner />
         </div>
 
         {/* Ingredients Panel */}
-        <div className={cn("w-full flex-shrink-0 snap-center h-screen overflow-y-auto overflow-x-hidden relative", activeView !== 'ingredients' && "pointer-events-none")}>
+        <div className={cn("w-full flex-shrink-0 snap-start h-screen overflow-y-auto overflow-x-hidden relative", activeView !== 'ingredients' && "pointer-events-none")}>
           {ingredientsContent}
 
           {/* Order bar */}
