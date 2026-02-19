@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { MenuDish, MenuCategory, SINGLE_CHOICE_CATEGORIES, menuCategories, getDishById } from '@/data/menuDishes';
+import { MenuDish, MenuCategory, SINGLE_CHOICE_CATEGORIES, MenuCategoryConfig } from '@/data/menuDishes';
 import { toast } from 'sonner';
 
 export interface SelectedDish {
@@ -18,7 +18,7 @@ const FIXED_FIRST_DISH: SelectedDish = {
   order: 1,
 };
 
-export function useMenuPlanner() {
+export function useMenuPlanner(menuCategories: MenuCategoryConfig[]) {
   const [selectedDishes, setSelectedDishes] = useState<SelectedDish[]>([FIXED_FIRST_DISH]);
   const [yesterdayDishes, setYesterdayDishes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
