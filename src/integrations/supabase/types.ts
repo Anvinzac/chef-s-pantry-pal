@@ -14,8 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      branches: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       daily_menus: {
         Row: {
+          branch_id: string
           created_at: string
           dishes: Json
           id: string
@@ -23,6 +45,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branch_id?: string
           created_at?: string
           dishes?: Json
           id?: string
@@ -30,6 +53,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branch_id?: string
           created_at?: string
           dishes?: Json
           id?: string

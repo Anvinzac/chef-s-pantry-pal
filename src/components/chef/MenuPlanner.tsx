@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMenuPlanner } from '@/hooks/useMenuPlanner';
 import { MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
 import { useMenuDishes } from '@/hooks/useMenuDishes';
@@ -7,9 +7,19 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Branch {
+  id: string;
+  name: string;
+}
 
 export function MenuPlanner() {
   const { categories, loading: dishesLoading } = useMenuDishes();
+  const [selectedBranch, setSelectedBranch] = useState('pnt');
+  const [branchOpen, setBranchOpen] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([{ id: 'pnt', name: 'Phạm Ngọc Thạch' }]);
+
   const {
     selectedDishes,
     toggleDish,
@@ -20,18 +30,25 @@ export function MenuPlanner() {
     validateMenu,
     saveMenu,
     maxDishes,
-  } = useMenuPlanner(categories);
+  } = useMenuPlanner(categories, selectedBranch);
 
   const [expanded, setExpanded] = useState(false);
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
-  const [selectedBranch, setSelectedBranch] = useState('pnt');
-  const [branchOpen, setBranchOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const branches = [
-    { id: 'pnt', name: 'Phạm Ngọc Thạch' },
-    { id: 'cn2', name: 'Chi nhánh 2' },
-  ];
+  // Fetch branches from DB
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data } = await supabase
+        .from('branches')
+        .select('id, name')
+        .order('sort_order', { ascending: true });
+      if (data && data.length > 0) {
+        setBranches(data);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   const warnings = validateMenu();
   const activeCategory = categories[activeCategoryIdx];
