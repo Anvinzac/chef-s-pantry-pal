@@ -15,7 +15,7 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, User, UtensilsCrossed } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -32,6 +32,7 @@ const Index = () => {
   const [activeView, setActiveView] = useState<'ingredients' | 'menu'>('ingredients');
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const userToggledRef = useRef(false);
 
   const {
     ingredients,
@@ -74,13 +75,24 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Scroll to active view when toggled
+  // Scroll to active view when user explicitly toggles
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
     const targetX = activeView === 'menu' ? 0 : container.clientWidth;
-    container.scrollTo({ left: targetX, behavior: 'smooth' });
+    container.scrollTo({ left: targetX, behavior: userToggledRef.current ? 'smooth' : 'auto' });
+    userToggledRef.current = false;
   }, [activeView]);
+
+  // Ensure ingredients panel is shown on mount
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    // Delay slightly to ensure layout is ready
+    requestAnimationFrame(() => {
+      container.scrollTo({ left: container.clientWidth, behavior: 'auto' });
+    });
+  }, []);
 
   // Detect scroll snap position to update active view
   const handleScroll = () => {
@@ -128,11 +140,8 @@ const Index = () => {
               <h1 className="font-extrabold text-base text-foreground leading-tight">
                 {isChef ? 'Đặt Hàng Bếp' : 'Báo Hết Hàng'}
               </h1>
-              <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                <User size={9} />
-                {displayName ?? 'User'}
-                <span className="text-muted-foreground/50">•</span>
-                <span className={isChef ? 'text-primary' : 'text-secondary'}>{isChef ? 'Bếp trưởng' : 'Nhân viên'}</span>
+              <p className="text-[10px] text-muted-foreground font-semibold">
+                Phạm Ngọc Thạch
               </p>
             </div>
           </div>
@@ -161,7 +170,7 @@ const Index = () => {
             {isChef && (
               <>
                 <button
-                  onClick={() => setActiveView('menu')}
+                  onClick={() => { userToggledRef.current = true; setActiveView('menu'); }}
                   className={cn(
                     "p-1.5 rounded-lg transition-colors",
                     activeView === 'menu' ? "bg-primary/20 text-primary" : "hover:bg-muted text-muted-foreground"

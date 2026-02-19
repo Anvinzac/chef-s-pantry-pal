@@ -56,10 +56,11 @@ export function MenuPlanner() {
       <div className="border-b border-border flex flex-col flex-shrink-0 transition-all duration-300">
         {/* Header row */}
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col">
             <h2 className="text-base text-foreground">
               📋 Menu — {tomorrowFormatted}
             </h2>
+            <p className="text-[10px] text-muted-foreground font-semibold">Phạm Ngọc Thạch</p>
             {specialDay && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
                 {specialDay.emoji} {specialDay.label}
