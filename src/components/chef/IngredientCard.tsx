@@ -124,11 +124,11 @@ export function IngredientCard({
 
       {/* Top row: alert/emoji + name + price + edit */}
       <div className="flex items-center gap-1.5">
-        <span className="relative text-xl leading-none shrink-0">
+        <span className="relative text-xl leading-none shrink-0 w-6 h-6 flex items-center justify-center">
           {ingredient.emoji}
           {isAlerted && (
             <span
-              className="absolute inset-0 flex items-center justify-center bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[9px] font-extrabold rounded-full"
+              className="absolute inset-[-2px] flex items-center justify-center bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[10px] font-extrabold rounded-full z-[1]"
               title={reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder} ngày`}
             >
               {reorderAlert.daysSinceLastOrder >= 999 ? '!' : reorderAlert.daysSinceLastOrder}
@@ -139,7 +139,7 @@ export function IngredientCard({
           {ingredient.name}
         </span>
         {priceK !== undefined && (
-          <span className="text-[9px] text-muted-foreground/70 font-medium flex-shrink-0">
+          <span className="text-[10px] text-foreground font-semibold flex-shrink-0">
             {formatPriceK(priceK)}
           </span>
         )}
