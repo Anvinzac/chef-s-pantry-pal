@@ -133,13 +133,15 @@ const Index = () => {
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
 
-  // Wrap saveOrder to refresh alerts after DB save
+  // Save order, clear cart, refresh alerts
   const handleSaveOrder = useCallback(async () => {
     const result = await saveOrder(currentOrder, ingredients);
     if (result) {
+      clearOrder();
+      setExpandedOrder(false);
       refreshAlerts();
     }
-  }, [saveOrder, currentOrder, ingredients, refreshAlerts]);
+  }, [saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
 
   const activeCat = categories.find(c => c.id === activeCategory);
   const allCategoryIngredients = getIngredientsByCategory(activeCategory);
