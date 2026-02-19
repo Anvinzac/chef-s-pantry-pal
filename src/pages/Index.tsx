@@ -20,6 +20,8 @@ import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
 import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const SWIPE_THRESHOLD = 50;
+
 const Index = () => {
   const navigate = useNavigate();
   const { role, displayName, signOut } = useAuth();
@@ -35,9 +37,9 @@ const Index = () => {
   const [categoryCloudOpen, setCategoryCloudOpen] = useState(false);
   const [remainingNumpadIngredient, setRemainingNumpadIngredient] = useState<Ingredient | null>(null);
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const userToggledRef = useRef(false);
-  const isSwiping = useRef(false);
+  // Touch swipe refs
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchAxisRef = useRef<'horizontal' | 'vertical' | null>(null);
 
   const {
     ingredients,
@@ -85,49 +87,39 @@ const Index = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Scroll to active view when user explicitly toggles
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const targetX = activeView === 'menu' ? 0 : container.clientWidth;
-    container.scrollTo({ left: targetX, behavior: userToggledRef.current ? 'smooth' : 'auto' });
-    userToggledRef.current = false;
-  }, [activeView]);
+  // Touch swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    touchAxisRef.current = null;
+  };
 
-  // Ensure ingredients panel is shown on mount + scrollend listener
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    requestAnimationFrame(() => {
-      container.scrollTo({ left: container.clientWidth, behavior: 'auto' });
-    });
-    container.addEventListener('scrollend', handleScrollEnd);
-    return () => container.removeEventListener('scrollend', handleScrollEnd);
-  }, []);
-
-  // Detect scroll snap position to update active view
-  const handleScroll = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    isSwiping.current = true;
-    const midPoint = container.scrollLeft + container.clientWidth / 2;
-    if (midPoint < container.clientWidth) {
-      if (activeView !== 'menu') setActiveView('menu');
-    } else {
-      if (activeView !== 'ingredients') setActiveView('ingredients');
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartRef.current.x);
+    const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+    // Lock axis on first significant movement
+    if (!touchAxisRef.current && (dx > 10 || dy > 10)) {
+      touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
     }
   };
 
-  const handleScrollEnd = () => {
-    // Small delay to let the snap finish before re-enabling clicks
-    setTimeout(() => { isSwiping.current = false; }, 150);
-  };
-
-  const handleContainerClick = (e: React.MouseEvent) => {
-    if (isSwiping.current) {
-      e.stopPropagation();
-      e.preventDefault();
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || touchAxisRef.current !== 'horizontal') {
+      touchStartRef.current = null;
+      touchAxisRef.current = null;
+      return;
     }
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    if (deltaX > SWIPE_THRESHOLD && activeView === 'ingredients') {
+      setActiveView('menu');
+    } else if (deltaX < -SWIPE_THRESHOLD && activeView === 'menu') {
+      setActiveView('ingredients');
+    }
+    touchStartRef.current = null;
+    touchAxisRef.current = null;
   };
 
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
@@ -314,23 +306,25 @@ const Index = () => {
     );
   }
 
-  // Chef: swipeable container with menu planner
+  // Chef: transform-based swipeable container (no scroll-snap to avoid hit-test offset)
   return (
-    <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-hidden">
+    <div
+      className="min-h-screen bg-background max-w-md mx-auto relative overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        onClickCapture={handleContainerClick}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-screen"
-        style={{ scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain' }}
+        className="flex h-screen transition-transform duration-300 ease-out"
+        style={{ transform: `translateX(${activeView === 'menu' ? '0%' : '-100%'})` }}
       >
         {/* Menu Planner Panel */}
-        <div className={cn("w-full flex-shrink-0 snap-start h-screen overflow-y-auto overflow-x-hidden", activeView !== 'menu' && "pointer-events-none")}>
+        <div className="w-full flex-shrink-0 h-screen overflow-y-auto">
           <MenuPlanner />
         </div>
 
         {/* Ingredients Panel */}
-        <div className={cn("w-full flex-shrink-0 snap-start h-screen overflow-y-auto overflow-x-hidden relative", activeView !== 'ingredients' && "pointer-events-none")}>
+        <div className="w-full flex-shrink-0 h-screen overflow-y-auto relative">
           {ingredientsContent}
 
           {/* Order bar */}
