@@ -37,6 +37,7 @@ const Index = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userToggledRef = useRef(false);
+  const isSwiping = useRef(false);
 
   const {
     ingredients,
@@ -93,25 +94,39 @@ const Index = () => {
     userToggledRef.current = false;
   }, [activeView]);
 
-  // Ensure ingredients panel is shown on mount
+  // Ensure ingredients panel is shown on mount + scrollend listener
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    // Delay slightly to ensure layout is ready
     requestAnimationFrame(() => {
       container.scrollTo({ left: container.clientWidth, behavior: 'auto' });
     });
+    container.addEventListener('scrollend', handleScrollEnd);
+    return () => container.removeEventListener('scrollend', handleScrollEnd);
   }, []);
 
   // Detect scroll snap position to update active view
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    isSwiping.current = true;
     const midPoint = container.scrollLeft + container.clientWidth / 2;
     if (midPoint < container.clientWidth) {
       if (activeView !== 'menu') setActiveView('menu');
     } else {
       if (activeView !== 'ingredients') setActiveView('ingredients');
+    }
+  };
+
+  const handleScrollEnd = () => {
+    // Small delay to let the snap finish before re-enabling clicks
+    setTimeout(() => { isSwiping.current = false; }, 150);
+  };
+
+  const handleContainerClick = (e: React.MouseEvent) => {
+    if (isSwiping.current) {
+      e.stopPropagation();
+      e.preventDefault();
     }
   };
 
@@ -303,16 +318,17 @@ const Index = () => {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
+        onClickCapture={handleContainerClick}
         className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-screen"
-        style={{ scrollSnapType: 'x mandatory' }}
+        style={{ scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain' }}
       >
         {/* Menu Planner Panel */}
-        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto">
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto overflow-x-hidden">
           <MenuPlanner />
         </div>
 
         {/* Ingredients Panel */}
-        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto relative">
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto overflow-x-hidden relative">
           {ingredientsContent}
 
           {/* Order bar */}
