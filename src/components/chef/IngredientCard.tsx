@@ -93,6 +93,8 @@ export function IngredientCard({
   }
 
   // Chef mode (full ordering UI)
+  const hasRemaining = remainingQuantity != null && !isInOrder;
+
   return (
     <div
       className={cn(
@@ -105,8 +107,8 @@ export function IngredientCard({
       )}
       onClick={onCustomQuantity}
     >
-      {/* Order badge — click to clear */}
-      {isInOrder && orderQuantity && (
+      {/* Top-left badge: order quantity (priority) or remaining quantity */}
+      {isInOrder && orderQuantity ? (
         <button
           onClick={(e) => { e.stopPropagation(); onClear(); }}
           className="absolute -top-2 -left-1.5 bg-primary text-primary-foreground text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in gap-0.5 z-10 hover:bg-destructive transition-colors"
@@ -114,16 +116,25 @@ export function IngredientCard({
           <span>{orderQuantity}{unit}</span>
           <X size={10} />
         </button>
-      )}
+      ) : hasRemaining ? (
+        <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
+          {remainingQuantity}{unit}
+        </span>
+      ) : null}
 
-      {/* Top row: emoji + name + price + edit */}
+      {/* Top row: alert/emoji + name + price + edit */}
       <div className="flex items-center gap-1.5">
-        <span className="text-xl leading-none">{ingredient.emoji}</span>
-        {isAlerted && (
-          <span className="bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[8px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center shrink-0" title={reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder} ngày`}>
-            {reorderAlert.daysSinceLastOrder >= 999 ? '!' : reorderAlert.daysSinceLastOrder}
-          </span>
-        )}
+        <span className="relative text-xl leading-none shrink-0">
+          {ingredient.emoji}
+          {isAlerted && (
+            <span
+              className="absolute inset-0 flex items-center justify-center bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[9px] font-extrabold rounded-full"
+              title={reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder} ngày`}
+            >
+              {reorderAlert.daysSinceLastOrder >= 999 ? '!' : reorderAlert.daysSinceLastOrder}
+            </span>
+          )}
+        </span>
         <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
           {ingredient.name}
         </span>
@@ -140,7 +151,7 @@ export function IngredientCard({
         </button>
       </div>
 
-      {/* Bottom row: quick buttons + keypad + out of stock */}
+      {/* Bottom row: quick buttons */}
       <div className="flex items-center gap-1.5">
         {ingredient.quickQuantities.map((qty, i) => (
           <button
