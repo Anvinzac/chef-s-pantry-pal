@@ -37,46 +37,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let resolved = false;
+    let initialLoad = true;
 
-    const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (resolved) return;
-        resolved = true;
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser) {
-          await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
-        }
-      } catch (e) {
-        console.error('Initial session error:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Timeout fallback: if getSession hangs, resolve after 3s
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        setLoading(false);
-      }
-    }, 3000);
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Set up listener FIRST (before getSession) to avoid missing events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
+        // Use setTimeout to avoid Supabase deadlock on simultaneous calls
+        setTimeout(async () => {
+          await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
+          setLoading(false);
+          initialLoad = false;
+        }, 0);
       } else {
         setRole(null);
         setDisplayName(null);
+        setLoading(false);
+        initialLoad = false;
       }
-      setLoading(false);
     });
+
+    // Fallback: if onAuthStateChange never fires, resolve after 3s
+    const timeout = setTimeout(() => {
+      if (initialLoad) {
+        initialLoad = false;
+        setLoading(false);
+      }
+    }, 3000);
 
     return () => {
       clearTimeout(timeout);
