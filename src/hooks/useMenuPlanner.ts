@@ -35,7 +35,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
         .select('dishes')
         .eq('menu_date', dateStr)
         .eq('branch_id', branchId)
-        .single();
+        .maybeSingle();
 
       if (data?.dishes) {
         const dishes = data.dishes as any[];
@@ -59,7 +59,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
         .select('dishes')
         .eq('menu_date', dateStr)
         .eq('branch_id', branchId)
-        .single();
+        .maybeSingle();
 
       if (data?.dishes) {
         const dishes = data.dishes as any[];
