@@ -1,8 +1,8 @@
-import { Ingredient, UNIT_LABELS } from '@/types/ingredient';
-import { cn } from '@/lib/utils';
-import { Settings2, X, AlertTriangle } from 'lucide-react';
-import { getPriceK, formatPriceK } from '@/data/referencePrices';
-import { ReorderAlert } from '@/hooks/useReorderAlerts';
+import { Ingredient, UNIT_LABELS } from "@/types/ingredient";
+import { cn } from "@/lib/utils";
+import { Settings2, X, AlertTriangle } from "lucide-react";
+import { getPriceK, formatPriceK } from "@/data/referencePrices";
+import { ReorderAlert } from "@/hooks/useReorderAlerts";
 
 interface IngredientCardProps {
   ingredient: Ingredient;
@@ -54,7 +54,7 @@ export function IngredientCard({
             ? "border-destructive bg-destructive/10"
             : remainingQuantity != null
               ? "border-primary/50 bg-primary/5"
-              : "border-transparent bg-card shadow-sm"
+              : "border-transparent bg-card shadow-sm",
         )}
         onClick={() => onReportRemaining?.()}
       >
@@ -66,10 +66,11 @@ export function IngredientCard({
           </span>
           {remainingQuantity != null ? (
             <span className="text-[10px] font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
-              còn {remainingQuantity}{unit}
+              còn {remainingQuantity}
+              {unit}
             </span>
           ) : (
-            <span className="text-[10px] text-muted-foreground/50 italic shrink-0">chưa báo</span>
+            <span className="text-[10px] text-muted-foreground/50 italic shrink-0">còn ...</span>
           )}
         </div>
 
@@ -81,7 +82,10 @@ export function IngredientCard({
           </div>
         ) : (
           <button
-            onClick={(e) => { e.stopPropagation(); onReportOutOfStock?.(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onReportOutOfStock?.();
+            }}
             className="flex items-center gap-1.5 bg-muted hover:bg-destructive/15 hover:text-destructive text-muted-foreground rounded-lg px-2.5 py-2.5 justify-center transition-colors active:scale-95"
           >
             <AlertTriangle size={14} />
@@ -103,22 +107,29 @@ export function IngredientCard({
           ? "border-[hsl(var(--reorder-glow))] bg-[hsl(var(--reorder-glow)/0.08)] shadow-[0_0_12px_hsl(var(--reorder-glow)/0.25)]"
           : isInOrder
             ? "border-primary bg-card shadow-md shadow-primary/15"
-            : "border-transparent bg-card shadow-sm"
+            : "border-transparent bg-card shadow-sm",
       )}
       onClick={onCustomQuantity}
     >
       {/* Top-left badge: order quantity (priority) or remaining quantity */}
       {isInOrder && orderQuantity ? (
         <button
-          onClick={(e) => { e.stopPropagation(); onClear(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClear();
+          }}
           className="absolute -top-2 -left-1.5 bg-primary text-primary-foreground text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in gap-0.5 z-10 hover:bg-destructive transition-colors"
         >
-          <span>{orderQuantity}{unit}</span>
+          <span>
+            {orderQuantity}
+            {unit}
+          </span>
           <X size={10} />
         </button>
       ) : hasRemaining ? (
         <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
-          {remainingQuantity}{unit}
+          {remainingQuantity}
+          {unit}
         </span>
       ) : null}
 
@@ -129,9 +140,9 @@ export function IngredientCard({
           {isAlerted && (
             <span
               className="absolute inset-[-2px] flex items-center justify-center bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[10px] font-extrabold rounded-full z-[1]"
-              title={reorderAlert.daysSinceLastOrder >= 999 ? 'Chưa mua' : `${reorderAlert.daysSinceLastOrder} ngày`}
+              title={reorderAlert.daysSinceLastOrder >= 999 ? "Chưa mua" : `${reorderAlert.daysSinceLastOrder} ngày`}
             >
-              {reorderAlert.daysSinceLastOrder >= 999 ? '!' : reorderAlert.daysSinceLastOrder}
+              {reorderAlert.daysSinceLastOrder >= 999 ? "!" : reorderAlert.daysSinceLastOrder}
             </span>
           )}
         </span>
@@ -139,12 +150,13 @@ export function IngredientCard({
           {ingredient.name}
         </span>
         {priceK !== undefined && (
-          <span className="text-[10px] text-foreground font-semibold flex-shrink-0">
-            {formatPriceK(priceK)}
-          </span>
+          <span className="text-[10px] text-foreground font-semibold flex-shrink-0">{formatPriceK(priceK)}</span>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
           className="p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
         >
           <Settings2 size={12} />
@@ -156,21 +168,28 @@ export function IngredientCard({
         {ingredient.quickQuantities.map((qty, i) => (
           <button
             key={i}
-            onClick={(e) => { e.stopPropagation(); handleQuickAdd(qty); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQuickAdd(qty);
+            }}
             className={cn(
               "flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 min-h-[36px]",
               isAlerted
                 ? "bg-[hsl(var(--reorder-glow)/0.15)] text-[hsl(var(--reorder-glow))] hover:bg-[hsl(var(--reorder-glow)/0.25)]"
-                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary",
             )}
           >
-            {qty}{unit}
+            {qty}
+            {unit}
           </button>
         ))}
       </div>
       {isOutOfStock && (
         <button
-          onClick={(e) => { e.stopPropagation(); onReportOutOfStock?.(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onReportOutOfStock?.();
+          }}
           className="flex items-center gap-1 bg-destructive/15 text-destructive rounded-lg px-2 py-1.5 hover:bg-destructive/25 transition-colors"
           title="Nhấn để xác nhận đã xem"
         >
