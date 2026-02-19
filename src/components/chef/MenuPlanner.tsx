@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useMenuPlanner } from '@/hooks/useMenuPlanner';
-import { menuCategories, MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
+import { MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
+import { useMenuDishes } from '@/hooks/useMenuDishes';
 import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -8,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
 
 export function MenuPlanner() {
+  const { categories, loading: dishesLoading } = useMenuDishes();
   const {
     selectedDishes,
     toggleDish,
@@ -18,14 +20,14 @@ export function MenuPlanner() {
     validateMenu,
     saveMenu,
     maxDishes,
-  } = useMenuPlanner();
+  } = useMenuPlanner(categories);
 
   const [expanded, setExpanded] = useState(false);
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const warnings = validateMenu();
-  const activeCategory = menuCategories[activeCategoryIdx];
+  const activeCategory = categories[activeCategoryIdx];
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
 
@@ -161,21 +163,23 @@ export function MenuPlanner() {
 
       {/* Middle - Dish grid (takes remaining space, scrollable) */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm text-foreground">
-            {activeCategory.vnName}
-            {activeCategory.singleChoice && (
-              <span className="text-xs text-muted-foreground ml-1.5">
-                (chọn 1)
-              </span>
-            )}
-          </h3>
-        </div>
+        {activeCategory ? (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm text-foreground">
+                {activeCategory.vnName}
+                {activeCategory.singleChoice && (
+                  <span className="text-xs text-muted-foreground ml-1.5">
+                    (chọn 1)
+                  </span>
+                )}
+              </h3>
+            </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          {activeCategory.dishes.map(dish => {
-            const selected = isDishSelected(dish.id);
-            const yesterday = isYesterdayDish(dish.id);
+            <div className="grid grid-cols-2 gap-2">
+              {activeCategory.dishes.map(dish => {
+                const selected = isDishSelected(dish.id);
+                const yesterday = isYesterdayDish(dish.id);
             const isSingle = activeCategory.singleChoice;
 
             return (
@@ -216,11 +220,16 @@ export function MenuPlanner() {
             );
           })}
         </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-20 text-muted-foreground text-sm">
+            Đang tải...
+          </div>
+        )}
       </div>
-
       {/* Bottom - Category tabs (docked near thumb) */}
       <div className="flex flex-wrap border-t border-border px-2 gap-1.5 py-2 flex-shrink-0 safe-bottom">
-        {menuCategories.map((cat, idx) => {
+        {categories.map((cat, idx) => {
           const hasSelected = selectedDishes.some(d => d.category === cat.id && d.id !== 'fixed-cari');
           return (
             <button
