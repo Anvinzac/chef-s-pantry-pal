@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
@@ -15,7 +15,7 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, UtensilsCrossed } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -109,6 +109,14 @@ const Index = () => {
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
 
+  // Wrap saveOrder to refresh alerts after DB save
+  const handleSaveOrder = useCallback(async () => {
+    const result = await saveOrder(currentOrder, ingredients);
+    if (result) {
+      refreshAlerts();
+    }
+  }, [saveOrder, currentOrder, ingredients, refreshAlerts]);
+
   const activeCat = categories.find(c => c.id === activeCategory);
   const allCategoryIngredients = getIngredientsByCategory(activeCategory);
   const filteredIngredients = activeSubcategory
@@ -138,24 +146,19 @@ const Index = () => {
             </div>
             <div>
               <h1 className="font-extrabold text-base text-foreground leading-tight">
-                {isChef ? 'Đặt Hàng Bếp' : 'Báo Hết Hàng'}
+                {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
               </h1>
-              <p className="text-[10px] text-muted-foreground font-semibold">
+              <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
                 Phạm Ngọc Thạch
+                {isChef && specialDay && (
+                  <span className={specialDay.impact === 'high' ? 'text-destructive' : ''}>
+                    • {specialDay.emoji} {specialDay.label}
+                  </span>
+                )}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {isChef && (
-              <div className="text-right mr-1">
-                <p className="text-xs font-bold text-foreground leading-tight">{tomorrowFormatted}</p>
-                {specialDay && (
-                  <p className={`text-[9px] font-semibold leading-tight ${specialDay.impact === 'high' ? 'text-destructive' : 'text-muted-foreground'}`}>
-                    {specialDay.emoji} {specialDay.label}
-                  </p>
-                )}
-              </div>
-            )}
             <button
               onClick={() => navigate('/stock-report')}
               className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -168,23 +171,12 @@ const Index = () => {
               )}
             </button>
             {isChef && (
-              <>
-                <button
-                  onClick={() => { userToggledRef.current = true; setActiveView('menu'); }}
-                  className={cn(
-                    "p-1.5 rounded-lg transition-colors",
-                    activeView === 'menu' ? "bg-primary/20 text-primary" : "hover:bg-muted text-muted-foreground"
-                  )}
-                >
-                  <UtensilsCrossed size={18} />
-                </button>
                 <button
                   onClick={() => navigate('/history')}
                   className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                 >
                   <Clock size={18} className="text-muted-foreground" />
                 </button>
-              </>
             )}
             <button
               onClick={signOut}
@@ -250,7 +242,7 @@ const Index = () => {
               onCustomQuantity={isChef ? () => setNumpadIngredient(ingredient) : () => {}}
               onEdit={isChef ? () => { setEditIngredient(ingredient); setAddModalOpen(true); } : () => {}}
               onClear={isChef ? () => removeFromOrder(ingredient.id) : () => {}}
-              reorderAlert={isChef ? alert : undefined}
+              reorderAlert={isChef && !orderItem ? alert : undefined}
               isOutOfStock={outOfStock}
               onReportOutOfStock={isChef ? () => resolveReport(ingredient.id) : () => reportOutOfStock(ingredient)}
               reportMode={!isChef}
@@ -296,7 +288,7 @@ const Index = () => {
             onRemoveItem={removeFromOrder}
             onClearOrder={clearOrder}
             getOrderText={getOrderText}
-            onSaveOrder={() => saveOrder(currentOrder, ingredients)}
+            onSaveOrder={handleSaveOrder}
           />
         </div>
       </div>
