@@ -285,7 +285,7 @@ const Index = () => {
         </div>
 
         {/* Ingredients Panel */}
-        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto">
+        <div className="w-full flex-shrink-0 snap-center h-screen overflow-y-auto relative">
           {ingredientsContent}
 
           {/* Order bar */}
