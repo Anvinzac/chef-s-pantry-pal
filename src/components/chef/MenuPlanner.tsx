@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useMenuPlanner } from '@/hooks/useMenuPlanner';
 import { MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
 import { useMenuDishes } from '@/hooks/useMenuDishes';
-import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,14 @@ export function MenuPlanner() {
 
   const [expanded, setExpanded] = useState(false);
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
+  const [selectedBranch, setSelectedBranch] = useState('pnt');
+  const [branchOpen, setBranchOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const branches = [
+    { id: 'pnt', name: 'Phạm Ngọc Thạch' },
+    { id: 'cn2', name: 'Chi nhánh 2' },
+  ];
 
   const warnings = validateMenu();
   const activeCategory = categories[activeCategoryIdx];
@@ -55,23 +62,53 @@ export function MenuPlanner() {
       {/* Top - Header + selected dishes */}
       <div className="border-b border-border flex flex-col flex-shrink-0 transition-all duration-300">
         {/* Header row */}
-        <div className="flex items-center justify-between px-3 pt-2 pb-1">
-        <div className="flex flex-col">
-            <h2 className="text-base text-foreground">
-              📋 Menu — {tomorrowFormatted}
+        <div className="flex items-center justify-between px-3 pt-2 pb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-extrabold text-foreground whitespace-nowrap">
+              📋 Menu {tomorrowFormatted}
             </h2>
-            <p className="text-[10px] text-muted-foreground font-semibold">Phạm Ngọc Thạch</p>
+            {warnings.length > 0 && (
+              <span className="text-destructive">
+                <AlertTriangle size={14} />
+              </span>
+            )}
             {specialDay && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground whitespace-nowrap">
                 {specialDay.emoji} {specialDay.label}
               </span>
             )}
           </div>
-          {warnings.length > 0 && (
-            <span className="text-destructive">
-              <AlertTriangle size={14} />
-            </span>
-          )}
+          <div className="relative">
+            <button
+              onClick={() => setBranchOpen(!branchOpen)}
+              className="flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MapPin size={12} />
+              {branches.find(b => b.id === selectedBranch)?.name}
+              <ChevronDown size={12} className={cn("transition-transform", branchOpen && "rotate-180")} />
+            </button>
+            {branchOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setBranchOpen(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
+                  {branches.map(branch => (
+                    <button
+                      key={branch.id}
+                      onClick={() => { setSelectedBranch(branch.id); setBranchOpen(false); }}
+                      className={cn(
+                        "w-full text-left px-3 py-2 text-sm transition-colors",
+                        branch.id === selectedBranch
+                          ? "text-secondary font-semibold bg-secondary/10"
+                          : "text-popover-foreground hover:bg-muted"
+                      )}
+                    >
+                      {branch.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Selected dishes list */}
@@ -144,7 +181,8 @@ export function MenuPlanner() {
         </div>
 
         {/* Action bar at bottom of top section */}
-        <div className="flex items-center justify-end gap-2 px-3 py-1.5 flex-shrink-0">
+        <div className="flex items-center justify-between px-3 py-1.5 flex-shrink-0">
+          <div />
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
@@ -163,7 +201,7 @@ export function MenuPlanner() {
       </div>
 
       {/* Middle - Dish grid (takes remaining space, scrollable) */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 bg-gradient-to-b from-muted/30 to-background">
         {activeCategory ? (
           <>
             <div className="flex items-center justify-between mb-2">
