@@ -316,15 +316,18 @@ const Index = () => {
     >
       <div
         className="flex h-screen transition-transform duration-300 ease-out"
-        style={{ transform: `translateX(${activeView === 'menu' ? '0%' : '-100%'})` }}
+        style={{
+          width: '200%',
+          transform: `translateX(${activeView === 'menu' ? '0%' : '-50%'})`,
+        }}
       >
         {/* Menu Planner Panel */}
-        <div className="w-full flex-shrink-0 h-screen overflow-y-auto">
+        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'menu' && "pointer-events-none")}>
           <MenuPlanner />
         </div>
 
         {/* Ingredients Panel */}
-        <div className="w-full flex-shrink-0 h-screen overflow-y-auto relative">
+        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto relative", activeView !== 'ingredients' && "pointer-events-none")}>
           {ingredientsContent}
 
           {/* Order bar */}
