@@ -113,11 +113,14 @@ const Index = () => {
     }
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
-    if (deltaX > SWIPE_THRESHOLD && activeView === 'ingredients') {
+
+    // Ingredients -> Menu on left swipe, Menu -> Ingredients on right swipe
+    if (deltaX < -SWIPE_THRESHOLD && activeView === 'ingredients') {
       setActiveView('menu');
-    } else if (deltaX < -SWIPE_THRESHOLD && activeView === 'menu') {
+    } else if (deltaX > SWIPE_THRESHOLD && activeView === 'menu') {
       setActiveView('ingredients');
     }
+
     touchStartRef.current = null;
     touchAxisRef.current = null;
   };
@@ -319,17 +322,17 @@ const Index = () => {
         className="flex h-screen transition-transform duration-300 ease-out"
         style={{
           width: '200%',
-          transform: `translateX(${activeView === 'menu' ? '0%' : '-50%'})`,
+          transform: `translateX(${activeView === 'menu' ? '-50%' : '0%'})`,
         }}
       >
-        {/* Menu Planner Panel */}
-        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'menu' && "pointer-events-none")}>
-          <MenuPlanner />
-        </div>
-
         {/* Ingredients Panel */}
         <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'ingredients' && "pointer-events-none")}>
           {ingredientsContent}
+        </div>
+
+        {/* Menu Planner Panel */}
+        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'menu' && "pointer-events-none")}>
+          <MenuPlanner />
         </div>
       </div>
 
