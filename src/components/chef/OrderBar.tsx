@@ -55,13 +55,13 @@ export function OrderBar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 bg-black/40"
+            className="fixed inset-0 z-30 bg-black/40"
             onClick={onToggleExpand}
           />
         )}
       </AnimatePresence>
 
-      <div className="absolute bottom-0 left-0 right-0 z-40">
+      <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
         <AnimatePresence>
           {expanded && (
           <motion.div
