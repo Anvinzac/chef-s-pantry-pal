@@ -310,6 +310,7 @@ const Index = () => {
   return (
     <div
       className="min-h-screen bg-background max-w-md mx-auto relative overflow-hidden"
+      style={{ touchAction: 'pan-y' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -327,21 +328,23 @@ const Index = () => {
         </div>
 
         {/* Ingredients Panel */}
-        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto relative", activeView !== 'ingredients' && "pointer-events-none")}>
+        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'ingredients' && "pointer-events-none")}>
           {ingredientsContent}
-
-          {/* Order bar */}
-          <OrderBar
-            currentOrder={currentOrder}
-            expanded={expandedOrder}
-            onToggleExpand={() => setExpandedOrder(!expandedOrder)}
-            onRemoveItem={removeFromOrder}
-            onClearOrder={clearOrder}
-            getOrderText={getOrderText}
-            onSaveOrder={handleSaveOrder}
-          />
         </div>
       </div>
+
+      {/* Order bar - fixed outside scroll panels */}
+      {activeView === 'ingredients' && (
+        <OrderBar
+          currentOrder={currentOrder}
+          expanded={expandedOrder}
+          onToggleExpand={() => setExpandedOrder(!expandedOrder)}
+          onRemoveItem={removeFromOrder}
+          onClearOrder={clearOrder}
+          getOrderText={getOrderText}
+          onSaveOrder={handleSaveOrder}
+        />
+      )}
 
       {/* Numpad modal */}
       <NumpadModal
