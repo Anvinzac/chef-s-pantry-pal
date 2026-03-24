@@ -17,8 +17,9 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3 } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const SWIPE_THRESHOLD = 50;
 
