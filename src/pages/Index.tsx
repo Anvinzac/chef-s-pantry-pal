@@ -209,12 +209,22 @@ const Index = () => {
                   <Clock size={18} className="text-muted-foreground" />
                 </button>
             )}
-            <button
-              onClick={signOut}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-            >
-              <LogOut size={16} className="text-muted-foreground" />
-            </button>
+            {isGuest ? (
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+              >
+                <LogIn size={14} />
+                Đăng nhập
+              </button>
+            ) : (
+              <button
+                onClick={signOut}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <LogOut size={16} className="text-muted-foreground" />
+              </button>
+            )}
           </div>
         </div>
 

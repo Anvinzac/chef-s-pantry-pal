@@ -70,6 +70,23 @@ const Login = () => {
             {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
           </button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-background px-2 text-muted-foreground font-semibold">hoặc</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => navigate('/')}
+          className="w-full py-3 rounded-xl bg-secondary text-secondary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:bg-secondary/80 transition-colors"
+        >
+          <Eye size={16} />
+          Dùng thử không cần đăng nhập
+        </button>
       </div>
     </div>
   );
