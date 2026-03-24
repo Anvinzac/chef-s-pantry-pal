@@ -131,13 +131,22 @@ const Index = () => {
 
   // Save order, clear cart, refresh alerts
   const handleSaveOrder = useCallback(async () => {
+    if (isGuest) {
+      toast('Đăng nhập để lưu đơn hàng', {
+        action: {
+          label: 'Đăng nhập',
+          onClick: () => navigate('/login'),
+        },
+      });
+      return;
+    }
     const result = await saveOrder(currentOrder, ingredients);
     if (result) {
       clearOrder();
       setExpandedOrder(false);
       refreshAlerts();
     }
-  }, [saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
+  }, [isGuest, navigate, saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
 
   const activeCat = categories.find(c => c.id === activeCategory);
   const allCategoryIngredients = getIngredientsByCategory(activeCategory);
