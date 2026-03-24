@@ -190,17 +190,19 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => navigate('/stock-report')}
-              className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
-            >
-              <AlertTriangle size={18} className="text-muted-foreground" />
-              {outOfStockCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
-                  {outOfStockCount}
-                </span>
-              )}
-            </button>
+            {!isGuest && (
+              <button
+                onClick={() => navigate('/stock-report')}
+                className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <AlertTriangle size={18} className="text-muted-foreground" />
+                {outOfStockCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                    {outOfStockCount}
+                  </span>
+                )}
+              </button>
+            )}
             {isChef && (
                 <button
                   onClick={() => navigate('/history')}
