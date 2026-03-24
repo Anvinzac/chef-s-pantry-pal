@@ -203,7 +203,7 @@ const Index = () => {
                 )}
               </button>
             )}
-            {isChef && (
+            {isChef && !isGuest && (
                 <button
                   onClick={() => navigate('/history')}
                   className="p-1.5 rounded-lg hover:bg-muted transition-colors"
