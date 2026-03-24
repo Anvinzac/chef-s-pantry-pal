@@ -17,15 +17,16 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3 } from 'lucide-react';
+import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const SWIPE_THRESHOLD = 50;
 
 const Index = () => {
   const navigate = useNavigate();
-  const { role, displayName, signOut } = useAuth();
-  const isChef = role === 'chef';
+  const { user, role, displayName, signOut, isGuest } = useAuth();
+  const isChef = isGuest ? true : role === 'chef';
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
@@ -130,13 +131,22 @@ const Index = () => {
 
   // Save order, clear cart, refresh alerts
   const handleSaveOrder = useCallback(async () => {
+    if (isGuest) {
+      toast('Đăng nhập để lưu đơn hàng', {
+        action: {
+          label: 'Đăng nhập',
+          onClick: () => navigate('/login'),
+        },
+      });
+      return;
+    }
     const result = await saveOrder(currentOrder, ingredients);
     if (result) {
       clearOrder();
       setExpandedOrder(false);
       refreshAlerts();
     }
-  }, [saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
+  }, [isGuest, navigate, saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
 
   const activeCat = categories.find(c => c.id === activeCategory);
   const allCategoryIngredients = getIngredientsByCategory(activeCategory);
@@ -180,18 +190,20 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => navigate('/stock-report')}
-              className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
-            >
-              <AlertTriangle size={18} className="text-muted-foreground" />
-              {outOfStockCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
-                  {outOfStockCount}
-                </span>
-              )}
-            </button>
-            {isChef && (
+            {!isGuest && (
+              <button
+                onClick={() => navigate('/stock-report')}
+                className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <AlertTriangle size={18} className="text-muted-foreground" />
+                {outOfStockCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                    {outOfStockCount}
+                  </span>
+                )}
+              </button>
+            )}
+            {isChef && !isGuest && (
                 <button
                   onClick={() => navigate('/history')}
                   className="p-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -199,12 +211,22 @@ const Index = () => {
                   <Clock size={18} className="text-muted-foreground" />
                 </button>
             )}
-            <button
-              onClick={signOut}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-            >
-              <LogOut size={16} className="text-muted-foreground" />
-            </button>
+            {isGuest ? (
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+              >
+                <LogIn size={14} />
+                Đăng nhập
+              </button>
+            ) : (
+              <button
+                onClick={signOut}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <LogOut size={16} className="text-muted-foreground" />
+              </button>
+            )}
           </div>
         </div>
 

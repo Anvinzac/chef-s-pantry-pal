@@ -9,6 +9,7 @@ interface AuthContextType {
   role: AppRole;
   displayName: string | null;
   loading: boolean;
+  isGuest: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, displayName, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, role, displayName, loading, isGuest: !user && !loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
