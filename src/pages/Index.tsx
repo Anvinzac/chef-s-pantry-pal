@@ -25,8 +25,8 @@ const SWIPE_THRESHOLD = 50;
 
 const Index = () => {
   const navigate = useNavigate();
-  const { role, displayName, signOut } = useAuth();
-  const isChef = role === 'chef';
+  const { user, role, displayName, signOut, isGuest } = useAuth();
+  const isChef = isGuest ? true : role === 'chef';
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
