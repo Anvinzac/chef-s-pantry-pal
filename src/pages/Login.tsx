@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ChefHat, LogIn, Eye } from 'lucide-react';
 
 const Login = () => {
+  const navigate = useNavigate();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
