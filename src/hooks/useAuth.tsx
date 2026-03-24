@@ -9,6 +9,7 @@ interface AuthContextType {
   role: AppRole;
   displayName: string | null;
   loading: boolean;
+  isGuest: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
