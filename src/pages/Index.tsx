@@ -8,6 +8,7 @@ import { useReorderAlerts } from '@/hooks/useReorderAlerts';
 import { useStockReports } from '@/hooks/useStockReports';
 import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
 import { IngredientCard } from '@/components/chef/IngredientCard';
@@ -16,6 +17,7 @@ import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { MenuPlanner } from '@/components/chef/MenuPlanner';
+import { EditingModeToggle } from '@/components/chef/EditingModeToggle';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
 import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,6 +29,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, role, displayName, signOut, isGuest } = useAuth();
   const isChef = isGuest ? true : role === 'chef';
+  const { editingEnabled } = useAppSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
@@ -294,14 +297,25 @@ const Index = () => {
           const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
           const alert = isIngredientAlerted(ingredient.id);
           const outOfStock = isOutOfStock(ingredient.id);
+          const handleQuickAdd = isChef && !editingEnabled
+            ? (qty: number) => addToOrder(ingredient, qty)
+            : () => {};
+          const handleCardTap = isChef
+            ? editingEnabled
+              ? () => {
+                  setEditIngredient(ingredient);
+                  setAddModalOpen(true);
+                }
+              : () => setNumpadIngredient(ingredient)
+            : () => {};
           return (
             <IngredientCard
               key={ingredient.id}
               ingredient={ingredient}
               isInOrder={isChef ? !!orderItem : false}
               orderQuantity={isChef ? orderItem?.quantity : undefined}
-              onQuickAdd={isChef ? (qty) => addToOrder(ingredient, qty) : () => {}}
-              onCustomQuantity={isChef ? () => setNumpadIngredient(ingredient) : () => {}}
+              onQuickAdd={handleQuickAdd}
+              onCustomQuantity={handleCardTap}
               onEdit={isChef ? () => { setEditIngredient(ingredient); setAddModalOpen(true); } : () => {}}
               onClear={isChef ? () => removeFromOrder(ingredient.id) : () => {}}
               reorderAlert={isChef && !orderItem ? alert : undefined}
@@ -388,6 +402,8 @@ const Index = () => {
         editIngredient={editIngredient}
         categoryId={activeCategory}
       />
+
+      <EditingModeToggle />
 
     </div>
   );

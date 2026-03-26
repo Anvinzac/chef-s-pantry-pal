@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useMenuPlanner } from '@/hooks/useMenuPlanner';
 import { MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
 import { useMenuDishes } from '@/hooks/useMenuDishes';
-import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle, MapPin } from 'lucide-react';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle, MapPin, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +16,11 @@ interface Branch {
 }
 
 export function MenuPlanner() {
-  const { categories, loading: dishesLoading } = useMenuDishes();
+  const { categories, loading: dishesLoading, refetch: refetchMenuDishes } = useMenuDishes();
+  const { editingEnabled } = useAppSettings();
+  const [editingDish, setEditingDish] = useState<MenuDish | null>(null);
+  const [editingDishName, setEditingDishName] = useState('');
+  const [processingDish, setProcessingDish] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState('pnt');
   const [branchOpen, setBranchOpen] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([{ id: 'pnt', name: 'Phạm Ngọc Thạch' }]);
@@ -50,6 +55,20 @@ export function MenuPlanner() {
     fetchBranches();
   }, []);
 
+  useEffect(() => {
+    if (editingDish) {
+      setEditingDishName(editingDish.name);
+    } else {
+      setEditingDishName('');
+    }
+  }, [editingDish]);
+
+  useEffect(() => {
+    if (!editingEnabled) {
+      setEditingDish(null);
+    }
+  }, [editingEnabled]);
+
   const warnings = validateMenu();
   const activeCategory = categories[activeCategoryIdx];
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
@@ -70,7 +89,57 @@ export function MenuPlanner() {
     });
   };
 
+  const handleSaveDish = async () => {
+    if (!editingDish) return;
+    const trimmed = editingDishName.trim();
+    if (!trimmed) {
+      toast.error('Tên món không được để trống');
+      return;
+    }
+    setProcessingDish(true);
+    try {
+      const { error } = await supabase
+        .from('menu_dishes')
+        .update({ name: trimmed })
+        .eq('id', editingDish.id);
+      if (error) {
+        toast.error('Không thể lưu tên món');
+        return;
+      }
+      toast.success('Đã cập nhật món');
+      await refetchMenuDishes();
+      setEditingDish(null);
+    } finally {
+      setProcessingDish(false);
+    }
+  };
+
+  const handleDeleteDish = async () => {
+    if (!editingDish) return;
+    setProcessingDish(true);
+    try {
+      const { error } = await supabase
+        .from('menu_dishes')
+        .delete()
+        .eq('id', editingDish.id);
+      if (error) {
+        toast.error('Không thể xoá món');
+        return;
+      }
+      toast.success('Đã xoá món');
+      removeDish(editingDish.id);
+      await refetchMenuDishes();
+      setEditingDish(null);
+    } finally {
+      setProcessingDish(false);
+    }
+  };
+
   const handleDishTap = (dish: MenuDish) => {
+    if (editingEnabled) {
+      setEditingDish(dish);
+      return;
+    }
     toggleDish(dish);
   };
 
@@ -128,7 +197,15 @@ export function MenuPlanner() {
           </div>
         </div>
 
-        {/* Selected dishes list */}
+      {editingEnabled && (
+        <div className="px-3 pb-2">
+          <p className="text-[11px] text-muted-foreground italic">
+            Chế độ chỉnh sửa đang bật — chạm món để đổi tên hoặc xoá. Tắt lại khi hoàn tất.
+          </p>
+        </div>
+      )}
+
+      {/* Selected dishes list */}
         <div className={cn("px-3", expanded ? "max-h-[60vh] overflow-y-auto" : "")}>
           <p className="text-xs text-muted-foreground mb-1 italic">
             Dạ, hôm nay Lá có:
@@ -307,6 +384,66 @@ export function MenuPlanner() {
           );
         })}
       </div>
+
+      {editingDish && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/60 px-4 pb-6 sm:items-center">
+          <div
+            className="absolute inset-0"
+            onClick={() => setEditingDish(null)}
+          />
+          <div
+            className="relative w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Chỉnh sửa tạm thời
+                </p>
+                <p className="text-lg font-bold text-foreground">Món: {editingDish.name}</p>
+              </div>
+              <button
+                onClick={() => setEditingDish(null)}
+                className="rounded-full p-1 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Đóng chỉnh sửa"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <label className="mt-4 text-[11px] font-semibold text-muted-foreground">
+              Tên mới
+              <input
+                value={editingDishName}
+                onChange={(e) => setEditingDishName(e.target.value)}
+                placeholder="Gõ tên món..."
+                className="mt-1 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/60"
+              />
+            </label>
+
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Thay đổi này chỉ ảnh hưởng đến menu hiện tại và được lưu ngay lập tức lên Supabase.
+            </p>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={handleDeleteDish}
+                disabled={processingDish}
+                className="flex-1 rounded-2xl border border-destructive px-3 py-2 text-sm font-bold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+              >
+                {processingDish ? 'Đang xoá...' : 'Xoá món'}
+              </button>
+              <button
+                onClick={handleSaveDish}
+                disabled={processingDish}
+                className="flex-1 rounded-2xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {processingDish ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

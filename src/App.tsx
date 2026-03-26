@@ -9,6 +9,7 @@ import History from "./pages/History";
 import StockReport from "./pages/StockReport";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import { AppSettingsProvider } from "@/hooks/useAppSettings";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +44,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <AppSettingsProvider>
+            <AppRoutes />
+          </AppSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

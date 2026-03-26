@@ -6,7 +6,7 @@ const STORAGE_KEY_INGREDIENTS = 'chef-ingredients';
 const STORAGE_KEY_ORDERS = 'chef-current-order';
 const STORAGE_KEY_HISTORY = 'chef-order-history';
 const DATA_VERSION_KEY = 'chef-data-version';
-const CURRENT_DATA_VERSION = 3;
+const CURRENT_DATA_VERSION = 4;
 
 function loadIngredients(): Ingredient[] {
   try {
@@ -16,6 +16,8 @@ function loadIngredients(): Ingredient[] {
       if (stored) return JSON.parse(stored);
     } else {
       localStorage.removeItem(STORAGE_KEY_INGREDIENTS);
+      localStorage.removeItem(STORAGE_KEY_ORDERS);
+      localStorage.removeItem(STORAGE_KEY_HISTORY);
       localStorage.setItem(DATA_VERSION_KEY, String(CURRENT_DATA_VERSION));
     }
   } catch {}
