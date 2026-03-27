@@ -38,7 +38,7 @@ function getDateOffset(range: TimeRange): string | null {
   return now.toISOString().split('T')[0];
 }
 
-export function useOrderHistory() {
+export function useOrderHistory(restaurantId: string | null) {
   const [orders, setOrders] = useState<SavedOrder[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +46,7 @@ export function useOrderHistory() {
     currentOrder: OrderItem[],
     ingredients: { id: string; category: string }[]
   ) => {
-    if (currentOrder.length === 0) return;
+    if (currentOrder.length === 0 || !restaurantId) return;
 
     const totalCostK = currentOrder.reduce((sum, item) => {
       const cost = estimateCostK(item.ingredientId, item.quantity);
@@ -55,7 +55,10 @@ export function useOrderHistory() {
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert({ total_cost_k: Math.round(totalCostK * 10) / 10 })
+      .insert({
+        total_cost_k: Math.round(totalCostK * 10) / 10,
+        restaurant_id: restaurantId,
+      } as any)
       .select()
       .single();
 
@@ -75,12 +78,13 @@ export function useOrderHistory() {
         quantity: item.quantity,
         unit: item.unit,
         cost_k: estimateCostK(item.ingredientId, item.quantity) ?? null,
+        restaurant_id: restaurantId,
       };
     });
 
     const { error: itemsError } = await supabase
       .from('order_items')
-      .insert(items);
+      .insert(items as any);
 
     if (itemsError) {
       console.error('Failed to save order items:', itemsError);
@@ -90,14 +94,16 @@ export function useOrderHistory() {
 
     toast.success('Order saved to history!');
     return order.id;
-  }, []);
+  }, [restaurantId]);
 
   const fetchOrders = useCallback(async (timeRange: TimeRange = 'all', categoryFilter?: string) => {
+    if (!restaurantId) return;
     setLoading(true);
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('orders')
         .select('*')
+        .eq('restaurant_id', restaurantId)
         .order('order_date', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -109,7 +115,6 @@ export function useOrderHistory() {
       const { data: ordersData, error } = await query;
       if (error) { console.error(error); setLoading(false); return; }
 
-      // Fetch items for all orders
       const orderIds = (ordersData ?? []).map(o => o.id);
       if (orderIds.length === 0) { setOrders([]); setLoading(false); return; }
 
@@ -128,13 +133,13 @@ export function useOrderHistory() {
       const grouped: SavedOrder[] = (ordersData ?? []).map(o => ({
         ...o,
         items: (itemsData ?? []).filter(i => i.order_id === o.id),
-      })).filter(o => o.items.length > 0); // hide orders with no matching items
+      })).filter(o => o.items.length > 0);
 
       setOrders(grouped);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [restaurantId]);
 
   return { orders, loading, saveOrder, fetchOrders };
 }

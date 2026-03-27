@@ -17,8 +17,10 @@ serve(async (req) => {
     });
 
     const accounts = [
-      { email: "chef@kitchen.com", password: "chef123456", displayName: "Bếp Trưởng", role: "chef" },
-      { email: "staff@kitchen.com", password: "staff123456", displayName: "Nhân Viên Bếp", role: "kitchen_member" },
+      { email: "truong@quanchay.la", password: "chef123456", displayName: "Trưởng", role: "chef", restaurantId: "quanchay" },
+      { email: "phi@quanchay.la", password: "chef123456", displayName: "Phi", role: "kitchen_member", restaurantId: "quanchay" },
+      { email: "vu@vinha.bep", password: "59030PVT", displayName: "Vũ", role: "chef", restaurantId: "vinha" },
+      { email: "dan@vinha.bep", password: "59030PVT", displayName: "Đan", role: "kitchen_member", restaurantId: "vinha" },
     ];
 
     const results = [];
@@ -26,13 +28,14 @@ serve(async (req) => {
     for (const account of accounts) {
       // Check if user already exists
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existing = existingUsers?.users?.find(u => u.email === account.email);
+      const existing = existingUsers?.users?.find((u: any) => u.email === account.email);
       
       if (existing) {
         // Ensure role exists
         await supabase.from("user_roles").upsert({
           user_id: existing.id,
           role: account.role,
+          restaurant_id: account.restaurantId,
         }, { onConflict: "user_id,role" });
         results.push({ email: account.email, status: "already exists, role ensured" });
         continue;
@@ -51,10 +54,11 @@ serve(async (req) => {
         continue;
       }
 
-      // Assign role
+      // Assign role with restaurant
       const { error: roleError } = await supabase.from("user_roles").insert({
         user_id: newUser.user.id,
         role: account.role,
+        restaurant_id: account.restaurantId,
       });
 
       results.push({
@@ -66,8 +70,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

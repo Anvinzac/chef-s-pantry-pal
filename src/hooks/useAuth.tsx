@@ -8,6 +8,8 @@ interface AuthContextType {
   user: User | null;
   role: AppRole;
   displayName: string | null;
+  restaurantId: string | null;
+  restaurantName: string | null;
   loading: boolean;
   isGuest: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -20,6 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
@@ -37,29 +41,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data) setDisplayName(data.display_name);
   };
 
+  const fetchRestaurant = async (userId: string) => {
+    // Get restaurant_id from user_roles
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('restaurant_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (roleData?.restaurant_id) {
+      setRestaurantId(roleData.restaurant_id);
+      // Fetch restaurant name
+      const { data: restData } = await (supabase as any)
+        .from('restaurants')
+        .select('name')
+        .eq('id', roleData.restaurant_id)
+        .single();
+      if (restData) setRestaurantName(restData.name);
+    }
+  };
+
   useEffect(() => {
     let initialLoad = true;
 
-    // Set up listener FIRST (before getSession) to avoid missing events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        // Use setTimeout to avoid Supabase deadlock on simultaneous calls
         setTimeout(async () => {
-          await Promise.all([fetchRole(currentUser.id), fetchProfile(currentUser.id)]);
+          await Promise.all([
+            fetchRole(currentUser.id),
+            fetchProfile(currentUser.id),
+            fetchRestaurant(currentUser.id),
+          ]);
           setLoading(false);
           initialLoad = false;
         }, 0);
       } else {
         setRole(null);
         setDisplayName(null);
+        setRestaurantId(null);
+        setRestaurantName(null);
         setLoading(false);
         initialLoad = false;
       }
     });
 
-    // Fallback: if onAuthStateChange never fires, resolve after 3s
     const timeout = setTimeout(() => {
       if (initialLoad) {
         initialLoad = false;
@@ -83,7 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, displayName, loading, isGuest: !user && !loading, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      user, role, displayName, restaurantId, restaurantName,
+      loading, isGuest: !user && !loading, signIn, signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );

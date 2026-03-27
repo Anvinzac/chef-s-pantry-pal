@@ -27,7 +27,7 @@ const SWIPE_THRESHOLD = 50;
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, role, displayName, signOut, isGuest } = useAuth();
+  const { user, role, displayName, signOut, isGuest, restaurantId, restaurantName } = useAuth();
   const isChef = isGuest ? true : role === 'chef';
   const { editingEnabled } = useAppSettings();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -60,7 +60,7 @@ const Index = () => {
     getIngredientsByCategory,
   } = useOrder();
 
-  const { saveOrder } = useOrderHistory();
+  const { saveOrder } = useOrderHistory(restaurantId);
   const {
     getAlertCountForCategory,
     isIngredientAlerted,
@@ -72,12 +72,12 @@ const Index = () => {
     reportOutOfStock,
     resolveReport,
     isOutOfStock,
-  } = useStockReports();
+  } = useStockReports(restaurantId);
 
   const {
     reportRemaining,
     getRemainingQuantity,
-  } = useStockRemaining();
+  } = useStockRemaining(restaurantId);
 
   // Handle navigation from stock report page
   useEffect(() => {
@@ -183,7 +183,7 @@ const Index = () => {
                 {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
               </h1>
               <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                Phạm Ngọc Thạch
+                {restaurantName ?? 'Đặt Hàng Bếp'}
                 {isChef && specialDay && (
                   <span className={specialDay.impact === 'high' ? 'text-destructive' : ''}>
                     • {specialDay.emoji} {specialDay.label}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Filter } from 'lucide-react';
 import { useOrderHistory, TimeRange, SavedOrder } from '@/hooks/useOrderHistory';
+import { useAuth } from '@/hooks/useAuth';
 import { categories } from '@/data/defaultIngredients';
 import { formatPriceK } from '@/data/referencePrices';
 import { UNIT_LABELS, UnitOfMeasurement } from '@/types/ingredient';
@@ -47,7 +48,8 @@ function groupItemsByCategory(items: { category: string; name: string; quantity:
 
 const History = () => {
   const navigate = useNavigate();
-  const { orders, loading, fetchOrders } = useOrderHistory();
+  const { restaurantId } = useAuth();
+  const { orders, loading, fetchOrders } = useOrderHistory(restaurantId);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [categoryFilter, setCategoryFilter] = useState('all');
 

@@ -14,16 +14,22 @@ const CATEGORY_META: { id: MenuCategory; name: string; vnName: string }[] = [
   { id: 'stir_fry', name: 'Stir-fry', vnName: 'Xào' },
 ];
 
-export function useMenuDishes() {
+export function useMenuDishes(restaurantId: string | null) {
   const [categories, setCategories] = useState<MenuCategoryConfig[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDishes = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = (supabase as any)
       .from('menu_dishes')
       .select('*')
       .order('sort_order', { ascending: true });
+
+    // Filter by restaurant if logged in, otherwise show quanchay for demo
+    const filterRestaurant = restaurantId ?? 'quanchay';
+    query = query.eq('restaurant_id', filterRestaurant);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching menu dishes:', error);
@@ -56,7 +62,7 @@ export function useMenuDishes() {
 
   useEffect(() => {
     fetchDishes();
-  }, []);
+  }, [restaurantId]);
 
   return { categories, loading, refetch: fetchDishes };
 }

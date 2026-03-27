@@ -14,26 +14,28 @@ export interface StockReport {
   resolved_at: string | null;
 }
 
-export function useStockReports() {
+export function useStockReports(restaurantId: string | null) {
   const [reports, setReports] = useState<StockReport[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchReports = useCallback(async () => {
+    if (!restaurantId) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('stock_reports')
       .select('*')
       .is('resolved_at', null)
+      .eq('restaurant_id', restaurantId)
       .order('reported_at', { ascending: false });
 
     if (!error && data) setReports(data as StockReport[]);
     setLoading(false);
-  }, []);
+  }, [restaurantId]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const reportOutOfStock = useCallback(async (ingredient: Ingredient) => {
-    // Check if already reported
+    if (!restaurantId) return;
     const existing = reports.find(r => r.ingredient_id === ingredient.id);
     if (existing) return;
 
@@ -44,10 +46,11 @@ export function useStockReports() {
       category: ingredient.category,
       subcategory: ingredient.subcategory ?? null,
       unit: ingredient.unit,
-    });
+      restaurant_id: restaurantId,
+    } as any);
 
     if (!error) fetchReports();
-  }, [reports, fetchReports]);
+  }, [reports, fetchReports, restaurantId]);
 
   const resolveReport = useCallback(async (ingredientId: string) => {
     const report = reports.find(r => r.ingredient_id === ingredientId);
