@@ -4,6 +4,7 @@ import { MenuCategoryConfig, MenuDish } from '@/data/menuDishes';
 import { useMenuDishes } from '@/hooks/useMenuDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Copy, Trash2, ChevronDown, ChevronUp, AlertTriangle, MapPin, X } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +17,8 @@ interface Branch {
 }
 
 export function MenuPlanner() {
-  const { categories, loading: dishesLoading, refetch: refetchMenuDishes } = useMenuDishes();
+  const { restaurantId } = useAuth();
+  const { categories, loading: dishesLoading, refetch: refetchMenuDishes } = useMenuDishes(restaurantId);
   const { editingEnabled } = useAppSettings();
   const [editingDish, setEditingDish] = useState<MenuDish | null>(null);
   const [editingDishName, setEditingDishName] = useState('');
@@ -35,7 +37,7 @@ export function MenuPlanner() {
     validateMenu,
     saveMenu,
     maxDishes,
-  } = useMenuPlanner(categories, selectedBranch);
+  } = useMenuPlanner(categories, selectedBranch, restaurantId);
 
   const [expanded, setExpanded] = useState(false);
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
