@@ -100,10 +100,10 @@ export function useOrderHistory(restaurantId: string | null) {
     if (!restaurantId) return;
     setLoading(true);
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('orders')
         .select('*')
-        .eq('restaurant_id' as any, restaurantId)
+        .eq('restaurant_id', restaurantId)
         .order('order_date', { ascending: false })
         .order('created_at', { ascending: false });
 

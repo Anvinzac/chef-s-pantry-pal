@@ -21,11 +21,11 @@ export function useStockReports(restaurantId: string | null) {
   const fetchReports = useCallback(async () => {
     if (!restaurantId) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('stock_reports')
       .select('*')
       .is('resolved_at', null)
-      .eq('restaurant_id' as any, restaurantId)
+      .eq('restaurant_id', restaurantId)
       .order('reported_at', { ascending: false });
 
     if (!error && data) setReports(data as StockReport[]);

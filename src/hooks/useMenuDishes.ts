@@ -20,14 +20,14 @@ export function useMenuDishes(restaurantId: string | null) {
 
   const fetchDishes = async () => {
     setLoading(true);
-    let query = supabase
+    let query = (supabase as any)
       .from('menu_dishes')
       .select('*')
       .order('sort_order', { ascending: true });
 
     // Filter by restaurant if logged in, otherwise show quanchay for demo
     const filterRestaurant = restaurantId ?? 'quanchay';
-    query = query.eq('restaurant_id' as any, filterRestaurant);
+    query = query.eq('restaurant_id', filterRestaurant);
 
     const { data, error } = await query;
 
