@@ -7,35 +7,37 @@ export interface SelectedDish {
   id: string;
   name: string;
   category: MenuCategory;
-  order: number; // display order (1-based, 1 is always Cà ri)
+  order: number;
 }
 
 const MAX_DISHES = 16;
 const FIXED_FIRST_DISH: SelectedDish = {
   id: 'fixed-cari',
   name: 'Cà ri',
-  category: 'stew', // closest category
+  category: 'stew',
   order: 1,
 };
 
-export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: string = 'pnt') {
+export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: string = 'pnt', restaurantId: string | null = null) {
   const [selectedDishes, setSelectedDishes] = useState<SelectedDish[]>([FIXED_FIRST_DISH]);
   const [yesterdayDishes, setYesterdayDishes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch yesterday's menu for repetition check (branch-scoped)
   useEffect(() => {
     const fetchYesterday = async () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const dateStr = yesterday.toISOString().split('T')[0];
 
-      const { data } = await (supabase as any)
+      let query = (supabase as any)
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
-        .eq('branch_id', branchId)
-        .maybeSingle();
+        .eq('branch_id', branchId);
+
+      if (restaurantId) query = query.eq('restaurant_id', restaurantId);
+
+      const { data } = await query.maybeSingle();
 
       if (data?.dishes) {
         const dishes = data.dishes as any[];
@@ -45,21 +47,23 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       }
     };
     fetchYesterday();
-  }, [branchId]);
+  }, [branchId, restaurantId]);
 
-  // Fetch today's menu if it exists (branch-scoped)
   useEffect(() => {
     const fetchToday = async () => {
       const today = new Date();
       today.setDate(today.getDate() + 1);
       const dateStr = today.toISOString().split('T')[0];
 
-      const { data } = await (supabase as any)
+      let query = (supabase as any)
         .from('daily_menus')
         .select('dishes')
         .eq('menu_date', dateStr)
-        .eq('branch_id', branchId)
-        .maybeSingle();
+        .eq('branch_id', branchId);
+
+      if (restaurantId) query = query.eq('restaurant_id', restaurantId);
+
+      const { data } = await query.maybeSingle();
 
       if (data?.dishes) {
         const dishes = data.dishes as any[];
@@ -78,21 +82,18 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       }
     };
     fetchToday();
-  }, [branchId]);
+  }, [branchId, restaurantId]);
 
   const toggleDish = useCallback((dish: MenuDish) => {
     setSelectedDishes(prev => {
       const isSelected = prev.some(d => d.id === dish.id);
 
       if (isSelected) {
-        // Remove (but never remove fixed first dish)
         if (dish.id === 'fixed-cari') return prev;
         const filtered = prev.filter(d => d.id !== dish.id);
-        // Renumber
         return filtered.map((d, i) => ({ ...d, order: i + 1 }));
       }
 
-      // Adding
       if (prev.length >= MAX_DISHES) {
         toast.error('Tối đa 16 món!');
         return prev;
@@ -101,16 +102,14 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       const isSingleChoice = SINGLE_CHOICE_CATEGORIES.includes(dish.category);
 
       if (isSingleChoice) {
-        // Replace existing dish from same category
         const withoutSameCategory = prev.filter(d => d.category !== dish.category || d.id === 'fixed-cari');
         const newDish: SelectedDish = {
           id: dish.id,
           name: dish.name,
           category: dish.category,
-          order: 0, // will be renumbered
+          order: 0,
         };
 
-        // Find where the old one was and insert there, or append
         const oldIdx = prev.findIndex(d => d.category === dish.category && d.id !== 'fixed-cari');
         let result: SelectedDish[];
         if (oldIdx >= 0) {
@@ -122,7 +121,6 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
         return result.map((d, i) => ({ ...d, order: i + 1 }));
       }
 
-      // Multi-choice: just append
       const newDish: SelectedDish = {
         id: dish.id,
         name: dish.name,
@@ -165,7 +163,6 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       warnings.push(`Chỉ có ${dishCount}/15 món`);
     }
 
-    // Check all 9 categories represented
     const presentCategories = new Set(selectedDishes.map(d => d.category));
     const missingCategories = menuCategories
       .filter(c => !presentCategories.has(c.id))
@@ -175,7 +172,6 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       warnings.push(`Thiếu: ${missingCategories.join(', ')}`);
     }
 
-    // Check single-choice categories for repeats from yesterday
     const repeats: string[] = [];
     for (const catId of SINGLE_CHOICE_CATEGORIES) {
       const selected = selectedDishes.find(d => d.category === catId);
@@ -203,13 +199,12 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
       order: d.order,
     }));
 
-    // Upsert with branch_id
+    const upsertData: any = { menu_date: dateStr, branch_id: branchId, dishes: dishesData };
+    if (restaurantId) upsertData.restaurant_id = restaurantId;
+
     const { error } = await (supabase as any)
       .from('daily_menus')
-      .upsert(
-        { menu_date: dateStr, branch_id: branchId, dishes: dishesData },
-        { onConflict: 'menu_date,branch_id' }
-      );
+      .upsert(upsertData, { onConflict: 'menu_date,branch_id' });
 
     if (error) {
       toast.error('Lỗi lưu menu');
@@ -217,7 +212,7 @@ export function useMenuPlanner(menuCategories: MenuCategoryConfig[], branchId: s
     } else {
       toast.success('Đã lưu menu!');
     }
-  }, [selectedDishes, branchId]);
+  }, [selectedDishes, branchId, restaurantId]);
 
   return {
     selectedDishes,
