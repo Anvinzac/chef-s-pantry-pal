@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, Check } from 'lucide-react';
 import { useStockReports, StockReport } from '@/hooks/useStockReports';
+import { useAuth } from '@/hooks/useAuth';
 import { categories } from '@/data/defaultIngredients';
 import { UNIT_LABELS, UnitOfMeasurement } from '@/types/ingredient';
 
@@ -24,7 +25,8 @@ function groupByCategory(reports: StockReport[]): Record<string, StockReport[]> 
 
 const StockReportPage = () => {
   const navigate = useNavigate();
-  const { reports, loading, resolveReport } = useStockReports();
+  const { restaurantId } = useAuth();
+  const { reports, loading, resolveReport } = useStockReports(restaurantId);
   const grouped = groupByCategory(reports);
   const categoryKeys = Object.keys(grouped);
 
