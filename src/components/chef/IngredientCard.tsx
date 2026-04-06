@@ -42,7 +42,7 @@ export function IngredientCard({
     onQuickAdd(Math.round(((orderQuantity || 0) + qty) * 1000) / 1000);
   };
 
-  const isAlerted = !!reorderAlert;
+  const isAlerted = false;
 
   // Report-only mode for kitchen members
   if (reportMode) {
@@ -61,16 +61,16 @@ export function IngredientCard({
         {/* Name row with remaining label */}
         <div className="flex items-center gap-1.5">
           <span className="text-xl leading-none">{ingredient.emoji}</span>
-          <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
-            {ingredient.name}
-          </span>
+        <span className="text-[16px] font-bold text-card-foreground leading-tight flex-1">
+          {ingredient.name}
+        </span>
           {remainingQuantity != null ? (
-            <span className="text-[10px] font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
-              còn {remainingQuantity}
-              {unit}
-            </span>
+          <span className="text-[14px] font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
+            còn {remainingQuantity}
+            {unit}
+          </span>
           ) : (
-            <span className="text-[10px] text-muted-foreground/50 italic shrink-0">còn ...</span>
+            <span className="text-[14px] text-muted-foreground/50 italic shrink-0">còn ...</span>
           )}
         </div>
 
@@ -103,11 +103,9 @@ export function IngredientCard({
     <div
       className={cn(
         "relative rounded-xl p-3 flex flex-col gap-2 transition-all duration-200 border-2 cursor-pointer",
-        isAlerted
-          ? "border-[hsl(var(--reorder-glow))] bg-[hsl(var(--reorder-glow)/0.08)] shadow-[0_0_12px_hsl(var(--reorder-glow)/0.25)]"
-          : isInOrder
-            ? "border-primary bg-card shadow-md shadow-primary/15"
-            : "border-transparent bg-card shadow-sm",
+        isInOrder
+          ? "border-primary bg-card shadow-md shadow-primary/15"
+          : "border-transparent bg-card shadow-sm",
       )}
       onClick={onCustomQuantity}
     >
@@ -127,7 +125,7 @@ export function IngredientCard({
           <X size={10} />
         </button>
       ) : hasRemaining ? (
-        <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
+        <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-[14px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
           {remainingQuantity}
           {unit}
         </span>
@@ -137,20 +135,12 @@ export function IngredientCard({
       <div className="flex items-center gap-1.5">
         <span className="relative text-xl leading-none shrink-0 w-6 h-6 flex items-center justify-center">
           {ingredient.emoji}
-          {isAlerted && (
-            <span
-              className="absolute inset-[-2px] flex items-center justify-center bg-[hsl(0,65%,35%)] text-[hsl(0,100%,90%)] text-[10px] font-extrabold rounded-full z-[1]"
-              title={reorderAlert.daysSinceLastOrder >= 999 ? "Chưa mua" : `${reorderAlert.daysSinceLastOrder} ngày`}
-            >
-              {reorderAlert.daysSinceLastOrder >= 999 ? "!" : reorderAlert.daysSinceLastOrder}
-            </span>
-          )}
         </span>
-        <span className="text-[11px] font-bold text-card-foreground leading-tight truncate flex-1">
+        <span className="text-[16px] font-bold text-card-foreground leading-tight flex-1">
           {ingredient.name}
         </span>
         {priceK !== undefined && (
-          <span className="text-[10px] text-foreground font-semibold flex-shrink-0">{formatPriceK(priceK)}</span>
+          <span className="text-[14px] text-foreground font-semibold flex-shrink-0">{formatPriceK(priceK)}</span>
         )}
         <button
           onClick={(e) => {

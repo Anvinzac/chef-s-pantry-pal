@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./ingredients.schema.json",
+  "title": "IngredientCatalog",
+  "description": "Reusable ingredient catalog shared across ordering and inventory applications.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/ingredient"
+  },
+  "$defs": {
+    "ingredient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "emoji",
+        "unit",
+        "category",
+        "quickQuantities"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable catalog identifier."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable ingredient name."
+        },
+        "emoji": {
+          "type": "string",
+          "description": "Short visual marker used in the UI."
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "kg",
+            "g",
+            "liter",
+            "ml",
+            "piece",
+            "pack",
+            "bottle",
+            "box",
+            "bag",
+            "can",
+            "roll",
+            "dozen",
+            "tank",
+            "pair"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "vegetables",
+            "sauces",
+            "spices",
+            "grains",
+            "oils",
+            "dairy",
+            "gas",
+            "equipment",
+            "tissue"
+          ]
+        },
+        "subcategory": {
+          "type": "string"
+        },
+        "referencePrice": {
+          "type": "number",
+          "description": "Reference purchase price in the current app's pricing units."
+        },
+        "quickQuantities": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          },
+          "description": "Two quick-pick quantities used by the ordering UI."
+        },
+        "lastOrderedQuantity": {
+          "type": "number"
+        },
+        "lastOrderDate": {
+          "type": "string"
+        },
+        "orderFrequencyDays": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nextReminder": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

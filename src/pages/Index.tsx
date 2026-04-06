@@ -281,13 +281,21 @@ const Index = () => {
           <span className="text-muted-foreground font-semibold">({filteredIngredients.length})</span>
         </h2>
         {isChef && (
-          <button
-            onClick={() => { setEditIngredient(null); setAddModalOpen(true); }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
-          >
-            <Plus size={14} />
-            Thêm
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/ingredients-studio')}
+              className="px-3 py-1.5 rounded-full border border-border bg-card text-xs font-bold text-foreground active:scale-95 transition-transform"
+            >
+              Studio
+            </button>
+            <button
+              onClick={() => { setEditIngredient(null); setAddModalOpen(true); }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
+            >
+              <Plus size={14} />
+              Thêm
+            </button>
+          </div>
         )}
       </div>
 

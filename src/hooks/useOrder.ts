@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { createContext, createElement, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Ingredient, OrderItem, UnitOfMeasurement, UNIT_LABELS, UNIT_FULL_LABELS } from '@/types/ingredient';
 import { defaultIngredients } from '@/data/defaultIngredients';
 
@@ -32,7 +32,40 @@ function loadCurrentOrder(): OrderItem[] {
   return [];
 }
 
-export function useOrder() {
+function syncCurrentOrderWithIngredients(order: OrderItem[], ingredients: Ingredient[]) {
+  return order
+    .map((item) => {
+      const ingredient = ingredients.find((entry) => entry.id === item.ingredientId);
+      if (!ingredient) return null;
+      return {
+        ...item,
+        name: ingredient.name,
+        unit: ingredient.unit,
+      };
+    })
+    .filter((item): item is OrderItem => item !== null);
+}
+
+interface UseOrderValue {
+  ingredients: Ingredient[];
+  currentOrder: OrderItem[];
+  expandedOrder: boolean;
+  setExpandedOrder: React.Dispatch<React.SetStateAction<boolean>>;
+  addToOrder: (ingredient: Ingredient, quantity: number) => void;
+  removeFromOrder: (ingredientId: string) => void;
+  clearOrder: () => void;
+  addIngredient: (ingredient: Omit<Ingredient, 'id'>) => void;
+  updateIngredient: (id: string, updates: Partial<Ingredient>) => void;
+  deleteIngredient: (id: string) => void;
+  replaceIngredients: (nextIngredients: Ingredient[]) => void;
+  resetIngredients: () => void;
+  getOrderText: (onlyNew?: boolean) => string;
+  getIngredientsByCategory: (categoryId: string, subcategoryId?: string | null) => Ingredient[];
+}
+
+const OrderContext = createContext<UseOrderValue | undefined>(undefined);
+
+export function OrderProvider({ children }: { children: ReactNode }) {
   const [ingredients, setIngredients] = useState<Ingredient[]>(loadIngredients);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>(loadCurrentOrder);
   const [expandedOrder, setExpandedOrder] = useState(false);
@@ -85,11 +118,29 @@ export function useOrder() {
 
   const updateIngredient = useCallback((id: string, updates: Partial<Ingredient>) => {
     setIngredients(prev => prev.map(ing => ing.id === id ? { ...ing, ...updates } : ing));
+    setCurrentOrder(prev => prev.map(item => {
+      if (item.ingredientId !== id) return item;
+      return {
+        ...item,
+        name: typeof updates.name === 'string' ? updates.name : item.name,
+        unit: (updates.unit as UnitOfMeasurement | undefined) ?? item.unit,
+      };
+    }));
   }, []);
 
   const deleteIngredient = useCallback((id: string) => {
     setIngredients(prev => prev.filter(ing => ing.id !== id));
     setCurrentOrder(prev => prev.filter(o => o.ingredientId !== id));
+  }, []);
+
+  const replaceIngredients = useCallback((nextIngredients: Ingredient[]) => {
+    setIngredients(nextIngredients);
+    setCurrentOrder(prev => syncCurrentOrderWithIngredients(prev, nextIngredients));
+  }, []);
+
+  const resetIngredients = useCallback(() => {
+    setIngredients(defaultIngredients);
+    setCurrentOrder(prev => syncCurrentOrderWithIngredients(prev, defaultIngredients));
   }, []);
 
   const getOrderText = useCallback((onlyNew = true) => {
@@ -118,7 +169,7 @@ export function useOrder() {
     });
   }, [ingredients]);
 
-  return {
+  const value = useMemo(() => ({
     ingredients,
     currentOrder,
     expandedOrder,
@@ -129,7 +180,34 @@ export function useOrder() {
     addIngredient,
     updateIngredient,
     deleteIngredient,
+    replaceIngredients,
+    resetIngredients,
     getOrderText,
     getIngredientsByCategory,
-  };
+  }), [
+    ingredients,
+    currentOrder,
+    expandedOrder,
+    setExpandedOrder,
+    addToOrder,
+    removeFromOrder,
+    clearOrder,
+    addIngredient,
+    updateIngredient,
+    deleteIngredient,
+    replaceIngredients,
+    resetIngredients,
+    getOrderText,
+    getIngredientsByCategory,
+  ]);
+
+  return createElement(OrderContext.Provider, { value }, children);
+}
+
+export function useOrder() {
+  const context = useContext(OrderContext);
+  if (!context) {
+    throw new Error('useOrder must be used within OrderProvider');
+  }
+  return context;
 }

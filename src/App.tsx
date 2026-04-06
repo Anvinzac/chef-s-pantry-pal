@@ -10,6 +10,8 @@ import StockReport from "./pages/StockReport";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { AppSettingsProvider } from "@/hooks/useAppSettings";
+import { OrderProvider } from "@/hooks/useOrder";
+import IngredientsStudio from "./pages/IngredientsStudio";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
     <Route path="/" element={<Index />} />
+    <Route path="/ingredients-studio" element={<IngredientsStudio />} />
     <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
     <Route path="/stock-report" element={<ProtectedRoute><StockReport /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
@@ -45,7 +48,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppSettingsProvider>
-            <AppRoutes />
+            <OrderProvider>
+              <AppRoutes />
+            </OrderProvider>
           </AppSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
