@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
 import { categories } from '@/data/defaultIngredients';
 import { Ingredient } from '@/types/ingredient';
 import { useOrder } from '@/hooks/useOrder';
@@ -10,20 +11,15 @@ import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { CategoryBar } from '@/components/chef/CategoryBar';
-import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
-import { IngredientCard } from '@/components/chef/IngredientCard';
 import { CategoryCloud } from '@/components/chef/CategoryCloud';
+import { CategoryPage } from '@/components/chef/CategoryPage';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
-import { MenuPlanner } from '@/components/chef/MenuPlanner';
 import { EditingModeToggle } from '@/components/chef/EditingModeToggle';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { Plus, ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn, UtensilsCrossed } from 'lucide-react';
 import { toast } from 'sonner';
-
-const SWIPE_THRESHOLD = 50;
 
 const Index = () => {
   const navigate = useNavigate();
@@ -31,19 +27,28 @@ const Index = () => {
   const isChef = isGuest ? true : role === 'chef';
   const { editingEnabled } = useAppSettings();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeCategory, setActiveCategory] = useState(categories[0].id);
+
+  const firstCategory = categories[0].id;
   const firstSubcategory = categories[0]?.subcategories?.[0]?.id ?? null;
-  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(firstSubcategory);
+
+  const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
+  const activeCategory = categories[activeCategoryIdx]?.id ?? firstCategory;
+  const [subcategoryByCategory, setSubcategoryByCategory] = useState<Record<string, string | null>>({
+    [firstCategory]: firstSubcategory,
+  });
+
   const [numpadIngredient, setNumpadIngredient] = useState<Ingredient | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editIngredient, setEditIngredient] = useState<Ingredient | null>(null);
-  const [activeView, setActiveView] = useState<'ingredients' | 'menu'>('ingredients');
   const [categoryCloudOpen, setCategoryCloudOpen] = useState(false);
   const [remainingNumpadIngredient, setRemainingNumpadIngredient] = useState<Ingredient | null>(null);
 
-  // Touch swipe refs
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const touchAxisRef = useRef<'horizontal' | 'vertical' | null>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    axis: 'x',
+    loop: false,
+    containScroll: 'trimSnaps',
+    skipSnaps: false,
+  });
 
   const {
     ingredients,
@@ -79,67 +84,57 @@ const Index = () => {
     getRemainingQuantity,
   } = useStockRemaining(restaurantId);
 
-  // Handle navigation from stock report page
   useEffect(() => {
     const cat = searchParams.get('category');
     const sub = searchParams.get('subcategory');
     if (cat) {
-      setActiveCategory(cat);
-      const catObj = categories.find(c => c.id === cat);
-      setActiveSubcategory(sub ?? catObj?.subcategories?.[0]?.id ?? null);
+      const idx = categories.findIndex(c => c.id === cat);
+      if (idx >= 0) {
+        setActiveCategoryIdx(idx);
+        emblaApi?.scrollTo(idx, true);
+        const catObj = categories[idx];
+        setSubcategoryByCategory(prev => ({
+          ...prev,
+          [cat]: sub ?? catObj.subcategories?.[0]?.id ?? null,
+        }));
+      }
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, emblaApi]);
 
-  // Touch swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-    touchAxisRef.current = null;
-  };
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      const idx = emblaApi.selectedScrollSnap();
+      setActiveCategoryIdx(idx);
+      const catId = categories[idx].id;
+      setSubcategoryByCategory(prev => {
+        if (prev[catId] !== undefined) return prev;
+        return { ...prev, [catId]: categories[idx].subcategories?.[0]?.id ?? null };
+      });
+    };
+    emblaApi.on('select', onSelect);
+    return () => { emblaApi.off('select', onSelect); };
+  }, [emblaApi]);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.touches[0];
-    const dx = Math.abs(touch.clientX - touchStartRef.current.x);
-    const dy = Math.abs(touch.clientY - touchStartRef.current.y);
-    // Lock axis on first significant movement
-    if (!touchAxisRef.current && (dx > 10 || dy > 10)) {
-      touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
-    }
-  };
+  const handleCategorySelect = useCallback((catId: string) => {
+    const idx = categories.findIndex(c => c.id === catId);
+    if (idx < 0) return;
+    setActiveCategoryIdx(idx);
+    emblaApi?.scrollTo(idx);
+  }, [emblaApi]);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current || touchAxisRef.current !== 'horizontal') {
-      touchStartRef.current = null;
-      touchAxisRef.current = null;
-      return;
-    }
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-
-    // Ingredients -> Menu on left swipe, Menu -> Ingredients on right swipe
-    if (deltaX < -SWIPE_THRESHOLD && activeView === 'ingredients') {
-      setActiveView('menu');
-    } else if (deltaX > SWIPE_THRESHOLD && activeView === 'menu') {
-      setActiveView('ingredients');
-    }
-
-    touchStartRef.current = null;
-    touchAxisRef.current = null;
-  };
+  const handleSubcategorySelect = useCallback((catId: string, subId: string | null) => {
+    setSubcategoryByCategory(prev => ({ ...prev, [catId]: subId }));
+  }, []);
 
   const { formatted: tomorrowFormatted, isoDate: tomorrowIso } = formatTomorrowDate();
   const specialDay = getSpecialDay(tomorrowIso);
 
-  // Save order, clear cart, refresh alerts
   const handleSaveOrder = useCallback(async () => {
     if (isGuest) {
       toast('Đăng nhập để lưu đơn hàng', {
-        action: {
-          label: 'Đăng nhập',
-          onClick: () => navigate('/login'),
-        },
+        action: { label: 'Đăng nhập', onClick: () => navigate('/login') },
       });
       return;
     }
@@ -151,33 +146,43 @@ const Index = () => {
     }
   }, [isGuest, navigate, saveOrder, currentOrder, ingredients, refreshAlerts, clearOrder, setExpandedOrder]);
 
-  const activeCat = categories.find(c => c.id === activeCategory);
-  const allCategoryIngredients = getIngredientsByCategory(activeCategory);
-  const filteredIngredients = activeSubcategory
-    ? allCategoryIngredients.filter(ing => ing.subcategory === activeSubcategory)
-    : allCategoryIngredients;
-
-  const handleCategoryChange = (catId: string) => {
-    setActiveCategory(catId);
-    const cat = categories.find(c => c.id === catId);
-    setActiveSubcategory(cat?.subcategories?.[0]?.id ?? null);
-  };
+  const orderMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const o of currentOrder) m.set(o.ingredientId, o.quantity);
+    return m;
+  }, [currentOrder]);
 
   const alertCounts: Record<string, number> = {};
-  for (const cat of categories) {
-    alertCounts[cat.id] = getAlertCountForCategory(cat.id);
-  }
+  for (const cat of categories) alertCounts[cat.id] = getAlertCountForCategory(cat.id);
 
-  // Ingredients view content (extracted for clarity)
-  const ingredientsContent = (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
+  const commonCardHandlers = {
+    orderMap,
+    isIngredientAlerted,
+    isOutOfStock,
+    getRemainingQuantity,
+    onQuickAdd: (ingredient: Ingredient, qty: number) => addToOrder(ingredient, qty),
+    onTapCard: (ingredient: Ingredient) => setNumpadIngredient(ingredient),
+    onEdit: (ingredient: Ingredient) => { setEditIngredient(ingredient); setAddModalOpen(true); },
+    onClear: (ingredient: Ingredient) => removeFromOrder(ingredient.id),
+    onReportOutOfStock: (ingredient: Ingredient) =>
+      isChef ? resolveReport(ingredient.id) : reportOutOfStock(ingredient),
+    onReportRemaining: (ingredient: Ingredient) => setRemainingNumpadIngredient(ingredient),
+    onAddIngredient: () => { setEditIngredient(null); setAddModalOpen(true); },
+    onOpenStudio: () => navigate('/ingredients-studio'),
+  };
+
+  return (
+    <div className="min-h-screen bg-background max-w-md mx-auto relative flex flex-col">
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-xl p-1.5">
+            <button
+              onClick={() => navigate('/')}
+              className="bg-primary rounded-xl p-1.5 active:scale-95 transition-transform"
+              title="Trang chủ"
+            >
               <ChefHat size={20} className="text-primary-foreground" />
-            </div>
+            </button>
             <div>
               <h1 className="font-extrabold text-base text-foreground leading-tight">
                 {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
@@ -193,6 +198,15 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            {isChef && (
+              <button
+                onClick={() => navigate('/menu')}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                title="Thực đơn"
+              >
+                <UtensilsCrossed size={18} className="text-muted-foreground" />
+              </button>
+            )}
             {!isGuest && (
               <button
                 onClick={() => navigate('/stock-report')}
@@ -207,12 +221,12 @@ const Index = () => {
               </button>
             )}
             {isChef && !isGuest && (
-                <button
-                  onClick={() => navigate('/history')}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <Clock size={18} className="text-muted-foreground" />
-                </button>
+              <button
+                onClick={() => navigate('/history')}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <Clock size={18} className="text-muted-foreground" />
+              </button>
             )}
             {isGuest ? (
               <button
@@ -236,31 +250,22 @@ const Index = () => {
         <CategoryBar
           categories={categories}
           activeCategory={activeCategory}
-          onSelect={handleCategoryChange}
+          onSelect={handleCategorySelect}
           alertCounts={isChef ? alertCounts : undefined}
         />
 
         <CategoryCloud
           categories={categories}
           activeCategory={activeCategory}
-          onSelect={(catId) => { handleCategoryChange(catId); setCategoryCloudOpen(false); }}
+          onSelect={(catId) => { handleCategorySelect(catId); setCategoryCloudOpen(false); }}
           isOpen={categoryCloudOpen}
           alertCounts={isChef ? alertCounts : undefined}
         />
 
-        <div className="flex items-center gap-1 px-4 pb-2">
-          {activeCat?.subcategories && activeCat.subcategories.length > 0 && (
-            <div className="flex-1 overflow-hidden">
-              <SubcategoryBar
-                subcategories={activeCat.subcategories}
-                activeSubcategory={activeSubcategory}
-                onSelect={setActiveSubcategory}
-              />
-            </div>
-          )}
+        <div className="flex items-center justify-end gap-1 px-4 pb-2">
           <button
             onClick={() => setCategoryCloudOpen(!categoryCloudOpen)}
-            className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shrink-0 active:scale-95"
+            className="p-2.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors active:scale-95"
             title="Xem tất cả danh mục"
           >
             <Grid3X3 size={18} />
@@ -268,122 +273,35 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Category header */}
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-        <h2 className="font-extrabold text-sm text-foreground flex items-center gap-2">
-          <span>{activeCat?.emoji}</span>
-          {activeCat?.name}
-          {activeSubcategory && (
-            <span className="text-primary">
-              › {activeCat?.subcategories?.find(s => s.id === activeSubcategory)?.name}
-            </span>
-          )}
-          <span className="text-muted-foreground font-semibold">({filteredIngredients.length})</span>
-        </h2>
-        {isChef && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/ingredients-studio')}
-              className="px-3 py-1.5 rounded-full border border-border bg-card text-xs font-bold text-foreground active:scale-95 transition-transform"
-            >
-              Studio
-            </button>
-            <button
-              onClick={() => { setEditIngredient(null); setAddModalOpen(true); }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold active:scale-95 transition-transform"
-            >
-              <Plus size={14} />
-              Thêm
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Ingredient grid */}
-      <div className="px-3 pb-32 grid grid-cols-2 gap-1.5">
-        {filteredIngredients.map(ingredient => {
-          const orderItem = currentOrder.find(o => o.ingredientId === ingredient.id);
-          const alert = isIngredientAlerted(ingredient.id);
-          const outOfStock = isOutOfStock(ingredient.id);
-          const handleQuickAdd = isChef && !editingEnabled
-            ? (qty: number) => addToOrder(ingredient, qty)
-            : () => {};
-          const handleCardTap = isChef
-            ? editingEnabled
-              ? () => {
-                  setEditIngredient(ingredient);
-                  setAddModalOpen(true);
-                }
-              : () => setNumpadIngredient(ingredient)
-            : () => {};
-          return (
-            <IngredientCard
-              key={ingredient.id}
-              ingredient={ingredient}
-              isInOrder={isChef ? !!orderItem : false}
-              orderQuantity={isChef ? orderItem?.quantity : undefined}
-              onQuickAdd={handleQuickAdd}
-              onCustomQuantity={handleCardTap}
-              onEdit={isChef ? () => { setEditIngredient(ingredient); setAddModalOpen(true); } : () => {}}
-              onClear={isChef ? () => removeFromOrder(ingredient.id) : () => {}}
-              reorderAlert={isChef && !orderItem ? alert : undefined}
-              isOutOfStock={outOfStock}
-              onReportOutOfStock={isChef ? () => resolveReport(ingredient.id) : () => reportOutOfStock(ingredient)}
-              reportMode={!isChef}
-              remainingQuantity={getRemainingQuantity(ingredient.id)}
-              onReportRemaining={() => setRemainingNumpadIngredient(ingredient)}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  // Non-chef: simple render without swipe
-  if (!isChef) {
-    return (
-      <div className="min-h-screen bg-background max-w-md mx-auto relative">
-        {ingredientsContent}
-        <NumpadModal
-          ingredient={remainingNumpadIngredient}
-          onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
-          onClose={() => setRemainingNumpadIngredient(null)}
-        />
-      </div>
-    );
-  }
-
-  // Chef: transform-based swipeable container (no scroll-snap to avoid hit-test offset)
-  return (
-    <div
-      className="min-h-screen bg-background max-w-md mx-auto relative overflow-hidden"
-      style={{ touchAction: 'pan-y' }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div
-        className="flex h-screen transition-transform duration-300 ease-out"
-        style={{
-          width: '200%',
-          transform: `translateX(${activeView === 'menu' ? '-50%' : '0%'})`,
-        }}
-      >
-        {/* Ingredients Panel */}
-        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'ingredients' && "pointer-events-none")}>
-          {ingredientsContent}
-        </div>
-
-        {/* Menu Planner Panel */}
-        <div className={cn("w-1/2 flex-shrink-0 h-screen overflow-y-auto", activeView !== 'menu' && "pointer-events-none")}>
-          <MenuPlanner />
+      <div className="flex-1 overflow-hidden" ref={emblaRef}>
+        <div className="flex h-full">
+          {categories.map(cat => {
+            const catIngredients = getIngredientsByCategory(cat.id);
+            const activeSub = subcategoryByCategory[cat.id] ?? cat.subcategories?.[0]?.id ?? null;
+            return (
+              <div
+                key={cat.id}
+                className="flex-shrink-0 flex-grow-0 basis-full min-w-0 h-full"
+              >
+                <CategoryPage
+                  category={cat}
+                  ingredients={catIngredients}
+                  activeSubcategory={activeSub}
+                  onSelectSubcategory={(subId) => handleSubcategorySelect(cat.id, subId)}
+                  isChef={isChef}
+                  editingEnabled={editingEnabled}
+                  {...commonCardHandlers}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Order bar - fixed outside scroll panels */}
-      {activeView === 'ingredients' && (
+      {isChef && (
         <OrderBar
           currentOrder={currentOrder}
+          ingredients={ingredients}
           expanded={expandedOrder}
           onToggleExpand={() => setExpandedOrder(!expandedOrder)}
           onRemoveItem={removeFromOrder}
@@ -393,14 +311,18 @@ const Index = () => {
         />
       )}
 
-      {/* Numpad modal */}
       <NumpadModal
         ingredient={numpadIngredient}
         onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
         onClose={() => setNumpadIngredient(null)}
       />
 
-      {/* Add/Edit ingredient modal */}
+      <NumpadModal
+        ingredient={remainingNumpadIngredient}
+        onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
+        onClose={() => setRemainingNumpadIngredient(null)}
+      />
+
       <AddIngredientModal
         isOpen={addModalOpen}
         onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
@@ -412,7 +334,6 @@ const Index = () => {
       />
 
       <EditingModeToggle />
-
     </div>
   );
 };

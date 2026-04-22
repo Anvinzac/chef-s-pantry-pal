@@ -8,6 +8,7 @@ export interface Ingredient {
   category: string;
   subcategory?: string;
   referencePrice?: number;
+  supplier?: string;
   quickQuantities: number[];
   lastOrderedQuantity?: number;
   lastOrderDate?: string;
@@ -21,6 +22,11 @@ export interface OrderItem {
   quantity: number;
   unit: UnitOfMeasurement;
   timestamp: string;
+  category: string;
+  subcategory?: string;
+  referencePrice?: number;
+  supplier?: string;
+  emoji?: string;
 }
 
 export interface Category {

@@ -11,7 +11,13 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { AppSettingsProvider } from "@/hooks/useAppSettings";
 import { OrderProvider } from "@/hooks/useOrder";
+import { DayWeightsProvider } from "@/hooks/useDayWeights";
+import { DismissalsProvider } from "@/hooks/useDismissals";
+import { CategorySettingsProvider } from "@/hooks/useCategorySettings";
 import IngredientsStudio from "./pages/IngredientsStudio";
+import Recommendations from "./pages/Recommendations";
+import WeightCalendar from "./pages/WeightCalendar";
+import Menu from "./pages/Menu";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +38,10 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-    <Route path="/" element={<Index />} />
+    <Route path="/" element={<Recommendations />} />
+    <Route path="/order" element={<Index />} />
+    <Route path="/menu" element={<Menu />} />
+    <Route path="/weight-calendar" element={<WeightCalendar />} />
     <Route path="/ingredients-studio" element={<IngredientsStudio />} />
     <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
     <Route path="/stock-report" element={<ProtectedRoute><StockReport /></ProtectedRoute>} />
@@ -49,7 +58,13 @@ const App = () => (
         <AuthProvider>
           <AppSettingsProvider>
             <OrderProvider>
-              <AppRoutes />
+              <DayWeightsProvider>
+                <CategorySettingsProvider>
+                  <DismissalsProvider>
+                    <AppRoutes />
+                  </DismissalsProvider>
+                </CategorySettingsProvider>
+              </DayWeightsProvider>
             </OrderProvider>
           </AppSettingsProvider>
         </AuthProvider>

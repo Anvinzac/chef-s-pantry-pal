@@ -41,6 +41,11 @@ function syncCurrentOrderWithIngredients(order: OrderItem[], ingredients: Ingred
         ...item,
         name: ingredient.name,
         unit: ingredient.unit,
+        category: ingredient.category,
+        subcategory: ingredient.subcategory,
+        referencePrice: ingredient.referencePrice,
+        supplier: ingredient.supplier,
+        emoji: ingredient.emoji,
       };
     })
     .filter((item): item is OrderItem => item !== null);
@@ -81,18 +86,25 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const addToOrder = useCallback((ingredient: Ingredient, quantity: number) => {
     setCurrentOrder(prev => {
       const existing = prev.findIndex(o => o.ingredientId === ingredient.id);
-      if (existing >= 0) {
-        const updated = [...prev];
-        updated[existing] = { ...updated[existing], quantity, timestamp: new Date().toISOString() };
-        return updated;
-      }
-      return [...prev, {
+      const orderItem: OrderItem = {
         ingredientId: ingredient.id,
         name: ingredient.name,
         quantity,
         unit: ingredient.unit,
         timestamp: new Date().toISOString(),
-      }];
+        category: ingredient.category,
+        subcategory: ingredient.subcategory,
+        referencePrice: ingredient.referencePrice,
+        supplier: ingredient.supplier,
+        emoji: ingredient.emoji,
+      };
+      
+      if (existing >= 0) {
+        const updated = [...prev];
+        updated[existing] = orderItem;
+        return updated;
+      }
+      return [...prev, orderItem];
     });
 
     // Update last ordered quantity on ingredient
@@ -122,8 +134,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       if (item.ingredientId !== id) return item;
       return {
         ...item,
-        name: typeof updates.name === 'string' ? updates.name : item.name,
-        unit: (updates.unit as UnitOfMeasurement | undefined) ?? item.unit,
+        name: updates.name ?? item.name,
+        unit: updates.unit ?? item.unit,
+        category: updates.category ?? item.category,
+        subcategory: updates.subcategory ?? item.subcategory,
+        referencePrice: updates.referencePrice ?? item.referencePrice,
+        supplier: updates.supplier ?? item.supplier,
+        emoji: updates.emoji ?? item.emoji,
       };
     }));
   }, []);
