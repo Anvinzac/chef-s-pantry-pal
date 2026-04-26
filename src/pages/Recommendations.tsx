@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRecommendations } from '@/hooks/useRecommendations';
 import { useOrder } from '@/hooks/useOrder';
 import { useDismissals } from '@/hooks/useDismissals';
 import { useAuth } from '@/hooks/useAuth';
-import { RecommendationCard } from '@/components/chef/RecommendationCard';
+import { CategoryCard } from '@/components/chef/CategoryCard';
 import { Button } from '@/components/ui/button';
 import { Ingredient } from '@/types/ingredient';
-import { ChefHat, ShoppingBasket, Calendar, LogOut, LogIn, Sparkles, FlaskConical } from 'lucide-react';
+import { ChefHat, ShoppingBasket, Calendar, LogOut, LogIn, Sparkles, FlaskConical, Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { seedDemoIngredients } from '@/lib/seedDemoData';
 
@@ -53,9 +53,70 @@ const Recommendations = () => {
     month: 'long',
   });
 
+  const scrollRef = useRef<HTMLElement>(null);
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [focusedCategoryId, setFocusedCategoryId] = useState<string | null>(null);
+
+  const groupIds = useMemo(() => groups.map(g => g.categoryId), [groups]);
+
+  useEffect(() => {
+    if (groupIds.length === 0) {
+      setFocusedCategoryId(null);
+      return;
+    }
+    if (!focusedCategoryId || !groupIds.includes(focusedCategoryId)) {
+      setFocusedCategoryId(groupIds[0]);
+    }
+  }, [groupIds, focusedCategoryId]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const computeFocus = () => {
+      const rect = container.getBoundingClientRect();
+      const centerY = rect.top + rect.height * 0.5;
+      let bestId: string | null = null;
+      let bestDist = Infinity;
+      cardRefs.current.forEach((el, id) => {
+        const r = el.getBoundingClientRect();
+        const mid = r.top + r.height / 2;
+        const dist = Math.abs(mid - centerY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestId = id;
+        }
+      });
+      if (bestId) setFocusedCategoryId(prev => (prev === bestId ? prev : bestId));
+    };
+
+    computeFocus();
+    container.addEventListener('scroll', computeFocus, { passive: true });
+    window.addEventListener('resize', computeFocus);
+    return () => {
+      container.removeEventListener('scroll', computeFocus);
+      window.removeEventListener('resize', computeFocus);
+    };
+  }, [groupIds]);
+
+  const registerCardRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) cardRefs.current.set(id, el);
+    else cardRefs.current.delete(id);
+  };
+
+  const scrollToCategory = (id: string) => {
+    const el = cardRefs.current.get(id);
+    const container = scrollRef.current;
+    if (!el || !container) return;
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const delta = (elRect.top + elRect.height / 2) - (containerRect.top + containerRect.height / 2);
+    container.scrollBy({ top: delta, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <header className="shrink-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -105,44 +166,41 @@ const Recommendations = () => {
         )}
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         {totalCount === 0 ? (
           <EmptyState onSeed={handleSeed} />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-3">
             <div className="text-sm text-muted-foreground">
-              {totalCount} nguyên liệu cần chú ý hôm nay
+              {totalCount} nguyên liệu · {groups.length} danh mục cần chú ý hôm nay
             </div>
             {groups.map(group => (
-              <section key={group.categoryId} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{group.categoryEmoji}</span>
-                  <h2 className="font-bold text-base" style={{ color: group.categoryColor }}>
-                    {group.categoryName}
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    · {group.items.length}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {group.items.map(rec => (
-                    <RecommendationCard
-                      key={rec.ingredient.id}
-                      recommendation={rec}
-                      isInOrder={inOrderIds.has(rec.ingredient.id)}
-                      onCopy={() => handleCopy(rec.ingredient)}
-                      onDismiss={() => handleDismiss(rec.ingredient)}
-                      onDone={() => handleDone(rec.ingredient)}
-                    />
-                  ))}
-                </div>
-              </section>
+              <div key={group.categoryId} ref={registerCardRef(group.categoryId)}>
+                <CategoryCard
+                  group={group}
+                  expanded={focusedCategoryId === group.categoryId}
+                  onActivate={() => scrollToCategory(group.categoryId)}
+                  inOrderIds={inOrderIds}
+                  onCopy={handleCopy}
+                  onDismiss={handleDismiss}
+                  onDone={handleDone}
+                />
+              </div>
             ))}
           </div>
         )}
       </main>
 
-      <div className="fixed bottom-4 right-4 left-4 flex justify-end pointer-events-none">
+      <div className="fixed bottom-4 right-4 left-4 flex justify-end gap-2 pointer-events-none">
+        <Button
+          size="lg"
+          variant="outline"
+          className="pointer-events-auto shadow-lg rounded-full"
+          onClick={() => navigate('/inventory')}
+        >
+          <Warehouse className="w-5 h-5 mr-2" />
+          Kho bếp
+        </Button>
         <Button
           size="lg"
           className="pointer-events-auto shadow-lg rounded-full"

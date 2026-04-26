@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 
 interface Branch {
   id: string;
@@ -43,18 +43,9 @@ export function MenuPlanner() {
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch branches from DB
+  // Use local branches
   useEffect(() => {
-    const fetchBranches = async () => {
-      const { data } = await (supabase
-        .from('branches' as any)
-        .select('id, name')
-        .order('sort_order', { ascending: true }) as any);
-      if (data && data.length > 0) {
-        setBranches(data);
-      }
-    };
-    fetchBranches();
+    setBranches([{ id: 'pnt', name: 'Phạm Ngọc Thạch' }]);
   }, []);
 
   useEffect(() => {
@@ -100,14 +91,7 @@ export function MenuPlanner() {
     }
     setProcessingDish(true);
     try {
-      const { error } = await supabase
-        .from('menu_dishes')
-        .update({ name: trimmed })
-        .eq('id', editingDish.id);
-      if (error) {
-        toast.error('Không thể lưu tên món');
-        return;
-      }
+      await api.updateMenuDish(editingDish.id, trimmed);
       toast.success('Đã cập nhật món');
       await refetchMenuDishes();
       setEditingDish(null);
@@ -120,14 +104,7 @@ export function MenuPlanner() {
     if (!editingDish) return;
     setProcessingDish(true);
     try {
-      const { error } = await supabase
-        .from('menu_dishes')
-        .delete()
-        .eq('id', editingDish.id);
-      if (error) {
-        toast.error('Không thể xoá món');
-        return;
-      }
+      await api.deleteMenuDish(editingDish.id);
       toast.success('Đã xoá món');
       removeDish(editingDish.id);
       await refetchMenuDishes();
@@ -424,7 +401,7 @@ export function MenuPlanner() {
             </label>
 
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Thay đổi này chỉ ảnh hưởng đến menu hiện tại và được lưu ngay lập tức lên Supabase.
+              Thay đổi này chỉ ảnh hưởng đến menu hiện tại và được lưu ngay lập tức.
             </p>
 
             <div className="mt-5 flex gap-2">

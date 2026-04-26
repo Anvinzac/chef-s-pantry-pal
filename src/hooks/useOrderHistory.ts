@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { OrderItem } from '@/types/ingredient';
 import { estimateCostK } from '@/data/referencePrices';
 import { toast } from 'sonner';
+import { api } from '@/lib/api';
 
 export interface SavedOrder {
   id: string;
@@ -38,7 +38,7 @@ function getDateOffset(range: TimeRange): string | null {
   return now.toISOString().split('T')[0];
 }
 
-export function useOrderHistory(restaurantId: string | null) {
+export function useOrderHistory(_restaurantId: string | null) {
   const [orders, setOrders] = useState<SavedOrder[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -46,100 +46,50 @@ export function useOrderHistory(restaurantId: string | null) {
     currentOrder: OrderItem[],
     ingredients: { id: string; category: string }[]
   ) => {
-    if (currentOrder.length === 0 || !restaurantId) return;
+    if (currentOrder.length === 0) return;
 
     const totalCostK = currentOrder.reduce((sum, item) => {
       const cost = estimateCostK(item.ingredientId, item.quantity);
       return sum + (cost ?? 0);
     }, 0);
 
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        total_cost_k: Math.round(totalCostK * 10) / 10,
-        restaurant_id: restaurantId,
-      } as any)
-      .select()
-      .single();
-
-    if (orderError || !order) {
-      console.error('Failed to save order:', orderError);
-      toast.error('Failed to save order');
-      return;
-    }
-
     const items = currentOrder.map(item => {
-      const ing = ingredients.find(i => i.id === item.ingredientId);
+      const ing = ingredients.find(ig => ig.id === item.ingredientId);
       return {
-        order_id: order.id,
-        ingredient_id: item.ingredientId,
+        ingredientId: item.ingredientId,
         name: item.name,
         category: ing?.category ?? 'unknown',
         quantity: item.quantity,
         unit: item.unit,
-        cost_k: estimateCostK(item.ingredientId, item.quantity) ?? null,
-        restaurant_id: restaurantId,
+        costK: estimateCostK(item.ingredientId, item.quantity) ?? null,
+        referencePrice: item.referencePrice ?? null,
+        supplier: item.supplier ?? null,
+        emoji: item.emoji ?? null,
+        subcategory: item.subcategory ?? null,
       };
     });
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(items as any);
-
-    if (itemsError) {
-      console.error('Failed to save order items:', itemsError);
-      toast.error('Failed to save order items');
-      return;
+    try {
+      const result = await api.saveOrder(Math.round(totalCostK * 10) / 10, items);
+      toast.success('Đã lưu đơn hàng!');
+      return result.id;
+    } catch {
+      toast.error('Lỗi lưu đơn hàng');
     }
-
-    toast.success('Order saved to history!');
-    return order.id;
-  }, [restaurantId]);
+  }, []);
 
   const fetchOrders = useCallback(async (timeRange: TimeRange = 'all', categoryFilter?: string) => {
-    if (!restaurantId) return;
     setLoading(true);
     try {
-      let query = (supabase as any)
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .order('order_date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      const minDate = getDateOffset(timeRange);
-      if (minDate) {
-        query = query.gte('order_date', minDate);
-      }
-
-      const { data: ordersData, error } = await query;
-      if (error) { console.error(error); setLoading(false); return; }
-
-      const orderIds = (ordersData ?? []).map(o => o.id);
-      if (orderIds.length === 0) { setOrders([]); setLoading(false); return; }
-
-      let itemsQuery = supabase
-        .from('order_items')
-        .select('*')
-        .in('order_id', orderIds);
-
-      if (categoryFilter && categoryFilter !== 'all') {
-        itemsQuery = itemsQuery.eq('category', categoryFilter);
-      }
-
-      const { data: itemsData, error: itemsError } = await itemsQuery;
-      if (itemsError) { console.error(itemsError); setLoading(false); return; }
-
-      const grouped: SavedOrder[] = (ordersData ?? []).map(o => ({
-        ...o,
-        items: (itemsData ?? []).filter(i => i.order_id === o.id),
-      })).filter(o => o.items.length > 0);
-
-      setOrders(grouped);
+      const since = getDateOffset(timeRange) ?? undefined;
+      const data = await api.getOrders(since, categoryFilter);
+      setOrders(data);
+    } catch {
+      console.error('Failed to fetch orders');
     } finally {
       setLoading(false);
     }
-  }, [restaurantId]);
+  }, []);
 
   return { orders, loading, saveOrder, fetchOrders };
 }

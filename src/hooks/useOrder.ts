@@ -1,25 +1,14 @@
 import { createContext, createElement, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Ingredient, OrderItem, UnitOfMeasurement, UNIT_LABELS, UNIT_FULL_LABELS } from '@/types/ingredient';
 import { defaultIngredients } from '@/data/defaultIngredients';
+import { api } from '@/lib/api';
 
-const STORAGE_KEY_INGREDIENTS = 'chef-ingredients';
 const STORAGE_KEY_ORDERS = 'chef-current-order';
-const STORAGE_KEY_HISTORY = 'chef-order-history';
-const DATA_VERSION_KEY = 'chef-data-version';
-const CURRENT_DATA_VERSION = 4;
 
 function loadIngredients(): Ingredient[] {
   try {
-    const version = localStorage.getItem(DATA_VERSION_KEY);
-    if (version && parseInt(version) === CURRENT_DATA_VERSION) {
-      const stored = localStorage.getItem(STORAGE_KEY_INGREDIENTS);
-      if (stored) return JSON.parse(stored);
-    } else {
-      localStorage.removeItem(STORAGE_KEY_INGREDIENTS);
-      localStorage.removeItem(STORAGE_KEY_ORDERS);
-      localStorage.removeItem(STORAGE_KEY_HISTORY);
-      localStorage.setItem(DATA_VERSION_KEY, String(CURRENT_DATA_VERSION));
-    }
+    const stored = localStorage.getItem('chef-ingredients');
+    if (stored) return JSON.parse(stored);
   } catch {}
   return defaultIngredients;
 }
@@ -76,7 +65,23 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [expandedOrder, setExpandedOrder] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_INGREDIENTS, JSON.stringify(ingredients));
+    // Load ingredients from API, fallback to local
+    api.getIngredients().then(serverIngredients => {
+      if (serverIngredients.length > 0) {
+        setIngredients(serverIngredients);
+      } else {
+        // Seed server with defaults
+        api.saveIngredients(defaultIngredients).catch(() => {});
+      }
+    }).catch(() => {
+      // Server unavailable, use local
+    });
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chef-ingredients', JSON.stringify(ingredients));
+    // Sync to server in background
+    api.saveIngredients(ingredients).catch(() => {});
   }, [ingredients]);
 
   useEffect(() => {

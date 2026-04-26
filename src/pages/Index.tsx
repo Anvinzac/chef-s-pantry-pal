@@ -18,7 +18,7 @@ import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
 import { EditingModeToggle } from '@/components/chef/EditingModeToggle';
 import { formatTomorrowDate, getSpecialDay } from '@/data/specialDays';
-import { ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn, UtensilsCrossed } from 'lucide-react';
+import { ChefHat, Clock, AlertTriangle, LogOut, Grid3X3, LogIn, UtensilsCrossed, Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -205,6 +205,15 @@ const Index = () => {
                 title="Thực đơn"
               >
                 <UtensilsCrossed size={18} className="text-muted-foreground" />
+              </button>
+            )}
+            {isChef && (
+              <button
+                onClick={() => navigate('/inventory')}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                title="Kho bếp"
+              >
+                <Warehouse size={18} className="text-muted-foreground" />
               </button>
             )}
             {!isGuest && (

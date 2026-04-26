@@ -33,14 +33,14 @@ export function RecommendationCard({ recommendation, onCopy, onDismiss, onDone, 
   return (
     <div
       className={cn(
-        'rounded-xl border-2 p-3 flex flex-col gap-3 bg-card shadow-sm transition-colors',
-        overdue ? 'border-destructive/60 bg-destructive/5' : 'border-border'
+        'rounded-xl border p-3 flex flex-col gap-3 bg-card/50 transition-colors',
+        overdue ? 'border-destructive/40' : 'border-border'
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="text-3xl leading-none shrink-0">{ingredient.emoji}</div>
+        <div className="text-2xl leading-none shrink-0">{ingredient.emoji}</div>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-base leading-tight truncate">{ingredient.name}</div>
+          <div className="font-bold text-sm leading-tight truncate">{ingredient.name}</div>
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
@@ -63,12 +63,7 @@ export function RecommendationCard({ recommendation, onCopy, onDismiss, onDone, 
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onDismiss}
-          className="h-9"
-        >
+        <Button variant="outline" size="sm" onClick={onDismiss} className="h-9">
           Hoãn
         </Button>
         <Button
@@ -80,12 +75,7 @@ export function RecommendationCard({ recommendation, onCopy, onDismiss, onDone, 
           <Check className="w-4 h-4 mr-1" />
           Đã mua
         </Button>
-        <Button
-          size="sm"
-          onClick={onCopy}
-          disabled={isInOrder}
-          className="h-9"
-        >
+        <Button size="sm" onClick={onCopy} disabled={isInOrder} className="h-9">
           <Copy className="w-4 h-4 mr-1" />
           {isInOrder ? 'Đã thêm' : 'Thêm'}
         </Button>
