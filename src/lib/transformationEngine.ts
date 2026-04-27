@@ -186,7 +186,7 @@ export class TransformationEngine {
       .replace(/</g, '<')
       .replace(/>/g, '>')
       .replace(/"/g, '"')
-      .replace(/'/g, ''');
+      .replace(/'/g, '&apos;');
   }
   
   // Transform Entry array to different formats
