@@ -3,8 +3,19 @@ import cors from 'cors';
 import db from './db.js';
 
 const app = express();
-app.use(cors());
+
+// CORS: allow comma-separated origins via ALLOWED_ORIGINS env var, or all in dev.
+const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({
+  origin: allowed.length === 0 ? true : (origin, cb) => {
+    if (!origin || allowed.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS blocked: ${origin}`));
+  },
+}));
 app.use(express.json({ limit: '5mb' }));
+
+// Health check for Railway
+app.get('/health', (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
 // ─── Users ───────────────────────────────────────────────
 app.post('/api/users/login', (req, res) => {
@@ -279,7 +290,7 @@ function deserializeIngredient(row: any) {
   };
 }
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`🍳 Kitchen API running on http://localhost:${PORT}`);
+const PORT = Number(process.env.PORT) || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🍳 Kitchen API running on port ${PORT}`);
 });
