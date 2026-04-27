@@ -290,7 +290,7 @@ function deserializeIngredient(row: any) {
   };
 }
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`🍳 Kitchen API running on http://localhost:${PORT}`);
+const PORT = Number(process.env.PORT) || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🍳 Kitchen API running on port ${PORT}`);
 });
