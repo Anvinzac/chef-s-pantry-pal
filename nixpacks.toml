@@ -1,0 +1,15 @@
+# Railway / Nixpacks build configuration for the Express API in server/.
+# The frontend is hosted on Lovable; only the API runs here.
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake"]
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+# better-sqlite3 needs a native rebuild against the runtime Node version.
+cmds = ["npm rebuild better-sqlite3"]
+
+[start]
+cmd = "npm run start:server"
