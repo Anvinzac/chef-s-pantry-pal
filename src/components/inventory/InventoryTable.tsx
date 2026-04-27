@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { KitchenTone } from "@/lib/inventoryNav";
 import { api } from "@/lib/api";
 import { IngredientWizard } from "./IngredientWizard";
@@ -39,7 +39,6 @@ const TONE_DOT: Record<KitchenTone, string> = {
 function rowToApi(r: Row, spaceId: string) {
   return { id: r._id, space_id: spaceId, code: r["MÃ"], name: r["TÊN"], quantity: parseFloat(r["SL"]) || 0, unit: r["ĐVT"], note: r["GHI CHÚ"] };
 }
-
 function apiToRow(r: any): Row {
   return { _id: r.id, "MÃ": r.code, "TÊN": r.name, "SL": String(r.quantity), "ĐVT": r.unit, "GHI CHÚ": r.note || "" };
 }
@@ -47,7 +46,8 @@ function apiToRow(r: any): Row {
 export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [showWizard, setShowWizard] = useState(false);
+  const [wizardMode, setWizardMode] = useState<"hidden" | "peek" | "full">("hidden");
+  const [wizardKey, setWizardKey] = useState(0);
   const [activeCell, setActiveCell] = useState<{ rowId: string; col: (typeof COLUMNS)[number] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -59,6 +59,14 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
       setLoaded(true);
     }).catch(() => setLoaded(true));
   }, [id]);
+
+  // Determine wizard visibility based on row count
+  useEffect(() => {
+    if (!loaded) return;
+    if (rows.length === 0) setWizardMode("full");
+    else if (rows.length < 5) setWizardMode("peek");
+    else setWizardMode("hidden");
+  }, [loaded, rows.length]);
 
   const persistRows = useCallback((nextRows: Row[]) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -92,55 +100,50 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
     });
   }, [persistRows]);
 
-  const addFromWizard = useCallback((ing: { id: string; name: string; emoji: string; unit: string }) => {
+  const addFromWizard = useCallback((data: { name: string; emoji: string; unit: string; quantity: string; note: string }) => {
     const code = `${id}-${String(rows.length + 1).padStart(3, "0")}`;
     const newRow: Row = {
-      _id: `${id}-${ing.id}-${Date.now()}`,
+      _id: `${id}-${Date.now()}`,
       "MÃ": code,
-      "TÊN": ing.name,
-      "SL": "0",
-      "ĐVT": ing.unit,
-      "GHI CHÚ": "Mới nhập",
+      "TÊN": data.name,
+      "SL": data.quantity || "0",
+      "ĐVT": data.unit,
+      "GHI CHÚ": data.note || "Mới nhập",
     };
     setRows(prev => {
       const next = [newRow, ...prev];
       persistRows(next);
       return next;
     });
-    setShowWizard(false);
-    setActiveCell({ rowId: newRow._id, col: "SL" });
+    // After adding, reset wizard and go back to peek if still few rows, else hide
+    setWizardKey(k => k + 1);
+    const newCount = rows.length + 1;
+    if (newCount >= 5) setWizardMode("hidden");
+    else setWizardMode("peek");
     requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
   }, [id, rows.length, persistRows]);
 
   const gridCols = "0.7fr 1.4fr 0.6fr 0.6fr 0.8fr 24px";
 
   if (!loaded) {
-    return (
-      <div className="relative h-full w-full">
-        <InventoryTableSkeleton label={label} emoji={emoji} />
-      </div>
-    );
+    return <div className="relative h-full w-full"><InventoryTableSkeleton label={label} emoji={emoji} /></div>;
   }
 
-  // Show wizard when table is empty or user tapped add
-  if (showWizard || (loaded && rows.length === 0)) {
+  // Full wizard takeover when empty
+  if (wizardMode === "full" && rows.length === 0) {
     return (
       <div className="relative h-full w-full">
-        <IngredientWizard
-          spaceId={id}
-          onSelect={addFromWizard}
-          onCancel={() => setShowWizard(false)}
-        />
+        <IngredientWizard key={wizardKey} spaceId={id} onSelect={addFromWizard} onCancel={() => setWizardMode("hidden")} />
       </div>
     );
   }
 
   return (
     <div className="absolute inset-0 flex flex-col bg-card text-foreground rounded-xl overflow-hidden">
-      <div className={`absolute inset-x-0 top-0 h-24 bg-gradient-to-b ${TONE_ACCENT[tone]} pointer-events-none`} />
+      <div className={`absolute inset-x-0 top-0 h-24 bg-gradient-to-b ${TONE_ACCENT[tone]} pointer-events-none z-0`} />
 
       {/* Header */}
-      <div className="relative flex items-center justify-between border-b border-border/50 px-3.5 py-2.5">
+      <div className="relative z-10 flex items-center justify-between border-b border-border/50 px-3.5 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-xl">{emoji}</span>
           <div className={`h-2 w-2 rounded-full ${TONE_DOT[tone]}`} />
@@ -149,7 +152,7 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-muted-foreground tabular-nums">{rows.length} dòng</span>
           <button
-            onClick={() => setShowWizard(true)}
+            onClick={() => setWizardMode("full")}
             className="rounded-full bg-secondary text-secondary-foreground px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-wider shadow-sm transition-transform active:scale-95"
           >
             + THÊM
@@ -157,91 +160,129 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
         </div>
       </div>
 
-      {/* Scrollable table */}
-      <div
-        ref={scrollRef}
-        className="relative flex-1 overflow-y-auto overscroll-contain scrollbar-hide"
-        style={{ touchAction: "pan-y" }}
-      >
+      {/* Table + wizard peek container */}
+      <div className="relative flex-1 min-h-0">
+        {/* Scrollable table */}
         <div
-          className={`sticky top-0 z-10 grid gap-2 border-b border-border/40 bg-card/80 backdrop-blur px-3 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-shadow ${scrolled ? "shadow-sm" : ""}`}
-          style={{ gridTemplateColumns: gridCols }}
+          ref={scrollRef}
+          className="absolute inset-0 overflow-y-auto overscroll-contain scrollbar-hide"
+          style={{ touchAction: "pan-y" }}
         >
-          {COLUMNS.map(c => <div key={c} className="truncate">{c}</div>)}
-          <div />
-        </div>
+          <div
+            className={`sticky top-0 z-10 grid gap-2 border-b border-border/40 bg-card/80 backdrop-blur px-3 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-shadow ${scrolled ? "shadow-sm" : ""}`}
+            style={{ gridTemplateColumns: gridCols }}
+          >
+            {COLUMNS.map(c => <div key={c} className="truncate">{c}</div>)}
+            <div />
+          </div>
 
-        <div>
-          {rows.map(r => (
-            <div
-              key={r._id}
-              className="grid items-center gap-2 border-b border-border/20 px-3 py-3 font-mono text-[12px] leading-snug transition-colors hover:bg-muted/30"
-              style={{ gridTemplateColumns: gridCols, minHeight: 44 } as CSSProperties}
-            >
-              {COLUMNS.map(c => {
-                const isActive = activeCell?.rowId === r._id && activeCell.col === c;
-
-                if (isActive) {
-                  return (
-                    <CellInput
-                      key={c}
-                      column={c}
-                      value={r[c]}
+          <div>
+            {rows.map(r => (
+              <div
+                key={r._id}
+                className="grid items-center gap-2 border-b border-border/20 px-3 py-3 font-mono text-[12px] leading-snug transition-colors hover:bg-muted/30"
+                style={{ gridTemplateColumns: gridCols, minHeight: 44 } as CSSProperties}
+              >
+                {COLUMNS.map(c => {
+                  const isActive = activeCell?.rowId === r._id && activeCell.col === c;
+                  if (isActive) {
+                    return <CellInput key={c} column={c} value={r[c]}
                       onCommit={v => { updateCell(r._id, c, v); setActiveCell(null); }}
-                      onCancel={() => setActiveCell(null)}
-                    />
-                  );
-                }
-
-                if (c === "GHI CHÚ") {
+                      onCancel={() => setActiveCell(null)} />;
+                  }
+                  if (c === "GHI CHÚ") {
+                    return (
+                      <button key={c} type="button" onClick={() => setActiveCell({ rowId: r._id, col: c })} className="text-left">
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide ${STATUS_STYLES[r[c]] ?? "bg-muted text-muted-foreground border-border"}`}>
+                          {r[c] || "—"}
+                        </span>
+                      </button>
+                    );
+                  }
+                  const display = c === "MÃ" ? <span className="text-primary/80">{r[c]}</span>
+                    : c === "SL" ? <span className="text-accent tabular-nums font-semibold">{r[c]}</span>
+                    : c === "ĐVT" ? <span className="text-muted-foreground">{r[c]}</span>
+                    : <span className="text-foreground">{r[c]}</span>;
                   return (
-                    <button key={c} type="button" onClick={() => setActiveCell({ rowId: r._id, col: c })} className="text-left">
-                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide ${STATUS_STYLES[r[c]] ?? "bg-muted text-muted-foreground border-border"}`}>
-                        {r[c] || "—"}
-                      </span>
+                    <button key={c} type="button" onClick={() => setActiveCell({ rowId: r._id, col: c })}
+                      className="truncate text-left font-mono rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10 hover:text-primary">
+                      {display}
                     </button>
                   );
-                }
-
-                const display = c === "MÃ"
-                  ? <span className="text-primary/80">{r[c]}</span>
-                  : c === "SL"
-                    ? <span className="text-accent tabular-nums font-semibold">{r[c]}</span>
-                    : c === "ĐVT"
-                      ? <span className="text-muted-foreground">{r[c]}</span>
-                      : <span className="text-foreground">{r[c]}</span>;
-
-                return (
-                  <button
-                    key={c} type="button"
-                    onClick={() => setActiveCell({ rowId: r._id, col: c })}
-                    className="truncate text-left font-mono rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10 hover:text-primary"
-                  >
-                    {display}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => deleteRow(r._id)}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-destructive/40 bg-destructive/15 text-[12px] font-bold leading-none text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
-              >
-                ×
-              </button>
+                })}
+                <button onClick={() => deleteRow(r._id)}
+                  className="flex h-5 w-5 items-center justify-center rounded-md border border-destructive/40 bg-destructive/15 text-[12px] font-bold leading-none text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground">
+                  ×
+                </button>
+              </div>
+            ))}
+            <div className="px-3 py-4 text-center font-mono text-[9px] text-muted-foreground">
+              — nhấn ô bất kỳ để sửa —
             </div>
-          ))}
-          <div className="px-3 py-4 text-center font-mono text-[9px] text-muted-foreground">
-            — nhấn ô bất kỳ để sửa —
           </div>
         </div>
+
+        {/* Wizard peek overlay — bottom half, faded, slides up on tap */}
+        {(wizardMode === "peek" || wizardMode === "full") && rows.length > 0 && (
+          <div
+            className="absolute inset-0 z-20 transition-all duration-500 ease-out"
+            style={{
+              transform: wizardMode === "full" ? "translateY(0)" : "translateY(50%)",
+              pointerEvents: wizardMode === "full" ? "auto" : "none",
+            }}
+          >
+            {/* Peek mode: fade mask + Add button */}
+            {wizardMode === "peek" && (
+              <>
+                <div
+                  className="absolute inset-0 z-30 pointer-events-auto cursor-pointer"
+                  style={{
+                    background: "linear-gradient(to bottom, hsla(220,25%,10%,0.6) 0%, transparent 100%)",
+                  }}
+                  onClick={() => setWizardMode("full")}
+                  onTouchStart={(e) => {
+                    const startY = e.touches[0].clientY;
+                    const onMove = (ev: TouchEvent) => {
+                      if (startY - ev.touches[0].clientY > 30) {
+                        setWizardMode("full");
+                        document.removeEventListener("touchmove", onMove);
+                      }
+                    };
+                    document.addEventListener("touchmove", onMove, { passive: true });
+                    document.addEventListener("touchend", () => document.removeEventListener("touchmove", onMove), { once: true });
+                  }}
+                />
+                {/* Add button floating above the peek */}
+                <button
+                  onClick={() => setWizardMode("full")}
+                  className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-5 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5"
+                >
+                  <span className="text-sm">+</span> Thêm nguyên liệu
+                </button>
+              </>
+            )}
+            <IngredientWizard
+              key={wizardKey}
+              spaceId={id}
+              onSelect={addFromWizard}
+              onCancel={() => {
+                if (rows.length < 5) setWizardMode("peek");
+                else setWizardMode("hidden");
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-border/50 bg-card/80 backdrop-blur px-3.5 py-1.5 font-mono text-[9px]">
+      {/* Bottom strip */}
+      <div className="relative z-10 flex items-center justify-between border-t border-border/50 bg-card/80 backdrop-blur px-3.5 py-1.5 font-mono text-[9px]">
         <span className="text-muted-foreground">{emoji} {label}</span>
         <span className="text-muted-foreground">SẴN SÀNG</span>
       </div>
     </div>
   );
 }
+
 
 function InventoryTableSkeleton({ label, emoji }: { label: string; emoji: string }) {
   return (

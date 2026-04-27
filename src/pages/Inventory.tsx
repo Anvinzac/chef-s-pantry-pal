@@ -220,35 +220,65 @@ function GridStage({
   active: GridCell;
   mounted: Set<string>;
 }) {
-  const prevCell = useRef(active);
-  const [ready, setReady] = useState(false);
-  const tx = -active.col * 100;
-  const ty = -active.row * 100;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cellSize = useRef<{ w: number; h: number } | null>(null);
+  const [measured, setMeasured] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const hasNavigated = useRef(false);
+  const prevActive = useRef(active);
 
-  // Only enable transitions after the first paint + layout is complete
+  if (prevActive.current.row !== active.row || prevActive.current.col !== active.col) {
+    hasNavigated.current = true;
+  }
+  prevActive.current = active;
+
+  // Measure ONCE on mount, lock the size forever
   useEffect(() => {
-    // Use double rAF to ensure the browser has painted the initial position
+    const el = containerRef.current;
+    if (!el || cellSize.current) return;
+    const { width, height } = el.getBoundingClientRect();
+    cellSize.current = { w: Math.floor(width), h: Math.floor(height) };
+    setMeasured(true);
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setReady(true);
-      });
+      requestAnimationFrame(() => setVisible(true));
     });
   }, []);
 
-  // Track if cell actually changed (not just a re-render)
-  const cellChanged = prevCell.current.row !== active.row || prevCell.current.col !== active.col;
-  useEffect(() => { prevCell.current = active; }, [active]);
+  // Defensive scroll lock: `overflow: hidden` does NOT block programmatic
+  // scrolls (e.g. focus()/scrollIntoView() inside a cell), which can shift
+  // the grid by a whole cell. Pin scrollTop/scrollLeft to 0 forever.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const reset = () => {
+      if (el.scrollTop !== 0) el.scrollTop = 0;
+      if (el.scrollLeft !== 0) el.scrollLeft = 0;
+    };
+    reset();
+    el.addEventListener("scroll", reset, { passive: true });
+    return () => el.removeEventListener("scroll", reset);
+  }, [measured]);
+
+  if (!measured || !cellSize.current) {
+    return <div ref={containerRef} className="relative h-full w-full overflow-hidden" />;
+  }
+
+  const { w: cellW, h: cellH } = cellSize.current;
+  const tx = -(active.col * cellW);
+  const ty = -(active.row * cellH);
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
       <div
-        className="absolute left-0 top-0"
         style={{
-          width: "300%",
-          height: "300%",
-          transform: `translate(${tx / 3}%, ${ty / 3}%)`,
-          transformOrigin: "top left",
-          transition: ready && cellChanged ? "transform 380ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: cellW * 3,
+          height: cellH * 3,
+          transform: `translate(${tx}px, ${ty}px)`,
+          visibility: visible ? "visible" : "hidden",
+          transition: hasNavigated.current ? "transform 350ms ease-out" : "none",
           willChange: "transform",
         }}
       >
@@ -259,12 +289,14 @@ function GridStage({
           return (
             <div
               key={space.id}
-              className="absolute overflow-hidden p-0.5"
               style={{
-                left: `${(space.cell.col * 100) / 3}%`,
-                top: `${(space.cell.row * 100) / 3}%`,
-                width: `${100 / 3}%`,
-                height: `${100 / 3}%`,
+                position: "absolute",
+                left: space.cell.col * cellW,
+                top: space.cell.row * cellH,
+                width: cellW,
+                height: cellH,
+                padding: 2,
+                overflow: "hidden",
               }}
               aria-hidden={!isActive}
             >
