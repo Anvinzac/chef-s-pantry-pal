@@ -16,6 +16,11 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
+      '/turso': {
+        target: 'https://kitchen-dophuongdong.aws-ap-south-1.turso.io',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/turso/, ''),
+      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

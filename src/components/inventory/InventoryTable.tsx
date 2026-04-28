@@ -10,6 +10,7 @@ interface InventoryTableProps {
   label: string;
   emoji: string;
   tone: KitchenTone;
+  onRequestWizard?: () => void;
 }
 
 const COLUMNS = ["MÃ", "TÊN", "SL", "ĐVT", "GHI CHÚ"] as const;
@@ -43,7 +44,7 @@ function apiToRow(r: any): Row {
   return { _id: r.id, "MÃ": r.code, "TÊN": r.name, "SL": String(r.quantity), "ĐVT": r.unit, "GHI CHÚ": r.note || "" };
 }
 
-export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) {
+export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: InventoryTableProps) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [wizardMode, setWizardMode] = useState<"hidden" | "peek" | "full">("hidden");
@@ -60,12 +61,19 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
     }).catch(() => setLoaded(true));
   }, [id]);
 
-  // Determine wizard visibility based on row count
+  // Wizard visibility is now uniform across all cells:
+  //  • Empty cells start in "full" mode — the wizard takes over so the user
+  //    immediately enters add-new-item flow.
+  //  • Cells with rows show the wizard as a faded peek at the bottom half;
+  //    tap or swipe-up promotes it to "full".
+  // The wizard is never fully hidden — it's always discoverable.
   useEffect(() => {
     if (!loaded) return;
-    if (rows.length === 0) setWizardMode("full");
-    else if (rows.length < 5) setWizardMode("peek");
-    else setWizardMode("hidden");
+    setWizardMode((cur) => {
+      // Don't override an active "full" promotion the user opened manually.
+      if (cur === "full") return cur;
+      return rows.length === 0 ? "full" : "peek";
+    });
   }, [loaded, rows.length]);
 
   const persistRows = useCallback((nextRows: Row[]) => {
@@ -78,7 +86,16 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 4);
+    const onScroll = () => {
+      setScrolled(el.scrollTop > 4);
+      // Promote peek → full when the user scrolls to (or past) the bottom
+      // of the table content. The peek wizard is overlaying the bottom half,
+      // so reaching the bottom signals intent to interact with it.
+      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+      if (nearBottom) {
+        setWizardMode((cur) => (cur === "peek" ? "full" : cur));
+      }
+    };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
@@ -115,11 +132,10 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
       persistRows(next);
       return next;
     });
-    // After adding, reset wizard and go back to peek if still few rows, else hide
+    // After adding: reset the wizard component (clear category/picked) and
+    // collapse it back to the bottom-half peek so the user can keep adding.
     setWizardKey(k => k + 1);
-    const newCount = rows.length + 1;
-    if (newCount >= 5) setWizardMode("hidden");
-    else setWizardMode("peek");
+    setWizardMode("peek");
     requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
   }, [id, rows.length, persistRows]);
 
@@ -129,14 +145,9 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
     return <div className="relative h-full w-full"><InventoryTableSkeleton label={label} emoji={emoji} /></div>;
   }
 
-  // Full wizard takeover when empty
-  if (wizardMode === "full" && rows.length === 0) {
-    return (
-      <div className="relative h-full w-full">
-        <IngredientWizard key={wizardKey} spaceId={id} onSelect={addFromWizard} onCancel={() => setWizardMode("hidden")} />
-      </div>
-    );
-  }
+  // Empty cells fall through to the standard layout. The wizard is rendered
+  // as an absolutely-positioned overlay (peek/full) below, so it appears in
+  // the same visual slot whether the table has rows or not.
 
   return (
     <div className="absolute inset-0 flex flex-col bg-card text-foreground rounded-xl overflow-hidden">
@@ -217,61 +228,58 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
               </div>
             ))}
             <div className="px-3 py-4 text-center font-mono text-[9px] text-muted-foreground">
-              — nhấn ô bất kỳ để sửa —
+              {rows.length === 0 ? "— trống · nhấn + THÊM —" : "— nhấn ô bất kỳ để sửa —"}
             </div>
           </div>
         </div>
 
-        {/* Wizard peek overlay — bottom half, faded, slides up on tap */}
-        {(wizardMode === "peek" || wizardMode === "full") && rows.length > 0 && (
-          <div
-            className="absolute inset-0 z-20 transition-all duration-500 ease-out"
-            style={{
-              transform: wizardMode === "full" ? "translateY(0)" : "translateY(50%)",
-              pointerEvents: wizardMode === "full" ? "auto" : "none",
-            }}
-          >
-            {/* Peek mode: fade mask + Add button */}
-            {wizardMode === "peek" && (
-              <>
-                <div
-                  className="absolute inset-0 z-30 pointer-events-auto cursor-pointer"
-                  style={{
-                    background: "linear-gradient(to bottom, hsla(220,25%,10%,0.6) 0%, transparent 100%)",
-                  }}
-                  onClick={() => setWizardMode("full")}
-                  onTouchStart={(e) => {
-                    const startY = e.touches[0].clientY;
-                    const onMove = (ev: TouchEvent) => {
-                      if (startY - ev.touches[0].clientY > 30) {
-                        setWizardMode("full");
-                        document.removeEventListener("touchmove", onMove);
-                      }
-                    };
-                    document.addEventListener("touchmove", onMove, { passive: true });
-                    document.addEventListener("touchend", () => document.removeEventListener("touchmove", onMove), { once: true });
-                  }}
-                />
-                {/* Add button floating above the peek */}
-                <button
-                  onClick={() => setWizardMode("full")}
-                  className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-5 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5"
-                >
-                  <span className="text-sm">+</span> Thêm nguyên liệu
-                </button>
-              </>
-            )}
-            <IngredientWizard
-              key={wizardKey}
-              spaceId={id}
-              onSelect={addFromWizard}
-              onCancel={() => {
-                if (rows.length < 5) setWizardMode("peek");
-                else setWizardMode("hidden");
-              }}
-            />
-          </div>
-        )}
+        {/* Wizard overlay — always rendered. Peek = bottom half + faded.
+            Full = covers the cell. Tap or swipe-up promotes peek → full. */}
+        <div
+          className="absolute inset-0 z-20 transition-all duration-500 ease-out"
+          style={{
+            transform: wizardMode === "full" ? "translateY(0)" : "translateY(50%)",
+            opacity: wizardMode === "full" ? 1 : 0.55,
+            pointerEvents: wizardMode === "full" ? "auto" : "none",
+          }}
+        >
+          {/* Peek mode: tap/swipe-up surface above the faded wizard */}
+          {wizardMode === "peek" && (
+            <>
+              <div
+                className="absolute inset-0 z-30 pointer-events-auto cursor-pointer"
+                style={{
+                  background: "linear-gradient(to bottom, hsla(220,25%,10%,0.6) 0%, transparent 100%)",
+                }}
+                onClick={() => setWizardMode("full")}
+                onTouchStart={(e) => {
+                  const startY = e.touches[0].clientY;
+                  const onMove = (ev: TouchEvent) => {
+                    if (startY - ev.touches[0].clientY > 30) {
+                      setWizardMode("full");
+                      document.removeEventListener("touchmove", onMove);
+                    }
+                  };
+                  document.addEventListener("touchmove", onMove, { passive: true });
+                  document.addEventListener("touchend", () => document.removeEventListener("touchmove", onMove), { once: true });
+                }}
+              />
+              {/* Add button floating above the peek */}
+              <button
+                onClick={() => setWizardMode("full")}
+                className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-5 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5"
+              >
+                <span className="text-sm">+</span> Thêm nguyên liệu
+              </button>
+            </>
+          )}
+          <IngredientWizard
+            key={wizardKey}
+            spaceId={id}
+            onSelect={addFromWizard}
+            onCancel={() => setWizardMode(rows.length === 0 ? "full" : "peek")}
+          />
+        </div>
       </div>
 
       {/* Bottom strip */}

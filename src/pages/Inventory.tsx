@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryEdgeButtons } from "@/components/inventory/InventoryEdgeButtons";
 import { InventoryKnob, type InventoryKnobHandle } from "@/components/inventory/InventoryKnob";
+import { IngredientWizard } from "@/components/inventory/IngredientWizard";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { api } from "@/lib/api";
 import type { Direction, GridCell } from "@/lib/inventoryNav";
 import { CELL_TO_DIRECTION, KITCHEN_SPACES, moveCell } from "@/lib/inventoryNav";
 import { ChevronLeft } from "lucide-react";
@@ -24,6 +26,10 @@ const Inventory = () => {
   const [armedDiagonal, setArmedDiagonal] = useState<Diagonal | null>(null);
   const [overview, setOverview] = useState(false);
   const knobRef = useRef<InventoryKnobHandle>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardKey, setWizardKey] = useState(0);
+  // Bump this to force tables to re-fetch after wizard adds a row
+  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     const t1 = setTimeout(() => {
@@ -96,9 +102,27 @@ const Inventory = () => {
     (t) => t.cell.row === active.row && t.cell.col === active.col,
   )!;
 
+  const handleWizardSelect = useCallback((data: { name: string; emoji: string; unit: string; quantity: string; note: string }) => {
+    const spaceId = currentSpace.id;
+    const code = `${spaceId}-${Date.now()}`;
+    const row = {
+      id: `${spaceId}-${Date.now()}`,
+      space_id: spaceId,
+      code,
+      name: data.name,
+      quantity: parseFloat(data.quantity) || 0,
+      unit: data.unit,
+      note: data.note || "Mới nhập",
+    };
+    api.saveInventory(spaceId, [row]).catch(() => {});
+    setWizardOpen(false);
+    setWizardKey(k => k + 1);
+    setRefreshToken(t => t + 1);
+  }, [currentSpace]);
+
   // Mobile: constrain to max-w-md; tablet/desktop: expand to fill screen
   return (
-    <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`}>
+    <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`} style={{ position: 'relative' }}>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -169,7 +193,7 @@ const Inventory = () => {
             {overview ? (
               <OverviewGrid active={active} onJump={goTo} />
             ) : (
-              <GridStage active={active} mounted={mounted} />
+              <GridStage active={active} mounted={mounted} onRequestWizard={() => setWizardOpen(true)} refreshToken={refreshToken} />
             )}
 
             {/* Current space label */}
@@ -209,6 +233,18 @@ const Inventory = () => {
           />
         </div>
       </main>
+
+      {/* Shared wizard overlay — rendered at page level, full viewport */}
+      {wizardOpen && (
+        <div className="fixed inset-0 z-50 bg-card">
+          <IngredientWizard
+            key={wizardKey}
+            spaceId={currentSpace.id}
+            onSelect={handleWizardSelect}
+            onCancel={() => setWizardOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -219,9 +255,13 @@ export default Inventory;
 function GridStage({
   active,
   mounted,
+  onRequestWizard,
+  refreshToken,
 }: {
   active: GridCell;
   mounted: Set<string>;
+  onRequestWizard: () => void;
+  refreshToken: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const hasNavigated = useRef(false);
@@ -246,10 +286,12 @@ function GridStage({
     return () => el.removeEventListener("scroll", reset);
   }, []);
 
-  // Percentage-based translate: each cell is 100% of the container.
-  // The inner slab is 300% × 300%, and we shift by -col*100% / -row*100%.
-  const txPct = -(active.col * 100);
-  const tyPct = -(active.row * 100);
+  // Percentage-based translate. The slab is 300% × 300% of the container.
+  // CSS `translate(%)` resolves against the TRANSFORMED ELEMENT'S OWN size,
+  // not its parent — so 100% of the slab equals the full slab (3 cells).
+  // To advance by one cell, shift by 1/3 of the slab = 33.333%.
+  const txPct = -(active.col * 100) / 3;
+  const tyPct = -(active.row * 100) / 3;
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
@@ -281,13 +323,12 @@ function GridStage({
                 width: "33.3333%",
                 height: "33.3333%",
                 padding: 2,
-                overflow: "hidden",
               }}
               aria-hidden={!isActive}
             >
               <div className="h-full w-full overflow-hidden rounded-xl border border-border/40 bg-card relative">
                 {isMounted ? (
-                  <InventoryTable id={space.id} label={space.label} emoji={space.emoji} tone={space.tone} />
+                  <InventoryTable key={`${space.id}-${refreshToken}`} id={space.id} label={space.label} emoji={space.emoji} tone={space.tone} onRequestWizard={onRequestWizard} />
                 ) : (
                   <InventoryTableSkeleton label={space.label} emoji={space.emoji} />
                 )}

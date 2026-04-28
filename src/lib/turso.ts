@@ -3,8 +3,11 @@
  * Talks directly to Turso's HTTP pipeline endpoint — no backend server needed.
  */
 
-const DB_URL = import.meta.env.VITE_TURSO_DATABASE_URL?.replace('libsql://', 'https://') || '';
+const TURSO_HTTPS = import.meta.env.VITE_TURSO_DATABASE_URL?.replace('libsql://', 'https://') || '';
 const AUTH_TOKEN = import.meta.env.VITE_TURSO_AUTH_TOKEN || '';
+
+// In dev, use Vite proxy to avoid CORS. In production, call Turso directly.
+const DB_URL = import.meta.env.DEV ? '/turso' : TURSO_HTTPS;
 
 interface TursoCol {
   name: string;
