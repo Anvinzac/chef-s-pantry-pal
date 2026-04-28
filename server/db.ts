@@ -1,27 +1,13 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { createClient } from '@libsql/client';
+import 'dotenv/config';
 
-import fs from 'fs';
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL || 'file:data/kitchen.db',
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// DATA_DIR is set by Railway when a Volume is mounted (e.g. /app/data).
-// Falls back to ../data for local development.
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
-const DB_PATH = path.join(DATA_DIR, 'kitchen.db');
-
-// Ensure data directory exists
-fs.mkdirSync(DATA_DIR, { recursive: true });
-console.log(`📦 SQLite database path: ${DB_PATH}`);
-
-const db = new Database(DB_PATH);
-
-// Enable WAL mode for better concurrent read performance
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Create tables
-db.exec(`
+// Create tables on startup
+await db.executeMultiple(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

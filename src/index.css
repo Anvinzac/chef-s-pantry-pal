@@ -54,6 +54,9 @@
     --cat-tissue: 188 55% 48%;
 
     --reorder-glow: 38 100% 60%;
+
+    /* Keyboard-aware input support */
+    --keyboard-inset: 0px;
   }
 }
 

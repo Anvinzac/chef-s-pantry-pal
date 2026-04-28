@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryEdgeButtons } from "@/components/inventory/InventoryEdgeButtons";
 import { InventoryKnob, type InventoryKnobHandle } from "@/components/inventory/InventoryKnob";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { Direction, GridCell } from "@/lib/inventoryNav";
 import { CELL_TO_DIRECTION, KITCHEN_SPACES, moveCell } from "@/lib/inventoryNav";
 import { ChevronLeft } from "lucide-react";
@@ -17,6 +18,7 @@ const isDiagonal = (d: Exclude<Direction, "center"> | null): d is Diagonal =>
 
 const Inventory = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const [active, setActive] = useState<GridCell>({ row: 1, col: 1 });
   const [mounted, setMounted] = useState<Set<string>>(() => new Set(["1-1"]));
   const [armedDiagonal, setArmedDiagonal] = useState<Diagonal | null>(null);
@@ -94,8 +96,9 @@ const Inventory = () => {
     (t) => t.cell.row === active.row && t.cell.col === active.col,
   )!;
 
+  // Mobile: constrain to max-w-md; tablet/desktop: expand to fill screen
   return (
-    <div className="min-h-screen bg-background max-w-md mx-auto relative flex flex-col overflow-hidden">
+    <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`}>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -221,9 +224,6 @@ function GridStage({
   mounted: Set<string>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const cellSize = useRef<{ w: number; h: number } | null>(null);
-  const [measured, setMeasured] = useState(false);
-  const [visible, setVisible] = useState(false);
   const hasNavigated = useRef(false);
   const prevActive = useRef(active);
 
@@ -232,21 +232,8 @@ function GridStage({
   }
   prevActive.current = active;
 
-  // Measure ONCE on mount, lock the size forever
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || cellSize.current) return;
-    const { width, height } = el.getBoundingClientRect();
-    cellSize.current = { w: Math.floor(width), h: Math.floor(height) };
-    setMeasured(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => setVisible(true));
-    });
-  }, []);
-
-  // Defensive scroll lock: `overflow: hidden` does NOT block programmatic
-  // scrolls (e.g. focus()/scrollIntoView() inside a cell), which can shift
-  // the grid by a whole cell. Pin scrollTop/scrollLeft to 0 forever.
+  // Defensive scroll lock: overflow:hidden doesn't block programmatic
+  // scrolls (focus/scrollIntoView inside a cell). Pin to 0.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -257,27 +244,22 @@ function GridStage({
     reset();
     el.addEventListener("scroll", reset, { passive: true });
     return () => el.removeEventListener("scroll", reset);
-  }, [measured]);
+  }, []);
 
-  if (!measured || !cellSize.current) {
-    return <div ref={containerRef} className="relative h-full w-full overflow-hidden" />;
-  }
-
-  const { w: cellW, h: cellH } = cellSize.current;
-  const tx = -(active.col * cellW);
-  const ty = -(active.row * cellH);
+  // Percentage-based translate: each cell is 100% of the container.
+  // The inner slab is 300% × 300%, and we shift by -col*100% / -row*100%.
+  const txPct = -(active.col * 100);
+  const tyPct = -(active.row * 100);
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
       <div
         style={{
           position: "absolute",
-          left: 0,
-          top: 0,
-          width: cellW * 3,
-          height: cellH * 3,
-          transform: `translate(${tx}px, ${ty}px)`,
-          visibility: visible ? "visible" : "hidden",
+          inset: 0,
+          width: "300%",
+          height: "300%",
+          transform: `translate(${txPct}%, ${tyPct}%)`,
           transition: hasNavigated.current ? "transform 350ms ease-out" : "none",
           willChange: "transform",
         }}
@@ -286,15 +268,18 @@ function GridStage({
           const key = `${space.cell.row}-${space.cell.col}`;
           const isMounted = mounted.has(key);
           const isActive = space.cell.row === active.row && space.cell.col === active.col;
+          // Each cell: 1/3 of the slab = 33.333%
+          const leftPct = (space.cell.col / 3) * 100;
+          const topPct = (space.cell.row / 3) * 100;
           return (
             <div
               key={space.id}
               style={{
                 position: "absolute",
-                left: space.cell.col * cellW,
-                top: space.cell.row * cellH,
-                width: cellW,
-                height: cellH,
+                left: `${leftPct}%`,
+                top: `${topPct}%`,
+                width: "33.3333%",
+                height: "33.3333%",
                 padding: 2,
                 overflow: "hidden",
               }}

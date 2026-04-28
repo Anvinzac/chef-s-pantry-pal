@@ -10,9 +10,11 @@ import { useStockReports } from '@/hooks/useStockReports';
 import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { CategoryCloud } from '@/components/chef/CategoryCloud';
 import { CategoryPage } from '@/components/chef/CategoryPage';
+import { TabletOrderingLayout } from '@/components/chef/TabletOrderingLayout';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
@@ -26,6 +28,7 @@ const Index = () => {
   const { user, role, displayName, signOut, isGuest, restaurantId, restaurantName } = useAuth();
   const isChef = isGuest ? true : role === 'chef';
   const { editingEnabled } = useAppSettings();
+  const { isMobile } = useBreakpoint();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const firstCategory = categories[0].id;
@@ -43,12 +46,17 @@ const Index = () => {
   const [categoryCloudOpen, setCategoryCloudOpen] = useState(false);
   const [remainingNumpadIngredient, setRemainingNumpadIngredient] = useState<Ingredient | null>(null);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    axis: 'x',
-    loop: false,
-    containScroll: 'trimSnaps',
-    skipSnaps: false,
-  });
+  // Only initialize embla carousel on mobile
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    isMobile
+      ? {
+          axis: 'x',
+          loop: false,
+          containScroll: 'trimSnaps',
+          skipSnaps: false,
+        }
+      : undefined
+  );
 
   const {
     ingredients,
@@ -171,6 +179,156 @@ const Index = () => {
     onOpenStudio: () => navigate('/ingredients-studio'),
   };
 
+  // Tablet/Desktop layout
+  if (!isMobile) {
+    const catIngredients = getIngredientsByCategory(activeCategory);
+    const activeSub = subcategoryByCategory[activeCategory] ?? categories.find(c => c.id === activeCategory)?.subcategories?.[0]?.id ?? null;
+
+    return (
+      <div className="min-h-screen bg-background max-w-5xl mx-auto relative flex flex-col">
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/')}
+                className="bg-primary rounded-xl p-1.5 active:scale-95 transition-transform"
+                title="Trang chủ"
+              >
+                <ChefHat size={20} className="text-primary-foreground" />
+              </button>
+              <div>
+                <h1 className="font-extrabold text-base text-foreground leading-tight">
+                  {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
+                </h1>
+                <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                  {restaurantName ?? 'Đặt Hàng Bếp'}
+                  {isChef && specialDay && (
+                    <span className={specialDay.impact === 'high' ? 'text-destructive' : ''}>
+                      • {specialDay.emoji} {specialDay.label}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {isChef && (
+                <button
+                  onClick={() => navigate('/menu')}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  title="Thực đơn"
+                >
+                  <UtensilsCrossed size={18} className="text-muted-foreground" />
+                </button>
+              )}
+              {isChef && (
+                <button
+                  onClick={() => navigate('/inventory')}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  title="Kho bếp"
+                >
+                  <Warehouse size={18} className="text-muted-foreground" />
+                </button>
+              )}
+              {!isGuest && (
+                <button
+                  onClick={() => navigate('/stock-report')}
+                  className="relative p-1.5 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <AlertTriangle size={18} className="text-muted-foreground" />
+                  {outOfStockCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                      {outOfStockCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {isChef && !isGuest && (
+                <button
+                  onClick={() => navigate('/history')}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <Clock size={18} className="text-muted-foreground" />
+                </button>
+              )}
+              {isGuest ? (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+                >
+                  <LogIn size={14} />
+                  Đăng nhập
+                </button>
+              ) : (
+                <button
+                  onClick={signOut}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <LogOut size={16} className="text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Tablet layout with sidebar */}
+        <TabletOrderingLayout
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategorySelect={handleCategorySelect}
+          alertCounts={isChef ? alertCounts : undefined}
+        >
+          <CategoryPage
+            category={categories.find(c => c.id === activeCategory)!}
+            ingredients={catIngredients}
+            activeSubcategory={activeSub}
+            onSelectSubcategory={(subId) => handleSubcategorySelect(activeCategory, subId)}
+            isChef={isChef}
+            editingEnabled={editingEnabled}
+            {...commonCardHandlers}
+          />
+        </TabletOrderingLayout>
+
+        {isChef && (
+          <OrderBar
+            currentOrder={currentOrder}
+            ingredients={ingredients}
+            expanded={expandedOrder}
+            onToggleExpand={() => setExpandedOrder(!expandedOrder)}
+            onRemoveItem={removeFromOrder}
+            onClearOrder={clearOrder}
+            getOrderText={getOrderText}
+            onSaveOrder={handleSaveOrder}
+          />
+        )}
+
+        <NumpadModal
+          ingredient={numpadIngredient}
+          onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
+          onClose={() => setNumpadIngredient(null)}
+        />
+
+        <NumpadModal
+          ingredient={remainingNumpadIngredient}
+          onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
+          onClose={() => setRemainingNumpadIngredient(null)}
+        />
+
+        <AddIngredientModal
+          isOpen={addModalOpen}
+          onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
+          onAdd={addIngredient}
+          onUpdate={updateIngredient}
+          onDelete={deleteIngredient}
+          editIngredient={editIngredient}
+          categoryId={activeCategory}
+        />
+
+        <EditingModeToggle />
+      </div>
+    );
+  }
+
+  // Mobile layout (existing embla carousel layout)
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative flex flex-col">
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">

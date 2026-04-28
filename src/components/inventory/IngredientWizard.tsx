@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { categories } from "@/data/defaultIngredients";
 import { api } from "@/lib/api";
 import { ChevronLeft, Check } from "lucide-react";
+import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
 
 interface Ingredient {
   id: string;
@@ -41,6 +42,7 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
   const searchRef = useRef<HTMLInputElement>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const { isKeyboardVisible, keyboardHeight } = useKeyboardVisible();
 
   useEffect(() => {
     api.getIngredients().then(setAllIngredients).catch(() => {});
@@ -244,7 +246,13 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
       </div>
 
       {/* Bottom search */}
-      <div className="border-t border-border/50 bg-card shrink-0 mb-8 animate-entry" style={stagger(categories.length)}>
+      <div 
+        className="border-t border-border/50 bg-card shrink-0 mb-8 animate-entry transition-[padding] duration-200" 
+        style={{ 
+          ...stagger(categories.length),
+          paddingBottom: isKeyboardVisible ? `${keyboardHeight}px` : undefined 
+        }}
+      >
         {search.trim().length > 0 && (
           <div className="px-2 pt-2 pb-1 max-h-[100px] overflow-y-auto">
             {searchResults.length === 0 ? (
