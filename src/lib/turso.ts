@@ -1,26 +1,44 @@
 /**
  * Turso HTTP API client for browser.
- * Talks directly to Turso's HTTP endpoint — no backend server needed.
+ * Talks directly to Turso's HTTP pipeline endpoint — no backend server needed.
  */
 
 const DB_URL = import.meta.env.VITE_TURSO_DATABASE_URL?.replace('libsql://', 'https://') || '';
 const AUTH_TOKEN = import.meta.env.VITE_TURSO_AUTH_TOKEN || '';
 
+interface TursoCol {
+  name: string;
+  decltype?: string;
+}
+
+interface TursoValue {
+  type: string;
+  value?: string;
+}
+
 interface TursoResult {
-  columns: string[];
-  rows: any[][];
+  cols: TursoCol[];
+  rows: TursoValue[][];
 }
 
 interface TursoResponse {
-  results: { type: string; response?: { result: TursoResult } }[];
+  results: { type: string; response?: { type: string; result?: TursoResult } }[];
 }
 
-/** Convert column+row arrays into objects */
+/** Unwrap a Turso wire value to a JS primitive */
+function unwrapValue(v: TursoValue): any {
+  if (v.type === 'null') return null;
+  if (v.type === 'integer') return Number(v.value);
+  if (v.type === 'float') return Number(v.value);
+  return v.value ?? null;
+}
+
+/** Convert cols + rows into plain objects */
 function toObjects(result: TursoResult): Record<string, any>[] {
   return result.rows.map((row) => {
     const obj: Record<string, any> = {};
-    result.columns.forEach((col, i) => {
-      obj[col] = row[i];
+    result.cols.forEach((col, i) => {
+      obj[col.name] = unwrapValue(row[i]);
     });
     return obj;
   });
@@ -48,7 +66,7 @@ export async function execute(sql: string, args: any[] = []): Promise<Record<str
   return toObjects(result);
 }
 
-/** Execute multiple statements in a batch (transaction) */
+/** Execute multiple statements in a batch */
 export async function batch(statements: { sql: string; args?: any[] }[]): Promise<Record<string, any>[][]> {
   const requests: any[] = statements.map((s) => ({
     type: 'execute',
@@ -68,11 +86,11 @@ export async function batch(statements: { sql: string; args?: any[] }[]): Promis
   const data: TursoResponse = await res.json();
   return data.results
     .filter((r) => r.type === 'ok' && r.response?.result)
-    .map((r) => toObjects(r.response!.result));
+    .map((r) => toObjects(r.response!.result!));
 }
 
 /** Convert JS values to Turso wire format */
-function toValue(v: any): { type: string; value: string } | { type: string } {
+function toValue(v: any): { type: string; value?: string } {
   if (v === null || v === undefined) return { type: 'null' };
   if (typeof v === 'number') {
     return Number.isInteger(v)
