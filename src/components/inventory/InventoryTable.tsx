@@ -3,17 +3,26 @@ import type { KitchenTone } from "@/lib/inventoryNav";
 import { api } from "@/lib/api";
 import { IngredientWizard } from "./IngredientWizard";
 
-type Row = Record<(typeof COLUMNS)[number], string> & { _id: string };
+interface RowData {
+  _id: string;
+  code: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  note: string;
+  supplier: string;
+  subType: string;
+}
 
 interface InventoryTableProps {
   id: string;
   label: string;
   emoji: string;
   tone: KitchenTone;
-  onRequestWizard?: () => void;
 }
 
-const COLUMNS = ["MÃ", "TÊN", "SL", "ĐVT", "GHI CHÚ"] as const;
+type EditableField = "name" | "quantity" | "unit" | "note" | "supplier" | "subType";
+
 const STATUSES = ["Đủ", "Sắp hết", "Hết", "Mới nhập"];
 
 const STATUS_STYLES: Record<string, string> = {
@@ -37,19 +46,32 @@ const TONE_DOT: Record<KitchenTone, string> = {
   muted: "bg-muted-foreground",
 };
 
-function rowToApi(r: Row, spaceId: string) {
-  return { id: r._id, space_id: spaceId, code: r["MÃ"], name: r["TÊN"], quantity: parseFloat(r["SL"]) || 0, unit: r["ĐVT"], note: r["GHI CHÚ"] };
-}
-function apiToRow(r: any): Row {
-  return { _id: r.id, "MÃ": r.code, "TÊN": r.name, "SL": String(r.quantity), "ĐVT": r.unit, "GHI CHÚ": r.note || "" };
+function rowToApi(r: RowData, spaceId: string) {
+  return {
+    id: r._id, space_id: spaceId, code: r.code, name: r.name,
+    quantity: parseFloat(r.quantity) || 0, unit: r.unit,
+    note: r.note, supplier: r.supplier, sub_type: r.subType,
+  };
 }
 
-export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: InventoryTableProps) {
-  const [rows, setRows] = useState<Row[]>([]);
+function apiToRow(r: any): RowData {
+  return {
+    _id: r.id, code: r.code, name: r.name,
+    quantity: String(r.quantity), unit: r.unit,
+    note: r.note || "", supplier: r.supplier || "", subType: r.sub_type || "",
+  };
+}
+
+// Visible columns: TÊN (wide, with sub-text), SL, ĐVT, GHI CHÚ
+const GRID_COLS = "1fr 0.45fr 0.4fr 0.55fr 20px";
+const HEADER_LABELS = ["TÊN", "SL", "ĐVT", "GHI CHÚ"];
+
+export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) {
+  const [rows, setRows] = useState<RowData[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [wizardMode, setWizardMode] = useState<"hidden" | "peek" | "full">("hidden");
   const [wizardKey, setWizardKey] = useState(0);
-  const [activeCell, setActiveCell] = useState<{ rowId: string; col: (typeof COLUMNS)[number] } | null>(null);
+  const [activeCell, setActiveCell] = useState<{ rowId: string; field: EditableField } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,22 +83,15 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
     }).catch(() => setLoaded(true));
   }, [id]);
 
-  // Wizard visibility is now uniform across all cells:
-  //  • Empty cells start in "full" mode — the wizard takes over so the user
-  //    immediately enters add-new-item flow.
-  //  • Cells with rows show the wizard as a faded peek at the bottom half;
-  //    tap or swipe-up promotes it to "full".
-  // The wizard is never fully hidden — it's always discoverable.
   useEffect(() => {
     if (!loaded) return;
-    setWizardMode((cur) => {
-      // Don't override an active "full" promotion the user opened manually.
+    setWizardMode(cur => {
       if (cur === "full") return cur;
       return rows.length === 0 ? "full" : "peek";
     });
   }, [loaded, rows.length]);
 
-  const persistRows = useCallback((nextRows: Row[]) => {
+  const persistRows = useCallback((nextRows: RowData[]) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       api.saveInventory(id, nextRows.map(r => rowToApi(r, id))).catch(() => {});
@@ -88,21 +103,16 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
     if (!el) return;
     const onScroll = () => {
       setScrolled(el.scrollTop > 4);
-      // Promote peek → full when the user scrolls to (or past) the bottom
-      // of the table content. The peek wizard is overlaying the bottom half,
-      // so reaching the bottom signals intent to interact with it.
       const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
-      if (nearBottom) {
-        setWizardMode((cur) => (cur === "peek" ? "full" : cur));
-      }
+      if (nearBottom) setWizardMode(cur => cur === "peek" ? "full" : cur);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  const updateCell = useCallback((rowId: string, col: (typeof COLUMNS)[number], value: string) => {
+  const updateField = useCallback((rowId: string, field: EditableField, value: string) => {
     setRows(prev => {
-      const next = prev.map(r => r._id === rowId ? { ...r, [col]: value } : r);
+      const next = prev.map(r => r._id === rowId ? { ...r, [field]: value } : r);
       persistRows(next);
       return next;
     });
@@ -119,35 +129,29 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
 
   const addFromWizard = useCallback((data: { name: string; emoji: string; unit: string; quantity: string; note: string }) => {
     const code = `${id}-${String(rows.length + 1).padStart(3, "0")}`;
-    const newRow: Row = {
+    const newRow: RowData = {
       _id: `${id}-${Date.now()}`,
-      "MÃ": code,
-      "TÊN": data.name,
-      "SL": data.quantity || "0",
-      "ĐVT": data.unit,
-      "GHI CHÚ": data.note || "Mới nhập",
+      code,
+      name: data.name,
+      quantity: data.quantity || "0",
+      unit: data.unit,
+      note: data.note || "Mới nhập",
+      supplier: "",
+      subType: "",
     };
     setRows(prev => {
       const next = [newRow, ...prev];
       persistRows(next);
       return next;
     });
-    // After adding: reset the wizard component (clear category/picked) and
-    // collapse it back to the bottom-half peek so the user can keep adding.
     setWizardKey(k => k + 1);
     setWizardMode("peek");
     requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
   }, [id, rows.length, persistRows]);
 
-  const gridCols = "0.7fr 1.4fr 0.6fr 0.6fr 0.8fr 24px";
-
   if (!loaded) {
     return <div className="relative h-full w-full"><InventoryTableSkeleton label={label} emoji={emoji} /></div>;
   }
-
-  // Empty cells fall through to the standard layout. The wizard is rendered
-  // as an absolutely-positioned overlay (peek/full) below, so it appears in
-  // the same visual slot whether the table has rows or not.
 
   return (
     <div className="absolute inset-0 flex flex-col bg-card text-foreground rounded-xl overflow-hidden">
@@ -162,70 +166,37 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-muted-foreground tabular-nums">{rows.length} dòng</span>
-          <button
-            onClick={() => setWizardMode("full")}
-            className="rounded-full bg-secondary text-secondary-foreground px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-wider shadow-sm transition-transform active:scale-95"
-          >
+          <button onClick={() => setWizardMode("full")}
+            className="rounded-full bg-secondary text-secondary-foreground px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-wider shadow-sm transition-transform active:scale-95">
             + THÊM
           </button>
         </div>
       </div>
 
-      {/* Table + wizard peek container */}
+      {/* Table + wizard */}
       <div className="relative flex-1 min-h-0">
-        {/* Scrollable table */}
-        <div
-          ref={scrollRef}
-          className="absolute inset-0 overflow-y-auto overscroll-contain scrollbar-hide"
-          style={{ touchAction: "pan-y" }}
-        >
+        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto overscroll-contain scrollbar-hide" style={{ touchAction: "pan-y" }}>
+          {/* Column headers */}
           <div
-            className={`sticky top-0 z-10 grid gap-2 border-b border-border/40 bg-card/80 backdrop-blur px-3 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-shadow ${scrolled ? "shadow-sm" : ""}`}
-            style={{ gridTemplateColumns: gridCols }}
+            className={`sticky top-0 z-10 grid gap-1.5 border-b border-border/40 bg-card/80 backdrop-blur px-3 py-2 font-mono text-[9px] font-semibold uppercase tracking-widest text-muted-foreground transition-shadow ${scrolled ? "shadow-sm" : ""}`}
+            style={{ gridTemplateColumns: GRID_COLS }}
           >
-            {COLUMNS.map(c => <div key={c} className="truncate">{c}</div>)}
+            {HEADER_LABELS.map(c => <div key={c} className="truncate">{c}</div>)}
             <div />
           </div>
 
+          {/* Rows */}
           <div>
             {rows.map(r => (
-              <div
+              <InventoryRow
                 key={r._id}
-                className="grid items-center gap-2 border-b border-border/20 px-3 py-3 font-mono text-[12px] leading-snug transition-colors hover:bg-muted/30"
-                style={{ gridTemplateColumns: gridCols, minHeight: 44 } as CSSProperties}
-              >
-                {COLUMNS.map(c => {
-                  const isActive = activeCell?.rowId === r._id && activeCell.col === c;
-                  if (isActive) {
-                    return <CellInput key={c} column={c} value={r[c]}
-                      onCommit={v => { updateCell(r._id, c, v); setActiveCell(null); }}
-                      onCancel={() => setActiveCell(null)} />;
-                  }
-                  if (c === "GHI CHÚ") {
-                    return (
-                      <button key={c} type="button" onClick={() => setActiveCell({ rowId: r._id, col: c })} className="text-left">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide ${STATUS_STYLES[r[c]] ?? "bg-muted text-muted-foreground border-border"}`}>
-                          {r[c] || "—"}
-                        </span>
-                      </button>
-                    );
-                  }
-                  const display = c === "MÃ" ? <span className="text-primary/80">{r[c]}</span>
-                    : c === "SL" ? <span className="text-accent tabular-nums font-semibold">{r[c]}</span>
-                    : c === "ĐVT" ? <span className="text-muted-foreground">{r[c]}</span>
-                    : <span className="text-foreground">{r[c]}</span>;
-                  return (
-                    <button key={c} type="button" onClick={() => setActiveCell({ rowId: r._id, col: c })}
-                      className="truncate text-left font-mono rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10 hover:text-primary">
-                      {display}
-                    </button>
-                  );
-                })}
-                <button onClick={() => deleteRow(r._id)}
-                  className="flex h-5 w-5 items-center justify-center rounded-md border border-destructive/40 bg-destructive/15 text-[12px] font-bold leading-none text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground">
-                  ×
-                </button>
-              </div>
+                row={r}
+                activeCell={activeCell}
+                onActivate={(field) => setActiveCell({ rowId: r._id, field })}
+                onUpdate={(field, value) => { updateField(r._id, field, value); setActiveCell(null); }}
+                onCancelEdit={() => setActiveCell(null)}
+                onDelete={() => deleteRow(r._id)}
+              />
             ))}
             <div className="px-3 py-4 text-center font-mono text-[9px] text-muted-foreground">
               {rows.length === 0 ? "— trống · nhấn + THÊM —" : "— nhấn ô bất kỳ để sửa —"}
@@ -233,8 +204,7 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
           </div>
         </div>
 
-        {/* Wizard overlay — always rendered. Peek = bottom half + faded.
-            Full = covers the cell. Tap or swipe-up promotes peek → full. */}
+        {/* Wizard overlay */}
         <div
           className="absolute inset-0 z-20 transition-all duration-500 ease-out"
           style={{
@@ -243,42 +213,28 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
             pointerEvents: wizardMode === "full" ? "auto" : "none",
           }}
         >
-          {/* Peek mode: tap/swipe-up surface above the faded wizard */}
           {wizardMode === "peek" && (
             <>
-              <div
-                className="absolute inset-0 z-30 pointer-events-auto cursor-pointer"
-                style={{
-                  background: "linear-gradient(to bottom, hsla(220,25%,10%,0.6) 0%, transparent 100%)",
-                }}
+              <div className="absolute inset-0 z-30 pointer-events-auto cursor-pointer"
+                style={{ background: "linear-gradient(to bottom, hsla(220,25%,10%,0.6) 0%, transparent 100%)" }}
                 onClick={() => setWizardMode("full")}
                 onTouchStart={(e) => {
                   const startY = e.touches[0].clientY;
                   const onMove = (ev: TouchEvent) => {
-                    if (startY - ev.touches[0].clientY > 30) {
-                      setWizardMode("full");
-                      document.removeEventListener("touchmove", onMove);
-                    }
+                    if (startY - ev.touches[0].clientY > 30) { setWizardMode("full"); document.removeEventListener("touchmove", onMove); }
                   };
                   document.addEventListener("touchmove", onMove, { passive: true });
                   document.addEventListener("touchend", () => document.removeEventListener("touchmove", onMove), { once: true });
                 }}
               />
-              {/* Add button floating above the peek */}
-              <button
-                onClick={() => setWizardMode("full")}
-                className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-5 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5"
-              >
+              <button onClick={() => setWizardMode("full")}
+                className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-5 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5">
                 <span className="text-sm">+</span> Thêm nguyên liệu
               </button>
             </>
           )}
-          <IngredientWizard
-            key={wizardKey}
-            spaceId={id}
-            onSelect={addFromWizard}
-            onCancel={() => setWizardMode(rows.length === 0 ? "full" : "peek")}
-          />
+          <IngredientWizard key={wizardKey} spaceId={id} onSelect={addFromWizard}
+            onCancel={() => setWizardMode(rows.length === 0 ? "full" : "peek")} />
         </div>
       </div>
 
@@ -291,6 +247,122 @@ export function InventoryTable({ id, label, emoji, tone, onRequestWizard }: Inve
   );
 }
 
+/* ─── Row Component ─── */
+
+function InventoryRow({ row, activeCell, onActivate, onUpdate, onCancelEdit, onDelete }: {
+  row: RowData;
+  activeCell: { rowId: string; field: EditableField } | null;
+  onActivate: (field: EditableField) => void;
+  onUpdate: (field: EditableField, value: string) => void;
+  onCancelEdit: () => void;
+  onDelete: () => void;
+}) {
+  const isEditing = (field: EditableField) => activeCell?.rowId === row._id && activeCell.field === field;
+
+  // Sub-text: show supplier (teal) or subType (amber), whichever exists
+  const subText = row.supplier || row.subType || null;
+  const subTextColor = row.supplier ? "text-teal-400" : "text-amber-400";
+  const subTextLabel = row.supplier ? row.supplier : row.subType;
+
+  return (
+    <div
+      className="grid items-center gap-1.5 border-b border-border/20 px-3 py-2.5 font-mono text-[12px] leading-snug transition-colors hover:bg-muted/30"
+      style={{ gridTemplateColumns: GRID_COLS, minHeight: 48 } as CSSProperties}
+    >
+      {/* NAME — wide column with sub-text */}
+      <div className="min-w-0">
+        {isEditing("name") ? (
+          <CellInput value={row.name} onCommit={v => onUpdate("name", v)} onCancel={onCancelEdit} />
+        ) : (
+          <button type="button" onClick={() => onActivate("name")}
+            className="w-full text-left rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10">
+            <span className="text-foreground font-semibold block truncate">{row.name}</span>
+            {subText && (
+              <span className={`text-[9px] font-semibold block truncate ${subTextColor}`}>
+                {subTextLabel}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
+
+      {/* QUANTITY */}
+      {isEditing("quantity") ? (
+        <CellInput value={row.quantity} onCommit={v => onUpdate("quantity", v)} onCancel={onCancelEdit} inputMode="decimal" />
+      ) : (
+        <button type="button" onClick={() => onActivate("quantity")}
+          className="truncate text-left rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10">
+          <span className="text-accent tabular-nums font-semibold">{row.quantity}</span>
+        </button>
+      )}
+
+      {/* UNIT */}
+      {isEditing("unit") ? (
+        <CellInput value={row.unit} onCommit={v => onUpdate("unit", v)} onCancel={onCancelEdit} />
+      ) : (
+        <button type="button" onClick={() => onActivate("unit")}
+          className="truncate text-left rounded-md px-1 py-0.5 transition-colors hover:bg-primary/10">
+          <span className="text-muted-foreground">{row.unit}</span>
+        </button>
+      )}
+
+      {/* STATUS */}
+      {isEditing("note") ? (
+        <StatusSelect value={row.note} onCommit={v => onUpdate("note", v)} onCancel={onCancelEdit} />
+      ) : (
+        <button type="button" onClick={() => onActivate("note")} className="text-left">
+          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-bold tracking-wide ${STATUS_STYLES[row.note] ?? "bg-muted text-muted-foreground border-border"}`}>
+            {row.note || "—"}
+          </span>
+        </button>
+      )}
+
+      {/* DELETE */}
+      <button onClick={onDelete}
+        className="flex h-5 w-5 items-center justify-center rounded-md border border-destructive/40 bg-destructive/15 text-[12px] font-bold leading-none text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground">
+        ×
+      </button>
+    </div>
+  );
+}
+
+/* ─── Cell Inputs ─── */
+
+function CellInput({ value, onCommit, onCancel, inputMode }: {
+  value: string; onCommit: (v: string) => void; onCancel: () => void; inputMode?: string;
+}) {
+  const [draft, setDraft] = useState(value);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
+
+  return (
+    <input ref={ref} value={draft}
+      inputMode={inputMode as any}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={() => onCommit(draft)}
+      onKeyDown={e => { if (e.key === "Enter") onCommit(draft); if (e.key === "Escape") onCancel(); }}
+      className="w-full rounded-md border border-primary/60 bg-primary/10 px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none ring-2 ring-primary/40" />
+  );
+}
+
+function StatusSelect({ value, onCommit, onCancel }: {
+  value: string; onCommit: (v: string) => void; onCancel: () => void;
+}) {
+  const ref = useRef<HTMLSelectElement>(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+
+  return (
+    <select ref={ref} value={value}
+      onChange={e => onCommit(e.target.value)}
+      onBlur={() => onCommit(value)}
+      onKeyDown={e => { if (e.key === "Escape") onCancel(); }}
+      className="w-full rounded-md border border-primary/60 bg-primary/10 px-1 py-0.5 font-mono text-[10px] text-foreground outline-none ring-2 ring-primary/40">
+      {STATUSES.map(s => <option key={s} value={s} className="bg-card text-foreground">{s}</option>)}
+    </select>
+  );
+}
+
+/* ─── Skeleton ─── */
 
 function InventoryTableSkeleton({ label, emoji }: { label: string; emoji: string }) {
   return (
@@ -305,49 +377,13 @@ function InventoryTableSkeleton({ label, emoji }: { label: string; emoji: string
       </div>
       <div className="flex-1 overflow-hidden px-3 py-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="grid grid-cols-5 gap-2 border-b border-border/20 py-2.5">
-            {[0, 1, 2, 3, 4].map(c => (
+          <div key={i} className="grid grid-cols-4 gap-2 border-b border-border/20 py-2.5">
+            {[0, 1, 2, 3].map(c => (
               <div key={c} className="h-2 rounded-full bg-muted animate-pulse" style={{ width: `${50 + ((i * 13 + c * 7) % 50)}%`, animationDelay: `${(i * 80 + c * 40) % 800}ms` }} />
             ))}
           </div>
         ))}
       </div>
     </div>
-  );
-}
-
-function CellInput({
-  column, value, onCommit, onCancel,
-}: {
-  column: (typeof COLUMNS)[number]; value: string;
-  onCommit: (v: string) => void; onCancel: () => void;
-}) {
-  const [draft, setDraft] = useState(value);
-  const ref = useRef<HTMLInputElement | HTMLSelectElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (el) { el.focus(); if ("select" in el && typeof el.select === "function") el.select(); }
-  }, []);
-
-  const baseInput = "w-full rounded-md border border-primary/60 bg-primary/10 px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none ring-2 ring-primary/40";
-
-  if (column === "GHI CHÚ") {
-    return (
-      <select ref={ref as React.RefObject<HTMLSelectElement>} value={draft}
-        onChange={e => { setDraft(e.target.value); onCommit(e.target.value); }}
-        onBlur={() => onCommit(draft)} onKeyDown={e => { if (e.key === "Escape") onCancel(); }}
-        className={baseInput}>
-        {STATUSES.map(s => <option key={s} value={s} className="bg-card text-foreground">{s}</option>)}
-      </select>
-    );
-  }
-
-  return (
-    <input ref={ref as React.RefObject<HTMLInputElement>} value={draft}
-      onChange={e => setDraft(e.target.value)}
-      onBlur={() => onCommit(draft)}
-      onKeyDown={e => { if (e.key === "Enter") onCommit(draft); if (e.key === "Escape") onCancel(); }}
-      className={baseInput} />
   );
 }
