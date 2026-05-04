@@ -205,10 +205,10 @@ export const api = {
 
   saveInventory: async (spaceId: string, rows: any[]) => {
     const stmts = rows.map((r: any) => ({
-      sql: `INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        ON CONFLICT(id) DO UPDATE SET code=excluded.code, name=excluded.name, quantity=excluded.quantity, unit=excluded.unit, note=excluded.note, updated_at=datetime('now')`,
-      args: [r.id, spaceId, r.code, r.name, r.quantity, r.unit, r.note || ''],
+      sql: `INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        ON CONFLICT(id) DO UPDATE SET code=excluded.code, name=excluded.name, quantity=excluded.quantity, unit=excluded.unit, note=excluded.note, supplier=excluded.supplier, sub_type=excluded.sub_type, updated_at=datetime('now')`,
+      args: [r.id, spaceId, r.code, r.name, r.quantity, r.unit, r.note || '', r.supplier || '', r.sub_type || ''],
     }));
     await batch(stmts);
     return { ok: true };

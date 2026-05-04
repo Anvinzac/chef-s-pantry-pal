@@ -105,6 +105,8 @@ await db.executeMultiple(`
     quantity REAL NOT NULL DEFAULT 0,
     unit TEXT NOT NULL DEFAULT 'kg',
     note TEXT NOT NULL DEFAULT '',
+    supplier TEXT NOT NULL DEFAULT '',
+    sub_type TEXT NOT NULL DEFAULT '',
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -114,5 +116,14 @@ await db.executeMultiple(`
   CREATE INDEX IF NOT EXISTS idx_stock_remaining_ingredient ON stock_remaining(ingredient_id);
   CREATE INDEX IF NOT EXISTS idx_inventory_space ON inventory(space_id);
 `);
+
+// Migrations for existing databases — add new columns if missing
+for (const col of ['supplier', 'sub_type']) {
+  try {
+    await db.execute(`ALTER TABLE inventory ADD COLUMN ${col} TEXT NOT NULL DEFAULT ''`);
+  } catch {
+    // Column already exists — ignore
+  }
+}
 
 export default db;
