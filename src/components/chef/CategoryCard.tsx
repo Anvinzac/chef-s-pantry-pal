@@ -66,6 +66,20 @@ export function CategoryCard({
         {!expanded && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
       </div>
 
+      {!expanded && (
+        <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+          {group.items.map(rec => (
+            <span
+              key={rec.ingredient.id}
+              className="inline-flex items-center gap-1 rounded-full bg-muted/60 text-foreground/80 px-2 py-0.5 text-xs leading-tight max-w-full"
+            >
+              <span className="leading-none">{rec.ingredient.emoji ?? '•'}</span>
+              <span className="truncate">{rec.ingredient.name}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
       {expanded && (
         <div className="p-3 space-y-2 bg-background/50">
           {group.items.map(rec => (

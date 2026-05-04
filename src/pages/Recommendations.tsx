@@ -56,8 +56,23 @@ const Recommendations = () => {
   const scrollRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [focusedCategoryId, setFocusedCategoryId] = useState<string | null>(null);
+  const focusedIdRef = useRef<string | null>(null);
+  focusedIdRef.current = focusedCategoryId;
 
   const groupIds = useMemo(() => groups.map(g => g.categoryId), [groups]);
+  const groupIdsRef = useRef(groupIds);
+  groupIdsRef.current = groupIds;
+
+  // Per-cell trigger lines, measured down from the scroll container's top.
+  // The top two cells use a higher (closer-to-header) line so they can be
+  // reached without scrolling much. From the third cell onward, the trigger
+  // line is lower — cells expand earlier as they're scrolled into view, and
+  // by the time scrolling settles their top edge has naturally arrived just
+  // beneath the header.
+  const TRIGGER_HEAD_OFFSET = 96;
+  const TRIGGER_BODY_OFFSET = 260;
+  const triggerOffsetForIndex = (i: number) =>
+    i < 2 ? TRIGGER_HEAD_OFFSET : TRIGGER_BODY_OFFSET;
 
   useEffect(() => {
     if (groupIds.length === 0) {
@@ -69,49 +84,151 @@ const Recommendations = () => {
     }
   }, [groupIds, focusedCategoryId]);
 
-  useEffect(() => {
+  const programmaticScrollRef = useRef(false);
+  const gestureStartRef = useRef<{ top: number; time: number; focusedId: string | null } | null>(null);
+  const lastScrollTopRef = useRef(0);
+  const scrollEndTimerRef = useRef<number | null>(null);
+
+  const computeFocusFromThreshold = (): string | null => {
     const container = scrollRef.current;
-    if (!container) return;
+    if (!container) return null;
+    const ids = groupIdsRef.current;
+    if (ids.length === 0) return null;
+    const containerTop = container.getBoundingClientRect().top;
+    const currentIdx = focusedIdRef.current
+      ? ids.indexOf(focusedIdRef.current)
+      : 0;
+    if (currentIdx < 0) return ids[0];
 
-    const computeFocus = () => {
-      const rect = container.getBoundingClientRect();
-      const centerY = rect.top + rect.height * 0.5;
-      let bestId: string | null = null;
-      let bestDist = Infinity;
-      cardRefs.current.forEach((el, id) => {
-        const r = el.getBoundingClientRect();
-        const mid = r.top + r.height / 2;
-        const dist = Math.abs(mid - centerY);
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestId = id;
-        }
-      });
-      if (bestId) setFocusedCategoryId(prev => (prev === bestId ? prev : bestId));
-    };
+    // Step at most one neighbor per call. Each scroll tick can advance or
+    // retreat by one cell; the next tick re-evaluates against the layout
+    // that just shifted from the expand/collapse animation. This keeps
+    // focus walking the list one card at a time rather than leaping
+    // several cards forward when many collapsed cells happen to sit above
+    // the lower trigger line.
+    const triggerYAt = (i: number) => containerTop + triggerOffsetForIndex(i);
 
-    computeFocus();
-    container.addEventListener('scroll', computeFocus, { passive: true });
-    window.addEventListener('resize', computeFocus);
-    return () => {
-      container.removeEventListener('scroll', computeFocus);
-      window.removeEventListener('resize', computeFocus);
-    };
-  }, [groupIds]);
+    const nextIdx = currentIdx + 1;
+    if (nextIdx < ids.length) {
+      const el = cardRefs.current.get(ids[nextIdx]);
+      if (el && el.getBoundingClientRect().top <= triggerYAt(nextIdx)) {
+        return ids[nextIdx];
+      }
+    }
 
-  const registerCardRef = (id: string) => (el: HTMLDivElement | null) => {
-    if (el) cardRefs.current.set(id, el);
-    else cardRefs.current.delete(id);
+    if (currentIdx > 0) {
+      const el = cardRefs.current.get(ids[currentIdx]);
+      if (el && el.getBoundingClientRect().top > triggerYAt(currentIdx)) {
+        return ids[currentIdx - 1];
+      }
+    }
+
+    return ids[currentIdx];
   };
 
   const scrollToCategory = (id: string) => {
     const el = cardRefs.current.get(id);
     const container = scrollRef.current;
     if (!el || !container) return;
+    const idx = groupIdsRef.current.indexOf(id);
     const containerRect = container.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
-    const delta = (elRect.top + elRect.height / 2) - (containerRect.top + containerRect.height / 2);
+    // Land the card's top at its own trigger line so it stays focused.
+    const delta =
+      elRect.top - (containerRect.top + triggerOffsetForIndex(idx)) + 1;
+    programmaticScrollRef.current = true;
+    setFocusedCategoryId(id);
     container.scrollBy({ top: delta, behavior: 'smooth' });
+    window.setTimeout(() => {
+      programmaticScrollRef.current = false;
+    }, 500);
+  };
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const onScroll = () => {
+      if (programmaticScrollRef.current) return;
+
+      const now = performance.now();
+      const top = container.scrollTop;
+      if (!gestureStartRef.current) {
+        gestureStartRef.current = {
+          top: lastScrollTopRef.current,
+          time: now,
+          focusedId: focusedIdRef.current,
+        };
+      }
+      lastScrollTopRef.current = top;
+
+      const next = computeFocusFromThreshold();
+      if (next) setFocusedCategoryId(prev => (prev === next ? prev : next));
+
+      if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current);
+      scrollEndTimerRef.current = window.setTimeout(handleScrollEnd, 130);
+    };
+
+    const handleScrollEnd = () => {
+      const start = gestureStartRef.current;
+      gestureStartRef.current = null;
+      if (!start || programmaticScrollRef.current) return;
+      const distance = container.scrollTop - start.top;
+      const duration = Math.max(performance.now() - start.time, 1);
+      const speed = Math.abs(distance) / duration; // px/ms
+
+      const ids = groupIdsRef.current;
+      const focused = focusedIdRef.current;
+      if (!focused || ids.length === 0) return;
+      const idx = ids.indexOf(focused);
+      if (idx < 0) return;
+
+      const absDist = Math.abs(distance);
+      // A "flick" is a tiny intentional nudge — clearly directional but
+      // far too small to have crossed the threshold on its own. The user
+      // is asking to step one card. Anything bigger should let the
+      // threshold logic and natural scroll inertia decide.
+      const MIN_DISTANCE = 8;
+      const FLICK_MAX_DISTANCE = 80;
+
+      const focusChanged = start.focusedId !== focused;
+      const isFlickIntent =
+        !focusChanged &&
+        absDist >= MIN_DISTANCE &&
+        absDist <= FLICK_MAX_DISTANCE;
+
+      // Only snap on a flick whose threshold-based focus change didn't
+      // happen — the user clearly wanted to move but didn't scroll far
+      // enough. Otherwise leave the scroll position alone: the lower
+      // trigger line means the resting position naturally has the focused
+      // card's top below the header.
+      if (!isFlickIntent) return;
+      const direction = distance > 0 ? 1 : -1;
+      const targetIdx = Math.max(
+        0,
+        Math.min(ids.length - 1, idx + direction)
+      );
+      const targetId = ids[targetIdx];
+      if (targetId && targetIdx !== idx) scrollToCategory(targetId);
+    };
+
+    // Don't call onScroll() on mount: with every cell still collapsed at
+    // first paint, multiple cards' tops sit above the lower trigger and
+    // the threshold logic would wrongly focus a deep cell instead of the
+    // first one. Wait for the user's first real scroll, by which time the
+    // top cell has expanded and the layout reflects reality.
+    container.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      container.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current);
+    };
+  }, [groupIds]);
+
+  const registerCardRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) cardRefs.current.set(id, el);
+    else cardRefs.current.delete(id);
   };
 
   return (
@@ -187,6 +304,9 @@ const Recommendations = () => {
                 />
               </div>
             ))}
+            {/* Trailing space so the last card can scroll up to the trigger
+                line and become the focused/expanded one. */}
+            <div aria-hidden className="h-[70vh]" />
           </div>
         )}
       </main>
