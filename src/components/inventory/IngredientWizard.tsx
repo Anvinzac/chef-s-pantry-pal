@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { categories } from "@/data/defaultIngredients";
 import { api } from "@/lib/api";
-import { ChevronLeft, Check } from "lucide-react";
+import { ChevronLeft, Check, X } from "lucide-react";
 import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
 
 interface Ingredient {
@@ -122,6 +122,12 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
         <span className="font-extrabold text-sm text-foreground flex-1 truncate">
           {selectedCategory ? `${selectedCatMeta?.emoji ?? ''} ${selectedCatMeta?.name ?? ''}` : "Thêm nguyên liệu"}
         </span>
+        {!picked && !selectedCategory && (
+          <button onClick={onCancel} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive/20 transition-colors active:scale-95">
+            <X size={14} />
+            Hủy
+          </button>
+        )}
       </div>
 
       {/* Single scrollable area */}
@@ -245,16 +251,17 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
         )}
       </div>
 
-      {/* Bottom search */}
+      {/* Bottom search bar — fixed height, search input always at bottom edge */}
       <div 
-        className="border-t border-border/50 bg-card shrink-0 mb-8 animate-entry transition-[padding] duration-200" 
+        className="relative border-t border-border/50 bg-card shrink-0 animate-entry transition-[padding] duration-200" 
         style={{ 
           ...stagger(categories.length),
           paddingBottom: isKeyboardVisible ? `${keyboardHeight}px` : undefined 
         }}
       >
+        {/* Recommendation chips — absolutely positioned above search bar, never pushes it */}
         {search.trim().length > 0 && (
-          <div className="px-2 pt-2 pb-1 max-h-[100px] overflow-y-auto">
+          <div className="absolute bottom-full left-0 right-0 max-h-[120px] overflow-y-auto bg-card border-t border-border/50 px-2 pt-2 pb-1 z-10">
             {searchResults.length === 0 ? (
               <p className="text-center text-[10px] text-muted-foreground py-1">Không tìm thấy "{search}"</p>
             ) : (
@@ -266,6 +273,7 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
             )}
           </div>
         )}
+        {/* Search input — stays at the bottom, right above keyboard */}
         <div className="px-2 pb-2 pt-1">
           <input ref={searchRef} type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Gõ tên để tìm nhanh..."

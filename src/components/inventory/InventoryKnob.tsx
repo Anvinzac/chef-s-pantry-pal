@@ -2,6 +2,25 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import type { Direction } from "@/lib/inventoryNav";
 import { angleToDirection } from "@/lib/inventoryNav";
 
+/* Spring-bounce keyframes: zoom out overshoots to 0.5 then settles at 0.7;
+   zoom in overshoots to 1.18 then settles at 1.0. */
+const BOUNCE_CSS = `
+@keyframes knob-zoom-out {
+  0%   { transform: translate(0, 0) scale(1); }
+  30%  { transform: translate(0, 0) scale(0.48); }
+  55%  { transform: translate(0, 0) scale(0.78); }
+  75%  { transform: translate(0, 0) scale(0.62); }
+  100% { transform: translate(0, 0) scale(0.7); }
+}
+@keyframes knob-zoom-in {
+  0%   { transform: translate(0, 0) scale(0.7); }
+  30%  { transform: translate(0, 0) scale(1.18); }
+  55%  { transform: translate(0, 0) scale(0.92); }
+  75%  { transform: translate(0, 0) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+`;
+
 export interface InventoryKnobHandle {
   cancel: () => void;
 }
@@ -13,6 +32,7 @@ interface InventoryKnobProps {
   activeCell?: { row: 0 | 1 | 2; col: 0 | 1 | 2 };
   offsetBottom?: number | string;
   onTap?: () => void;
+  isOverview?: boolean;
 }
 
 const KNOB_SIZE = 62;
@@ -21,7 +41,7 @@ const PREVIEW_RADIUS = 8;
 const TRIGGER_RADIUS = 16;
 
 export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>(function InventoryKnob(
-  { onCommit, disabled, onArmedChange, activeCell, offsetBottom = 0, onTap },
+  { onCommit, disabled, onArmedChange, activeCell, offsetBottom = 0, onTap, isOverview },
   ref,
 ) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -32,6 +52,28 @@ export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>
   const armedRef = useRef<Exclude<Direction, "center"> | null>(null);
   const cancelledRef = useRef(false);
   const tapRef = useRef(false);
+  const prevOverviewRef = useRef(isOverview);
+  const [animKey, setAnimKey] = useState<"zoom-out" | "zoom-in" | null>(null);
+
+  // Inject bounce keyframes once on mount
+  useEffect(() => {
+    if (document.getElementById("knob-bounce-keyframes")) return;
+    const style = document.createElement("style");
+    style.id = "knob-bounce-keyframes";
+    style.textContent = BOUNCE_CSS;
+    document.head.appendChild(style);
+  }, []);
+
+  // Trigger bounce animation when overview toggles
+  useEffect(() => {
+    if (drag) return; // don't animate while dragging
+    if (prevOverviewRef.current !== isOverview) {
+      setAnimKey(isOverview ? "zoom-out" : "zoom-in");
+      const t = setTimeout(() => setAnimKey(null), 500);
+      prevOverviewRef.current = isOverview;
+      return () => clearTimeout(t);
+    }
+  }, [isOverview, drag]);
 
   useEffect(() => {
     armedRef.current = armed;
@@ -191,10 +233,17 @@ export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>
         style={{
           width: KNOB_SIZE,
           height: KNOB_SIZE,
-          transform: `translate(${drag?.x ?? 0}px, ${drag?.y ?? 0}px)`,
+          transform: `translate(${drag?.x ?? 0}px, ${drag?.y ?? 0}px) scale(${isOverview ? 0.7 : 1})`,
           transition: drag
             ? "background 100ms"
-            : "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), background 100ms",
+            : animKey
+              ? "none"
+              : "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1), background 100ms",
+          animation: animKey === "zoom-out"
+            ? "knob-zoom-out 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards"
+            : animKey === "zoom-in"
+              ? "knob-zoom-in 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards"
+              : "none",
           boxShadow: blocked
             ? "0 0 0 3px hsl(var(--destructive) / 0.3), 0 0 24px hsl(var(--destructive) / 0.6)"
             : armed

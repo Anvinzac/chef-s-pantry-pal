@@ -196,19 +196,6 @@ const Inventory = () => {
               <GridStage active={active} mounted={mounted} onRequestWizard={() => setWizardOpen(true)} refreshToken={refreshToken} />
             )}
 
-            {/* Current space label */}
-            {overview ? (
-              <div className="pointer-events-none absolute bottom-3 left-3 z-30 bg-card/80 backdrop-blur rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold tracking-wide text-primary border border-border/50">
-                <span className="text-muted-foreground mr-1">▸</span>
-                TỔNG QUAN
-              </div>
-            ) : (
-              <div className="pointer-events-none absolute bottom-3 left-3 z-30 bg-card/80 backdrop-blur rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold tracking-wide text-secondary border border-border/50">
-                <span className="text-muted-foreground mr-1">▸</span>
-                {currentSpace.emoji} {currentSpace.label}
-              </div>
-            )}
-
             {armedDiagonal && (
               <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 bg-card/80 backdrop-blur rounded-full border-destructive/40 border px-3 py-1.5 font-mono text-[10px] font-bold text-destructive">
                 <span className="animate-pulse">⟶</span> NHẤN CẠNH • {armedDiagonal.toUpperCase()}
@@ -230,6 +217,7 @@ const Inventory = () => {
             activeCell={active}
             offsetBottom={KNOB_OFFSET}
             onTap={() => setOverview((v) => !v)}
+            isOverview={overview}
           />
         </div>
       </main>

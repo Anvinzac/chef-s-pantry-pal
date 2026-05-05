@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import ingredientSchema from '@/data/ingredients.schema.json';
 import { useOrder } from '@/hooks/useOrder';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { Ingredient, UNIT_FULL_LABELS, UnitOfMeasurement } from '@/types/ingredient';
 import { ArrowLeft, Copy, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ function formatSchema(ingredients: Ingredient[]) {
 
 const IngredientsStudio = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const {
     ingredients,
     addIngredient,
@@ -77,8 +79,8 @@ const IngredientsStudio = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-8 pt-4 lg:px-6">
+    <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
+      <div className={`flex min-h-screen w-full flex-col px-4 pb-8 pt-4 ${isMobile ? '' : 'lg:px-6 xl:px-8'}`}>
         <header className="sticky top-0 z-30 rounded-b-3xl border-b border-border bg-background/95 pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
