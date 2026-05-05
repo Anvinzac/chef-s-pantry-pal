@@ -41,7 +41,7 @@ const StockReportPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
         <div className="px-4 pt-3 pb-2 flex items-center gap-3">
           <button onClick={() => navigate('/')} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
             <ArrowLeft size={20} className="text-foreground" />

@@ -79,7 +79,7 @@ const IngredientsStudio = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-8 pt-4 lg:px-6">
-        <header className="sticky top-0 z-30 rounded-b-3xl border-b border-border bg-background/90 pb-4 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 rounded-b-3xl border-b border-border bg-background/95 pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <button

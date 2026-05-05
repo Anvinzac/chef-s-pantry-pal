@@ -184,7 +184,7 @@ const Index = () => {
   // get the full screen width instead of a narrow 9:16 strip.
   return (
     <div className={`min-h-screen bg-background relative flex flex-col ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button

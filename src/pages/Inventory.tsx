@@ -124,7 +124,7 @@ const Inventory = () => {
   return (
     <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`} style={{ position: 'relative' }}>
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2.5 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-background/95 border-b border-border px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/')}
