@@ -101,13 +101,24 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    // Coalesce scroll bookkeeping into one rAF tick — scroll fires faster
+    // than paint, and there's no value in updating React state more often
+    // than the screen refreshes.
+    let rafId: number | null = null;
     const onScroll = () => {
-      setScrolled(el.scrollTop > 4);
-      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
-      if (nearBottom) setWizardMode(cur => cur === "peek" ? "full" : cur);
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        setScrolled(el.scrollTop > 4);
+        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+        if (nearBottom) setWizardMode(cur => cur === "peek" ? "full" : cur);
+      });
     };
     el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const updateField = useCallback((rowId: string, field: EditableField, value: string) => {

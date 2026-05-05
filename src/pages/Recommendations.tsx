@@ -88,6 +88,7 @@ const Recommendations = () => {
   const gestureStartRef = useRef<{ top: number; time: number; focusedId: string | null } | null>(null);
   const lastScrollTopRef = useRef(0);
   const scrollEndTimerRef = useRef<number | null>(null);
+  const focusRafRef = useRef<number | null>(null);
 
   const computeFocusFromThreshold = (): string | null => {
     const container = scrollRef.current;
@@ -151,6 +152,8 @@ const Recommendations = () => {
     const onScroll = () => {
       if (programmaticScrollRef.current) return;
 
+      // Cheap synchronous bookkeeping — must not be deferred or the
+      // gesture-start snapshot would race with the next scroll burst.
       const now = performance.now();
       const top = container.scrollTop;
       if (!gestureStartRef.current) {
@@ -162,8 +165,17 @@ const Recommendations = () => {
       }
       lastScrollTopRef.current = top;
 
-      const next = computeFocusFromThreshold();
-      if (next) setFocusedCategoryId(prev => (prev === next ? prev : next));
+      // Coalesce the expensive layout read + focus state update into one
+      // call per animation frame. Scroll fires far faster than paint;
+      // running getBoundingClientRect on every event was the dominant
+      // cost in this hot path.
+      if (focusRafRef.current === null) {
+        focusRafRef.current = requestAnimationFrame(() => {
+          focusRafRef.current = null;
+          const next = computeFocusFromThreshold();
+          if (next) setFocusedCategoryId(prev => (prev === next ? prev : next));
+        });
+      }
 
       if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current);
       scrollEndTimerRef.current = window.setTimeout(handleScrollEnd, 130);
@@ -223,6 +235,10 @@ const Recommendations = () => {
       container.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current);
+      if (focusRafRef.current !== null) {
+        cancelAnimationFrame(focusRafRef.current);
+        focusRafRef.current = null;
+      }
     };
   }, [groupIds]);
 
