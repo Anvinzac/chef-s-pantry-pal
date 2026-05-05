@@ -1,0 +1,65 @@
+---
+description: Performance and cross-device engineering rules — always apply
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Performance & Cross-Device Engineering Rules
+
+This project is a Vite + React 18 + TypeScript + Tailwind app. The user
+base includes low-end Android devices common in Southeast Asian
+markets, so performance on constrained hardware is a first-class
+concern, not late-stage polish.
+
+**The canonical, full-detail checklist lives in [`AGENTS.md`](mdc:AGENTS.md).
+Read that file before making non-trivial changes.** This .mdc surfaces
+the always-on rules that should shape every implementation.
+
+## Always apply
+
+- **Animate only `transform` and `opacity`.** Avoid `filter`,
+  `box-shadow`, `border-radius`, `width`, `height`, `top`, `left`
+  on animated elements — they trigger layout or paint.
+- **Throttle scroll and pointermove handlers with `requestAnimationFrame`.**
+  Coalesce per-event work to one tick per frame. Always
+  `cancelAnimationFrame` on unmount.
+- **Debounce input/search/resize handlers.** Use `setTimeout` for
+  intentional delays (debounce, post-mount focus); `requestAnimationFrame`
+  for visual updates.
+- **Prefer `IntersectionObserver`** over scroll listeners for
+  visibility detection. Prefer `ResizeObserver` over window resize for
+  element size changes.
+- **`backdrop-filter` is expensive.** Don't use it on large surfaces
+  that repaint frequently (sticky headers, full-page overlays).
+  Replace with a higher-opacity background. OK on small floating
+  pills/strips.
+- **Lazy-load all routes via `React.lazy()`** wrapped in `Suspense`.
+  Initial bundle budget: under 170 kB gzipped for the matched route.
+- **Set explicit `width` and `height` on `<img>` and `<video>`** to
+  reserve space and prevent CLS. Use `aspect-ratio` for responsive
+  containers.
+- **Eager-load LCP candidates; lazy-load below-the-fold** with
+  `loading="lazy"` and `decoding="async"`.
+- **Use semantic HTML.** `<button>` instead of `<div onclick>`,
+  `<header>/<main>/<nav>` instead of unlabeled `<div>`s.
+- **Clean up.** Remove event listeners, clear intervals/timeouts,
+  cancel rAFs, nullify large refs on unmount.
+- **Use `transform: translateZ(0)` or `will-change` deliberately.**
+  Each promoted layer costs GPU memory. Apply just before animation
+  and remove after.
+- **Respect `prefers-reduced-motion`** — skip or shorten animations
+  for users who request it.
+- **Test at mobile (375), tablet (768), desktop (1280) viewports.** A
+  `useBreakpoint` hook exists at `src/hooks/useBreakpoint.ts`.
+
+## Performance budgets
+
+- TTI on mid-range mobile + 4G: **under 3.5s**
+- LCP: **under 2.5s** | INP: **under 200ms** | CLS: **under 0.1**
+- JavaScript per route: **under 170 kB gzipped**
+- Animation: **consistent 60fps; never below 30fps** on target hardware
+
+## When in doubt
+
+Read [`AGENTS.md`](mdc:AGENTS.md) for the full checklist organized by
+HTML / CSS / JS / Images / Testing / Deployment phases.

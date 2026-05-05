@@ -1,0 +1,26 @@
+# Windsurf Rules
+
+This is a Vite + React 18 + TypeScript + Tailwind app. Low-end Android
+devices common in Southeast Asia are first-class targets — performance
+on constrained hardware is not late-stage polish.
+
+**Canonical guidelines: [`AGENTS.md`](./AGENTS.md). Read it before
+non-trivial work.** Always-on rules:
+
+- Animate only `transform` and `opacity`. Avoid `filter`, `box-shadow`,
+  `border-radius`, `width`, `height`, `top`, `left` on animated paths.
+- Throttle scroll/pointermove handlers with `requestAnimationFrame`;
+  cancel on unmount.
+- Debounce input/search/resize handlers.
+- `backdrop-filter` is expensive — never on large surfaces. Use
+  higher-opacity background instead.
+- Lazy-load all routes via `React.lazy()` + `Suspense`. Per-route bundle
+  budget: under 170 kB gzipped.
+- Use semantic HTML (`<button>`, `<header>`, `<main>`, `<nav>`).
+- Use `IntersectionObserver` and `ResizeObserver` over scroll/resize
+  listeners.
+- Set explicit `width`/`height` on media.
+- Test at 375 / 768 / 1280 viewports; `useBreakpoint` hook exists.
+- Clean up on unmount: listeners, timeouts, rAFs.
+
+Budgets: TTI < 3.5s, LCP < 2.5s, INP < 200ms, CLS < 0.1, 60 fps.
