@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Category, Ingredient } from '@/types/ingredient';
 import { IngredientCard } from '@/components/chef/IngredientCard';
 import { SubcategoryBar } from '@/components/chef/SubcategoryBar';
@@ -45,9 +46,13 @@ export function CategoryPage({
   onAddIngredient,
   onOpenStudio,
 }: Props) {
-  const filtered = activeSubcategory
-    ? ingredients.filter(i => i.subcategory === activeSubcategory)
-    : ingredients;
+  const filtered = useMemo(() => (
+    activeSubcategory
+      ? ingredients.filter(i => i.subcategory === activeSubcategory)
+      : ingredients
+  ), [ingredients, activeSubcategory]);
+
+  const reportMode = !isChef;
 
   return (
     <div className="h-full overflow-y-auto">

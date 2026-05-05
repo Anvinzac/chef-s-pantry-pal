@@ -1,5 +1,6 @@
 import { Ingredient, UNIT_LABELS } from "@/types/ingredient";
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { Settings2, X, AlertTriangle } from "lucide-react";
 import { getPriceK, formatPriceK } from "@/data/referencePrices";
 import { ReorderAlert } from "@/hooks/useReorderAlerts";
@@ -20,7 +21,26 @@ interface IngredientCardProps {
   onReportRemaining?: () => void;
 }
 
-export function IngredientCard({
+/** Only compare data props — function closures from CategoryPage.map()
+ *  are recreated on every parent render and would otherwise defeat memo. */
+function cardPropsEqual(prev: IngredientCardProps, next: IngredientCardProps) {
+  return (
+    prev.ingredient.id === next.ingredient.id &&
+    prev.ingredient.name === next.ingredient.name &&
+    prev.ingredient.emoji === next.ingredient.emoji &&
+    prev.ingredient.unit === next.ingredient.unit &&
+    prev.ingredient.quickQuantities === next.ingredient.quickQuantities &&
+    prev.ingredient.referencePrice === next.ingredient.referencePrice &&
+    prev.isInOrder === next.isInOrder &&
+    prev.orderQuantity === next.orderQuantity &&
+    prev.isOutOfStock === next.isOutOfStock &&
+    prev.remainingQuantity === next.remainingQuantity &&
+    prev.reportMode === next.reportMode &&
+    prev.reorderAlert?.id === next.reorderAlert?.id
+  );
+}
+
+export const IngredientCard = memo(function IngredientCard({
   ingredient,
   isInOrder,
   orderQuantity,
@@ -189,4 +209,4 @@ export function IngredientCard({
       )}
     </div>
   );
-}
+}, cardPropsEqual);

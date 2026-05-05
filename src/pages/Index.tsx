@@ -159,10 +159,13 @@ const Index = () => {
     return m;
   }, [currentOrder]);
 
-  const alertCounts: Record<string, number> = {};
-  for (const cat of categories) alertCounts[cat.id] = getAlertCountForCategory(cat.id);
+  const alertCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const cat of categories) counts[cat.id] = getAlertCountForCategory(cat.id);
+    return counts;
+  }, [getAlertCountForCategory]);
 
-  const commonCardHandlers = {
+  const commonCardHandlers = useMemo(() => ({
     orderMap,
     isIngredientAlerted,
     isOutOfStock,
@@ -176,7 +179,21 @@ const Index = () => {
     onReportRemaining: (ingredient: Ingredient) => setRemainingNumpadIngredient(ingredient),
     onAddIngredient: () => { setEditIngredient(null); setAddModalOpen(true); },
     onOpenStudio: () => navigate('/ingredients-studio'),
-  };
+  }), [orderMap, isIngredientAlerted, isOutOfStock, getRemainingQuantity, addToOrder, removeFromOrder, isChef, resolveReport, reportOutOfStock, reportRemaining, navigate]);
+
+  // Memoize ingredients per category to avoid 9× full-array filter per render
+  const ingredientsByCategory = useMemo(() => {
+    const map: Record<string, Ingredient[]> = {};
+    for (const cat of categories) {
+      map[cat.id] = getIngredientsByCategory(cat.id);
+    }
+    return map;
+  }, [getIngredientsByCategory]);
+
+  // Lazy-mount window: only fully render the active slide ± 1 neighbor.
+  // Off-screen slides use content-visibility:auto so the browser skips
+  // layout and paint while keeping the DOM nodes for embla's scroll math.
+  const RENDER_WINDOW = 1;
 
   // Single layout shared by mobile and tablet/desktop.
   // On mobile we cap the column at max-w-md (phone-style); on tablet+ the
@@ -295,13 +312,15 @@ const Index = () => {
 
       <div className="flex-1 overflow-hidden" ref={emblaRef}>
         <div className="flex h-full">
-          {categories.map(cat => {
-            const catIngredients = getIngredientsByCategory(cat.id);
+          {categories.map((cat, idx) => {
+            const catIngredients = ingredientsByCategory[cat.id];
             const activeSub = subcategoryByCategory[cat.id] ?? cat.subcategories?.[0]?.id ?? null;
+            const isNearby = Math.abs(idx - activeCategoryIdx) <= RENDER_WINDOW;
             return (
               <div
                 key={cat.id}
                 className="flex-shrink-0 flex-grow-0 basis-full min-w-0 h-full"
+                style={{ contentVisibility: isNearby ? 'visible' : 'auto', containIntrinsicSize: '0 100vh' }}
               >
                 <CategoryPage
                   category={cat}
