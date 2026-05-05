@@ -51,10 +51,24 @@ export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>
   useEffect(() => {
     if (!drag) return;
 
-    const onMove = (e: PointerEvent) => {
-      if (!startRef.current || cancelledRef.current) return;
-      const dx = e.clientX - startRef.current.x;
-      const dy = e.clientY - startRef.current.y;
+    // Pointermove can fire at 120Hz+ on modern devices. Coalesce to one
+    // logic+state update per animation frame: capture the latest pointer
+    // coords on every event but defer the math + setState to the next
+    // rAF. Haptic feedback still fires from the deferred handler — a
+    // sub-frame delay is imperceptible for vibrate() but the wins on
+    // re-render volume add up over a long drag.
+    let pendingX = 0;
+    let pendingY = 0;
+    let hasPending = false;
+    let rafId: number | null = null;
+
+    const processMove = () => {
+      rafId = null;
+      if (!hasPending || !startRef.current || cancelledRef.current) return;
+      hasPending = false;
+
+      const dx = pendingX - startRef.current.x;
+      const dy = pendingY - startRef.current.y;
       const dist = Math.hypot(dx, dy);
       const clamped = Math.min(dist, TRACK_RADIUS);
       const ratio = dist > 0 ? clamped / dist : 0;
@@ -91,7 +105,22 @@ export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>
       }
     };
 
+    const onMove = (e: PointerEvent) => {
+      pendingX = e.clientX;
+      pendingY = e.clientY;
+      hasPending = true;
+      if (rafId === null) rafId = requestAnimationFrame(processMove);
+    };
+
     const onUp = () => {
+      // Drain any pending coalesced move synchronously so the final
+      // armed direction reflects the actual release position, not the
+      // last frame.
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        processMove();
+      }
       const finalArmed = armedRef.current;
       if (!cancelledRef.current && tapRef.current) {
         onTap?.();
@@ -114,6 +143,7 @@ export const InventoryKnob = forwardRef<InventoryKnobHandle, InventoryKnobProps>
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [drag, onCommit, disabled]);
 
