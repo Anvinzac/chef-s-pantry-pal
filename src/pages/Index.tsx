@@ -10,7 +10,6 @@ import { useStockReports } from '@/hooks/useStockReports';
 import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { CategoryCloud } from '@/components/chef/CategoryCloud';
 import { CategoryPage } from '@/components/chef/CategoryPage';
@@ -27,7 +26,6 @@ const Index = () => {
   const { user, role, displayName, signOut, isGuest, restaurantId, restaurantName } = useAuth();
   const isChef = isGuest ? true : role === 'chef';
   const { editingEnabled } = useAppSettings();
-  const { isMobile } = useBreakpoint();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const firstCategory = categories[0].id;
@@ -45,17 +43,15 @@ const Index = () => {
   const [categoryCloudOpen, setCategoryCloudOpen] = useState(false);
   const [remainingNumpadIngredient, setRemainingNumpadIngredient] = useState<Ingredient | null>(null);
 
-  // Only initialize embla carousel on mobile
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    isMobile
-      ? {
-          axis: 'x',
-          loop: false,
-          containScroll: 'trimSnaps',
-          skipSnaps: false,
-        }
-      : undefined
-  );
+  // Embla powers the horizontal category swipe across every viewport;
+  // the page is rendered as a max-w-md column at all breakpoints, so
+  // there's no need to disable it on wider screens.
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    axis: 'x',
+    loop: false,
+    containScroll: 'trimSnaps',
+    skipSnaps: false,
+  });
 
   const {
     ingredients,
@@ -195,12 +191,14 @@ const Index = () => {
   // layout and paint while keeping the DOM nodes for embla's scroll math.
   const RENDER_WINDOW = 1;
 
-  // Single layout shared by mobile and tablet/desktop.
-  // On mobile we cap the column at max-w-md (phone-style); on tablet+ the
-  // wrapper expands to fill the viewport so the embla carousel and OrderBar
-  // get the full screen width instead of a narrow 9:16 strip.
+  // Phone-density column, centered at every viewport. The mobile design
+  // sizes (text-xs, p-3, etc.) were sized for a ~448px column — at wider
+  // wrappers the inline meta rows and card headers leave 50%+ empty space
+  // and the small text reads as proportionally tiny. Keeping the column at
+  // max-w-md across breakpoints preserves the intended density; empty
+  // space lives at the viewport edges instead of inside elements.
   return (
-    <div className={`min-h-screen bg-background relative flex flex-col ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
+    <div className="min-h-screen bg-background relative flex flex-col max-w-md mx-auto">
       <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">

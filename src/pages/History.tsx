@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Filter } from 'lucide-react';
 import { useOrderHistory, TimeRange, SavedOrder } from '@/hooks/useOrderHistory';
 import { useAuth } from '@/hooks/useAuth';
-import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { categories } from '@/data/defaultIngredients';
 import { formatPriceK } from '@/data/referencePrices';
 import { UNIT_LABELS, UnitOfMeasurement } from '@/types/ingredient';
@@ -50,7 +49,6 @@ function groupItemsByCategory(items: { category: string; name: string; quantity:
 const History = () => {
   const navigate = useNavigate();
   const { restaurantId } = useAuth();
-  const { isMobile } = useBreakpoint();
   const { orders, loading, fetchOrders } = useOrderHistory(restaurantId);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -63,7 +61,7 @@ const History = () => {
   const dateKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
-    <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
+    <div className="min-h-screen bg-background max-w-md mx-auto">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
         <div className="px-4 pt-3 pb-2 flex items-center gap-3">

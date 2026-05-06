@@ -4,7 +4,6 @@ import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryEdgeButtons } from "@/components/inventory/InventoryEdgeButtons";
 import { InventoryKnob, type InventoryKnobHandle } from "@/components/inventory/InventoryKnob";
 import { IngredientWizard } from "@/components/inventory/IngredientWizard";
-import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { api } from "@/lib/api";
 import type { Direction, GridCell } from "@/lib/inventoryNav";
 import { CELL_TO_DIRECTION, KITCHEN_SPACES, moveCell } from "@/lib/inventoryNav";
@@ -20,7 +19,6 @@ const isDiagonal = (d: Exclude<Direction, "center"> | null): d is Diagonal =>
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { isMobile } = useBreakpoint();
   const [active, setActive] = useState<GridCell>({ row: 1, col: 1 });
   const [mounted, setMounted] = useState<Set<string>>(() => new Set(["1-1"]));
   const [armedDiagonal, setArmedDiagonal] = useState<Diagonal | null>(null);
@@ -120,9 +118,11 @@ const Inventory = () => {
     setRefreshToken(t => t + 1);
   }, [currentSpace]);
 
-  // Mobile: constrain to max-w-md; tablet/desktop: expand to fill screen
+  // Phone-density column at every viewport. Inventory cells and the
+  // knob nav were tuned for a ~448px width; widening the column made
+  // each cell ~700px which left text and table rows looking sparse.
   return (
-    <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`} style={{ position: 'relative' }}>
+    <div className="min-h-screen bg-background relative flex flex-col overflow-hidden max-w-md mx-auto" style={{ position: 'relative' }}>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/95 border-b border-border px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">

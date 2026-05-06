@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { estimateCostK, formatPriceK } from '@/data/referencePrices';
 import { categories } from '@/data/defaultIngredients';
 import { useMemo, useEffect, useRef, useState } from 'react';
-import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface OrderBarProps {
   currentOrder: OrderItem[];
@@ -31,7 +30,6 @@ export function OrderBar({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [copiedCategory, setCopiedCategory] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
-  const { isMobile } = useBreakpoint();
 
   // Group items by category - now using category field directly from OrderItem
   const itemsByCategory = useMemo(() => {
@@ -185,7 +183,7 @@ export function OrderBar({
         )}
       </AnimatePresence>
 
-      <div className={`fixed bottom-0 left-0 right-0 z-40 ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
+      <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
         <AnimatePresence>
           {expanded && (
           <motion.div

@@ -79,7 +79,7 @@ const IngredientsStudio = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
+    <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'max-w-3xl mx-auto w-full'}`}>
       <div className={`flex min-h-screen w-full flex-col px-4 pb-8 pt-4 ${isMobile ? '' : 'lg:px-6 xl:px-8'}`}>
         <header className="sticky top-0 z-30 rounded-b-3xl border-b border-border bg-background/95 pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
