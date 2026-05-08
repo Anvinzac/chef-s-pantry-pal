@@ -3,6 +3,7 @@ import { categories } from "@/data/defaultIngredients";
 import { api } from "@/lib/api";
 import { ChevronLeft, Check, X } from "lucide-react";
 import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
+import { useOrder } from "@/hooks/useOrder";
 
 interface Ingredient {
   id: string;
@@ -355,8 +356,85 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
 function IngredientChip({ ing, picked, onSelect, size = "md", delay = 0 }: {
   ing: Ingredient; picked: boolean; onSelect: (ing: Ingredient) => void; size?: "sm" | "md"; delay?: number;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(ing.name);
+  const [lastTap, setLastTap] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { updateIngredient } = useOrder();
+
+  useEffect(() => {
+    if (editing) {
+      setEditName(ing.name);
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [editing, ing.name]);
+
+  const handleDoubleClick = useCallback(() => {
+    setEditing(true);
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const now = Date.now();
+    if (now - lastTap < 350) {
+      e.preventDefault();
+      setEditing(true);
+    }
+    setLastTap(now);
+  }, [lastTap]);
+
+  const handleSave = useCallback(() => {
+    const trimmed = editName.trim();
+    if (trimmed && trimmed !== ing.name) {
+      api.updateIngredient(ing.id, { name: trimmed }).catch((err) => {
+        console.error('[IngredientChip] Failed to save name:', err);
+      });
+      updateIngredient(ing.id, { name: trimmed });
+    }
+    setEditing(false);
+  }, [editName, ing.id, ing.name, updateIngredient]);
+
+  const handleCancel = useCallback(() => {
+    setEditName(ing.name);
+    setEditing(false);
+  }, [ing.name]);
+
+  const handleBlur = useCallback(() => {
+    if (editName.trim() && editName.trim() !== ing.name) {
+      handleSave();
+    } else {
+      handleCancel();
+    }
+  }, [editName, ing.name, handleSave, handleCancel]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSave();
+    if (e.key === "Escape") handleCancel();
+  }, [handleSave, handleCancel]);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1 rounded-lg border border-primary bg-card px-2 py-1 animate-entry">
+        <input
+          ref={inputRef}
+          value={editName}
+          onChange={e => setEditName(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="w-20 px-1 py-0.5 bg-transparent border-b border-primary text-xs font-bold text-foreground focus:outline-none"
+        />
+        <button onClick={handleSave} className="p-0.5 text-primary hover:text-primary/80">
+          <Check size={12} />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <button onClick={() => onSelect(ing)}
+    <button
+      onClick={() => onSelect(ing)}
+      onDoubleClick={handleDoubleClick}
+      onTouchStart={handleTouchStart}
       className={`animate-entry flex items-center gap-1 rounded-lg border transition-all active:scale-95 ${
         picked
           ? "border-primary bg-primary/15 ring-2 ring-primary/30"

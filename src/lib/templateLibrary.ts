@@ -89,7 +89,18 @@ export class TemplateLibrary {
         {
           id: 'takeaway',
           name: 'Mang Đi',
-          items: [],
+          items: [
+            { id: 'takeaway-combo', name: 'Cơm phần', defaultUnit: 'suất', altUnits: ['phần'], tags: ['mang đi', 'cơm'] },
+            { id: 'takeaway-drink', name: 'Trà đá', defaultUnit: 'ly', altUnits: ['cốc'], tags: ['mang đi', 'nước'] },
+            { id: 'takeaway-pho', name: 'Phở mang về', defaultUnit: 'tô', altUnits: ['chén'], tags: ['mang đi', 'phở'] },
+            { id: 'takeaway-banhmi', name: 'Bánh mì', defaultUnit: 'ổ', altUnits: ['cái'], tags: ['mang đi', 'bánh'] },
+            { id: 'takeaway-springroll', name: 'Gỏi cuốn', defaultUnit: 'cái', altUnits: ['cuốn'], tags: ['mang đi', 'gỏi'] },
+            { id: 'takeaway-coffee', name: 'Cà phê', defaultUnit: 'ly', altUnits: ['cốc'], tags: ['mang đi', 'cà phê'] },
+            { id: 'takeaway-bun', name: 'Bún thịt nướng', defaultUnit: 'phần', altUnits: ['tô'], tags: ['mang đi', 'bún'] },
+            { id: 'takeaway-che', name: 'Chè', defaultUnit: 'ly', altUnits: ['chén'], tags: ['mang đi', 'tráng miệng'] },
+            { id: 'takeaway-nem', name: 'Nem rán', defaultUnit: 'cái', altUnits: ['miếng'], tags: ['mang đi', 'nem'] },
+            { id: 'takeaway-xoi', name: 'Xôi', defaultUnit: 'phần', altUnits: ['gói'], tags: ['mang đi', 'xôi'] },
+          ],
           metadata: { emoji: '🥡', color: 'hsl(30, 80%, 55%)' }
         },
         {

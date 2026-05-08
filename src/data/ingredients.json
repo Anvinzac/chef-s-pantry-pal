@@ -2984,5 +2984,85 @@
       1,
       2
     ]
+  },
+  {
+    "id": "takeaway-1",
+    "name": "Cơm phần",
+    "emoji": "🥡",
+    "unit": "suất",
+    "category": "takeaway",
+    "quickQuantities": [1, 2, 5]
+  },
+  {
+    "id": "takeaway-2",
+    "name": "Phở mang về",
+    "emoji": "🍜",
+    "unit": "tô",
+    "category": "takeaway",
+    "quickQuantities": [1, 2, 5]
+  },
+  {
+    "id": "takeaway-3",
+    "name": "Bánh mì",
+    "emoji": "🥖",
+    "unit": "ổ",
+    "category": "takeaway",
+    "quickQuantities": [5, 10, 20]
+  },
+  {
+    "id": "takeaway-4",
+    "name": "Gỏi cuốn",
+    "emoji": "🥬",
+    "unit": "cái",
+    "category": "takeaway",
+    "quickQuantities": [2, 5, 10]
+  },
+  {
+    "id": "takeaway-5",
+    "name": "Bún thịt nướng",
+    "emoji": "🍲",
+    "unit": "phần",
+    "category": "takeaway",
+    "quickQuantities": [1, 2, 5]
+  },
+  {
+    "id": "takeaway-6",
+    "name": "Cà phê",
+    "emoji": "☕",
+    "unit": "ly",
+    "category": "takeaway",
+    "quickQuantities": [5, 10, 20]
+  },
+  {
+    "id": "takeaway-7",
+    "name": "Trà đá",
+    "emoji": "🧊",
+    "unit": "ly",
+    "category": "takeaway",
+    "quickQuantities": [10, 20, 50]
+  },
+  {
+    "id": "takeaway-8",
+    "name": "Chè",
+    "emoji": "🍮",
+    "unit": "ly",
+    "category": "takeaway",
+    "quickQuantities": [5, 10, 20]
+  },
+  {
+    "id": "takeaway-9",
+    "name": "Nem rán",
+    "emoji": "🥟",
+    "unit": "cái",
+    "category": "takeaway",
+    "quickQuantities": [5, 10, 20]
+  },
+  {
+    "id": "takeaway-10",
+    "name": "Xôi",
+    "emoji": "🍚",
+    "unit": "phần",
+    "category": "takeaway",
+    "quickQuantities": [5, 10, 20]
   }
 ]
