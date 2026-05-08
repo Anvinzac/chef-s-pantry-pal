@@ -7,6 +7,7 @@ export interface Ingredient {
   unit: UnitOfMeasurement;
   category: string;
   subcategory?: string;
+  rarity?: 'common' | 'uncommon' | 'rarely';
   referencePrice?: number;
   supplier?: string;
   quickQuantities: number[];

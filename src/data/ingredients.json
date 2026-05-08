@@ -11,7 +11,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v2",
@@ -25,7 +26,8 @@
       5
     ],
     "referencePrice": 1.2,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "common"
   },
   {
     "id": "v3",
@@ -39,7 +41,8 @@
       3
     ],
     "referencePrice": 1,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v4",
@@ -53,7 +56,8 @@
       1
     ],
     "referencePrice": 5,
-    "orderFrequencyDays": 7
+    "orderFrequencyDays": 7,
+    "rarity": "common"
   },
   {
     "id": "v20",
@@ -67,7 +71,8 @@
       0.5
     ],
     "referencePrice": 8,
-    "orderFrequencyDays": 7
+    "orderFrequencyDays": 7,
+    "rarity": "common"
   },
   {
     "id": "v21",
@@ -80,7 +85,8 @@
       1,
       2
     ],
-    "referencePrice": 2
+    "referencePrice": 2,
+    "rarity": "common"
   },
   {
     "id": "v22",
@@ -94,7 +100,8 @@
       1
     ],
     "referencePrice": 2.5,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "common"
   },
   {
     "id": "v23",
@@ -107,7 +114,8 @@
       1,
       2
     ],
-    "referencePrice": 1.8
+    "referencePrice": 1.8,
+    "rarity": "common"
   },
   {
     "id": "v24",
@@ -120,7 +128,8 @@
       1,
       3
     ],
-    "referencePrice": 2
+    "referencePrice": 2,
+    "rarity": "common"
   },
   {
     "id": "v25",
@@ -133,7 +142,8 @@
       1,
       2
     ],
-    "referencePrice": 3
+    "referencePrice": 3,
+    "rarity": "uncommon"
   },
   {
     "id": "v6",
@@ -147,7 +157,8 @@
       5
     ],
     "referencePrice": 1,
-    "orderFrequencyDays": 2
+    "orderFrequencyDays": 2,
+    "rarity": "common"
   },
   {
     "id": "v10",
@@ -161,7 +172,8 @@
       3
     ],
     "referencePrice": 2.5,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v16",
@@ -175,7 +187,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "common"
   },
   {
     "id": "v26",
@@ -189,7 +202,8 @@
       2
     ],
     "referencePrice": 2,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v27",
@@ -202,7 +216,8 @@
       1,
       2
     ],
-    "referencePrice": 3
+    "referencePrice": 3,
+    "rarity": "common"
   },
   {
     "id": "v28",
@@ -215,7 +230,8 @@
       1,
       2
     ],
-    "referencePrice": 2.5
+    "referencePrice": 2.5,
+    "rarity": "common"
   },
   {
     "id": "v29",
@@ -228,7 +244,8 @@
       1,
       2
     ],
-    "referencePrice": 3
+    "referencePrice": 3,
+    "rarity": "common"
   },
   {
     "id": "v30",
@@ -241,7 +258,8 @@
       1,
       2
     ],
-    "referencePrice": 3
+    "referencePrice": 3,
+    "rarity": "uncommon"
   },
   {
     "id": "v13",
@@ -255,7 +273,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "common"
   },
   {
     "id": "v31",
@@ -269,7 +288,8 @@
       1
     ],
     "referencePrice": 2,
-    "orderFrequencyDays": 2
+    "orderFrequencyDays": 2,
+    "rarity": "common"
   },
   {
     "id": "v32",
@@ -283,7 +303,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 2
+    "orderFrequencyDays": 2,
+    "rarity": "common"
   },
   {
     "id": "v33",
@@ -297,7 +318,8 @@
       2
     ],
     "referencePrice": 2,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v34",
@@ -311,7 +333,8 @@
       2
     ],
     "referencePrice": 2.5,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v35",
@@ -324,7 +347,8 @@
       1,
       2
     ],
-    "referencePrice": 2
+    "referencePrice": 2,
+    "rarity": "common"
   },
   {
     "id": "v36",
@@ -337,7 +361,8 @@
       1,
       2
     ],
-    "referencePrice": 1.5
+    "referencePrice": 1.5,
+    "rarity": "common"
   },
   {
     "id": "v37",
@@ -351,7 +376,8 @@
       1
     ],
     "referencePrice": 3,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "common"
   },
   {
     "id": "v38",
@@ -364,7 +390,8 @@
       1,
       2
     ],
-    "referencePrice": 2
+    "referencePrice": 2,
+    "rarity": "uncommon"
   },
   {
     "id": "v39",
@@ -378,7 +405,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 2
+    "orderFrequencyDays": 2,
+    "rarity": "uncommon"
   },
   {
     "id": "v5",
@@ -392,7 +420,8 @@
       2
     ],
     "referencePrice": 2.5,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v7",
@@ -406,7 +435,8 @@
       6
     ],
     "referencePrice": 0.8,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v8",
@@ -419,7 +449,8 @@
       3,
       6
     ],
-    "referencePrice": 1.5
+    "referencePrice": 1.5,
+    "rarity": "common"
   },
   {
     "id": "v9",
@@ -433,7 +464,8 @@
       4
     ],
     "referencePrice": 2,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "uncommon"
   },
   {
     "id": "v11",
@@ -447,7 +479,8 @@
       2
     ],
     "referencePrice": 3,
-    "orderFrequencyDays": 3
+    "orderFrequencyDays": 3,
+    "rarity": "common"
   },
   {
     "id": "v12",
@@ -460,7 +493,8 @@
       4,
       8
     ],
-    "referencePrice": 0.5
+    "referencePrice": 0.5,
+    "rarity": "common"
   },
   {
     "id": "v14",
@@ -473,7 +507,8 @@
       2,
       4
     ],
-    "referencePrice": 1.2
+    "referencePrice": 1.2,
+    "rarity": "common"
   },
   {
     "id": "v15",
@@ -486,7 +521,8 @@
       2,
       4
     ],
-    "referencePrice": 1.8
+    "referencePrice": 1.8,
+    "rarity": "common"
   },
   {
     "id": "v17",
@@ -499,7 +535,8 @@
       0.5,
       1
     ],
-    "referencePrice": 4
+    "referencePrice": 4,
+    "rarity": "common"
   },
   {
     "id": "v18",
@@ -512,7 +549,8 @@
       0.5,
       1
     ],
-    "referencePrice": 3.5
+    "referencePrice": 3.5,
+    "rarity": "common"
   },
   {
     "id": "v19",
@@ -526,7 +564,8 @@
       0.5
     ],
     "referencePrice": 6,
-    "orderFrequencyDays": 5
+    "orderFrequencyDays": 5,
+    "rarity": "uncommon"
   },
   {
     "id": "v40",
@@ -539,7 +578,8 @@
       1,
       2
     ],
-    "referencePrice": 2.5
+    "referencePrice": 2.5,
+    "rarity": "common"
   },
   {
     "id": "v41",
@@ -552,7 +592,8 @@
       1,
       2
     ],
-    "referencePrice": 2
+    "referencePrice": 2,
+    "rarity": "common"
   },
   {
     "id": "v42",
@@ -566,7 +607,8 @@
       2
     ],
     "referencePrice": 1.5,
-    "orderFrequencyDays": 2
+    "orderFrequencyDays": 2,
+    "rarity": "common"
   },
   {
     "id": "s1",
@@ -1987,7 +2029,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v44",
@@ -1999,7 +2042,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v45",
@@ -2011,7 +2055,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v46",
@@ -2023,7 +2068,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v47",
@@ -2035,7 +2081,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v48",
@@ -2047,7 +2094,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v49",
@@ -2059,7 +2107,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v50",
@@ -2071,7 +2120,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v51",
@@ -2083,7 +2133,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v52",
@@ -2095,7 +2146,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v53",
@@ -2107,7 +2159,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v54",
@@ -2119,7 +2172,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v55",
@@ -2131,7 +2185,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v56",
@@ -2143,7 +2198,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v57",
@@ -2155,7 +2211,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v58",
@@ -2167,7 +2224,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v59",
@@ -2179,7 +2237,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v60",
@@ -2191,7 +2250,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v61",
@@ -2203,7 +2263,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v62",
@@ -2215,7 +2276,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "rarely"
   },
   {
     "id": "v63",
@@ -2227,7 +2289,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v64",
@@ -2239,7 +2302,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v65",
@@ -2251,7 +2315,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v66",
@@ -2263,7 +2328,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v67",
@@ -2275,7 +2341,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v68",
@@ -2287,7 +2354,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v69",
@@ -2299,7 +2367,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v70",
@@ -2311,7 +2380,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v71",
@@ -2323,7 +2393,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v72",
@@ -2335,7 +2406,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v73",
@@ -2347,7 +2419,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v74",
@@ -2359,7 +2432,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v75",
@@ -2371,7 +2445,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v76",
@@ -2383,7 +2458,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v77",
@@ -2395,7 +2471,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v78",
@@ -2407,7 +2484,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v79",
@@ -2419,7 +2497,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v80",
@@ -2431,7 +2510,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v81",
@@ -2443,7 +2523,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v82",
@@ -2455,7 +2536,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v83",
@@ -2467,7 +2549,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v84",
@@ -2479,7 +2562,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v85",
@@ -2491,7 +2575,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v86",
@@ -2503,7 +2588,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v87",
@@ -2515,7 +2601,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v88",
@@ -2527,7 +2614,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v89",
@@ -2539,7 +2627,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v90",
@@ -2551,7 +2640,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v91",
@@ -2563,7 +2653,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v92",
@@ -2575,7 +2666,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v93",
@@ -2587,7 +2679,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v94",
@@ -2599,7 +2692,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v95",
@@ -2611,7 +2705,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v96",
@@ -2623,7 +2718,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v97",
@@ -2635,7 +2731,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v98",
@@ -2647,7 +2744,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v99",
@@ -2659,7 +2757,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v100",
@@ -2671,7 +2770,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v101",
@@ -2683,7 +2783,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v102",
@@ -2695,7 +2796,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v103",
@@ -2707,7 +2809,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v104",
@@ -2719,7 +2822,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v105",
@@ -2731,7 +2835,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v106",
@@ -2743,7 +2848,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v107",
@@ -2755,7 +2861,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v108",
@@ -2767,7 +2874,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v109",
@@ -2779,7 +2887,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v110",
@@ -2791,7 +2900,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v111",
@@ -2803,7 +2913,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v112",
@@ -2815,7 +2926,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v113",
@@ -2827,7 +2939,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v114",
@@ -2839,7 +2952,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v115",
@@ -2851,7 +2965,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v116",
@@ -2863,7 +2978,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v117",
@@ -2875,7 +2991,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v118",
@@ -2887,7 +3004,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v119",
@@ -2899,7 +3017,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "uncommon"
   },
   {
     "id": "v120",
@@ -2911,7 +3030,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v121",
@@ -2923,7 +3043,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v122",
@@ -2935,7 +3056,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v123",
@@ -2947,7 +3069,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v124",
@@ -2959,7 +3082,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v125",
@@ -2971,7 +3095,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "v126",
@@ -2983,7 +3108,8 @@
     "quickQuantities": [
       1,
       2
-    ]
+    ],
+    "rarity": "common"
   },
   {
     "id": "takeaway-1",
@@ -2991,7 +3117,11 @@
     "emoji": "🥡",
     "unit": "suất",
     "category": "takeaway",
-    "quickQuantities": [1, 2, 5]
+    "quickQuantities": [
+      1,
+      2,
+      5
+    ]
   },
   {
     "id": "takeaway-2",
@@ -2999,7 +3129,11 @@
     "emoji": "🍜",
     "unit": "tô",
     "category": "takeaway",
-    "quickQuantities": [1, 2, 5]
+    "quickQuantities": [
+      1,
+      2,
+      5
+    ]
   },
   {
     "id": "takeaway-3",
@@ -3007,7 +3141,11 @@
     "emoji": "🥖",
     "unit": "ổ",
     "category": "takeaway",
-    "quickQuantities": [5, 10, 20]
+    "quickQuantities": [
+      5,
+      10,
+      20
+    ]
   },
   {
     "id": "takeaway-4",
@@ -3015,7 +3153,11 @@
     "emoji": "🥬",
     "unit": "cái",
     "category": "takeaway",
-    "quickQuantities": [2, 5, 10]
+    "quickQuantities": [
+      2,
+      5,
+      10
+    ]
   },
   {
     "id": "takeaway-5",
@@ -3023,7 +3165,11 @@
     "emoji": "🍲",
     "unit": "phần",
     "category": "takeaway",
-    "quickQuantities": [1, 2, 5]
+    "quickQuantities": [
+      1,
+      2,
+      5
+    ]
   },
   {
     "id": "takeaway-6",
@@ -3031,7 +3177,11 @@
     "emoji": "☕",
     "unit": "ly",
     "category": "takeaway",
-    "quickQuantities": [5, 10, 20]
+    "quickQuantities": [
+      5,
+      10,
+      20
+    ]
   },
   {
     "id": "takeaway-7",
@@ -3039,7 +3189,11 @@
     "emoji": "🧊",
     "unit": "ly",
     "category": "takeaway",
-    "quickQuantities": [10, 20, 50]
+    "quickQuantities": [
+      10,
+      20,
+      50
+    ]
   },
   {
     "id": "takeaway-8",
@@ -3047,7 +3201,11 @@
     "emoji": "🍮",
     "unit": "ly",
     "category": "takeaway",
-    "quickQuantities": [5, 10, 20]
+    "quickQuantities": [
+      5,
+      10,
+      20
+    ]
   },
   {
     "id": "takeaway-9",
@@ -3055,7 +3213,11 @@
     "emoji": "🥟",
     "unit": "cái",
     "category": "takeaway",
-    "quickQuantities": [5, 10, 20]
+    "quickQuantities": [
+      5,
+      10,
+      20
+    ]
   },
   {
     "id": "takeaway-10",
@@ -3063,6 +3225,10 @@
     "emoji": "🍚",
     "unit": "phần",
     "category": "takeaway",
-    "quickQuantities": [5, 10, 20]
+    "quickQuantities": [
+      5,
+      10,
+      20
+    ]
   }
 ]

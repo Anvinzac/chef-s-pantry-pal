@@ -32,6 +32,10 @@ const Inventory = () => {
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
+    api.seedInventory().catch(() => {});
+  }, []);
+
+  useEffect(() => {
     const t1 = setTimeout(() => {
       setMounted((prev) => {
         const next = new Set(prev);
@@ -103,13 +107,15 @@ const Inventory = () => {
   )!;
 
   const handleWizardSelect = useCallback((data: { name: string; emoji: string; unit: string; quantity: string; note: string }) => {
+    const trimmedName = data.name.trim();
+    if (!trimmedName) return;
     const spaceId = currentSpace.id;
     const code = `${spaceId}-${Date.now()}`;
     const row = {
       id: `${spaceId}-${Date.now()}`,
       space_id: spaceId,
       code,
-      name: data.name,
+      name: trimmedName,
       quantity: parseFloat(data.quantity) || 0,
       unit: data.unit,
       note: data.note || "Mới nhập",

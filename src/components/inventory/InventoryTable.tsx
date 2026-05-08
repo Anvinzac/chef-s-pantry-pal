@@ -78,7 +78,7 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
 
   useEffect(() => {
     api.getInventory(id).then(data => {
-      if (data.length > 0) setRows(data.map(apiToRow));
+      if (data.length > 0) setRows(data.map(apiToRow).filter(r => r.name.trim()));
       setLoaded(true);
     }).catch(() => setLoaded(true));
   }, [id]);
@@ -139,11 +139,13 @@ export function InventoryTable({ id, label, emoji, tone }: InventoryTableProps) 
   }, [persistRows]);
 
   const addFromWizard = useCallback((data: { name: string; emoji: string; unit: string; quantity: string; note: string }) => {
+    const trimmedName = data.name.trim();
+    if (!trimmedName) return;
     const code = `${id}-${String(rows.length + 1).padStart(3, "0")}`;
     const newRow: RowData = {
       _id: `${id}-${Date.now()}`,
       code,
-      name: data.name,
+      name: trimmedName,
       quantity: data.quantity || "0",
       unit: data.unit,
       note: data.note || "Mới nhập",

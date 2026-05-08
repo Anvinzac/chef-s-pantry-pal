@@ -8,6 +8,7 @@ function deserializeIngredient(row: any) {
     unit: row.unit,
     category: row.category,
     subcategory: row.subcategory || undefined,
+    rarity: row.rarity || undefined,
     referencePrice: row.reference_price ?? undefined,
     supplier: row.supplier || undefined,
     quickQuantities: JSON.parse(row.quick_quantities || '[]'),
@@ -217,5 +218,96 @@ export const api = {
   deleteInventoryRow: async (id: string) => {
     await execute('DELETE FROM inventory WHERE id = ?', [id]);
     return { ok: true };
+  },
+
+  seedInventory: async () => {
+    const rows = await execute('SELECT COUNT(*) as cnt FROM inventory');
+    if ((rows[0] as any).cnt > 0) return { ok: true, seeded: false };
+
+    const data: { sql: string; args: any[] }[] = [
+      // K1 - Tủ Đông
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-001', 'Thịt bò Úc', 5, 'kg', 'Đủ', '', '', datetime('now'))", args: ['k1-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-002', 'Tôm sú', 3, 'kg', 'Sắp hết', '', '', datetime('now'))", args: ['k1-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-003', 'Cá hồi phi-lê', 2, 'kg', 'Hết', '', '', datetime('now'))", args: ['k1-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-004', 'Gà nguyên con', 4, 'kg', 'Mới nhập', '', '', datetime('now'))", args: ['k1-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-005', 'Bơ lạt Anchor', 10, 'gói', 'Đủ', '', '', datetime('now'))", args: ['k1-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-006', 'Mực ống', 2, 'kg', 'Sắp hết', '', '', datetime('now'))", args: ['k1-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-007', 'Sườn heo', 6, 'kg', 'Hết', '', '', datetime('now'))", args: ['k1-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K1', 'K1-008', 'Bánh phở khô', 20, 'gói', 'Mới nhập', '', '', datetime('now'))", args: ['k1-8'] },
+      // K2 - Tủ Mát
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-001', 'Trứng gà', 30, 'quả', 'Đủ', '', '', datetime('now'))", args: ['k2-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-002', 'Sữa tươi', 10, 'hộp', 'Sắp hết', '', '', datetime('now'))", args: ['k2-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-003', 'Phô mai lát', 5, 'gói', 'Hết', '', '', datetime('now'))", args: ['k2-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-004', 'Sữa đặc Ông Thọ', 6, 'hộp', 'Mới nhập', '', '', datetime('now'))", args: ['k2-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-005', 'Bơ tươi', 4, 'gói', 'Đủ', '', '', datetime('now'))", args: ['k2-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-006', 'Yaourt Vinamilk', 24, 'hộp', 'Sắp hết', '', '', datetime('now'))", args: ['k2-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-007', 'Thịt nguội', 3, 'gói', 'Hết', '', '', datetime('now'))", args: ['k2-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K2', 'K2-008', 'Nước cam ép', 5, 'lít', 'Mới nhập', '', '', datetime('now'))", args: ['k2-8'] },
+      // K3 - Kệ Gia Vị
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-001', 'Nước mắm Nam Ngư', 4, 'chai', 'Đủ', '', '', datetime('now'))", args: ['k3-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-002', 'Muối iốt', 2, 'gói', 'Sắp hết', '', '', datetime('now'))", args: ['k3-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-003', 'Đường trắng', 5, 'kg', 'Hết', '', '', datetime('now'))", args: ['k3-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-004', 'Hạt nêm Knorr', 3, 'gói', 'Mới nhập', '', '', datetime('now'))", args: ['k3-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-005', 'Tiêu xay', 1, 'hộp', 'Đủ', '', '', datetime('now'))", args: ['k3-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-006', 'Bột ngọt Ajinomoto', 2, 'gói', 'Sắp hết', '', '', datetime('now'))", args: ['k3-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-007', 'Tương ớt Chin-su', 3, 'chai', 'Hết', '', '', datetime('now'))", args: ['k3-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K3', 'K3-008', 'Dầu hào', 2, 'chai', 'Mới nhập', '', '', datetime('now'))", args: ['k3-8'] },
+      // K4 - Kệ Khô
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-001', 'Gạo Jasmine', 25, 'kg', 'Đủ', '', '', datetime('now'))", args: ['k4-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-002', 'Miến dong', 3, 'gói', 'Sắp hết', '', '', datetime('now'))", args: ['k4-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-003', 'Mì gói Hảo Hảo', 40, 'gói', 'Hết', '', '', datetime('now'))", args: ['k4-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-004', 'Đậu xanh cà', 5, 'kg', 'Mới nhập', '', '', datetime('now'))", args: ['k4-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-005', 'Nấm hương khô', 1, 'gói', 'Đủ', '', '', datetime('now'))", args: ['k4-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-006', 'Mộc nhĩ', 1, 'gói', 'Sắp hết', '', '', datetime('now'))", args: ['k4-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-007', 'Bắp nếp khô', 3, 'kg', 'Hết', '', '', datetime('now'))", args: ['k4-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K4', 'K4-008', 'Đậu phộng', 4, 'kg', 'Mới nhập', '', '', datetime('now'))", args: ['k4-8'] },
+      // K5 - Bàn Bếp Chính
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-001', 'Rau thơm', 2, 'mớ', 'Đủ', '', '', datetime('now'))", args: ['k5-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-002', 'Hành tím', 1, 'kg', 'Sắp hết', '', '', datetime('now'))", args: ['k5-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-003', 'Tỏi tươi', 0.5, 'kg', 'Hết', '', '', datetime('now'))", args: ['k5-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-004', 'Ớt hiểm', 0.3, 'kg', 'Mới nhập', '', '', datetime('now'))", args: ['k5-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-005', 'Sả cây', 1, 'bó', 'Đủ', '', '', datetime('now'))", args: ['k5-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-006', 'Gừng tươi', 0.5, 'kg', 'Sắp hết', '', '', datetime('now'))", args: ['k5-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-007', 'Ngò rí', 3, 'mớ', 'Hết', '', '', datetime('now'))", args: ['k5-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K5', 'K5-008', 'Hành lá', 2, 'mớ', 'Mới nhập', '', '', datetime('now'))", args: ['k5-8'] },
+      // K6 - Kệ Nước/Chai
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-001', 'Dầu ăn Neptune', 5, 'lít', 'Đủ', '', '', datetime('now'))", args: ['k6-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-002', 'Nước tương', 3, 'chai', 'Sắp hết', '', '', datetime('now'))", args: ['k6-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-003', 'Giấm gạo', 2, 'lít', 'Hết', '', '', datetime('now'))", args: ['k6-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-004', 'Dầu mè', 1, 'chai', 'Mới nhập', '', '', datetime('now'))", args: ['k6-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-005', 'Nước cốt dừa', 6, 'lon', 'Đủ', '', '', datetime('now'))", args: ['k6-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-006', 'Sriracha', 2, 'chai', 'Sắp hết', '', '', datetime('now'))", args: ['k6-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-007', 'Nước lọc 5L', 10, 'bình', 'Hết', '', '', datetime('now'))", args: ['k6-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K6', 'K6-008', 'Rượu nấu ăn', 1, 'chai', 'Mới nhập', '', '', datetime('now'))", args: ['k6-8'] },
+      // K7 - Kho Dưới
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-001', 'Bột gạo', 5, 'kg', 'Đủ', '', '', datetime('now'))", args: ['k7-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-002', 'Bột mì', 5, 'kg', 'Sắp hết', '', '', datetime('now'))", args: ['k7-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-003', 'Bột chiên giòn', 2, 'gói', 'Hết', '', '', datetime('now'))", args: ['k7-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-004', 'Bột bắp', 1, 'gói', 'Mới nhập', '', '', datetime('now'))", args: ['k7-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-005', 'Đường nâu', 3, 'kg', 'Đủ', '', '', datetime('now'))", args: ['k7-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-006', 'Bánh tráng', 5, 'gói', 'Sắp hết', '', '', datetime('now'))", args: ['k7-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-007', 'Hủ tiếu khô', 4, 'gói', 'Hết', '', '', datetime('now'))", args: ['k7-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K7', 'K7-008', 'Bún khô', 3, 'gói', 'Mới nhập', '', '', datetime('now'))", args: ['k7-8'] },
+      // K8 - Khu Rửa
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-001', 'Nước rửa chén', 4, 'chai', 'Đủ', '', '', datetime('now'))", args: ['k8-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-002', 'Giấy lau bếp', 10, 'cuộn', 'Sắp hết', '', '', datetime('now'))", args: ['k8-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-003', 'Túi nylon lớn', 5, 'cuộn', 'Hết', '', '', datetime('now'))", args: ['k8-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-004', 'Màng bọc thực phẩm', 3, 'cuộn', 'Mới nhập', '', '', datetime('now'))", args: ['k8-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-005', 'Nước tẩy Javel', 2, 'can', 'Đủ', '', '', datetime('now'))", args: ['k8-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-006', 'Miếng bọt biển', 10, 'cái', 'Sắp hết', '', '', datetime('now'))", args: ['k8-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-007', 'Găng tay cao su', 6, 'đôi', 'Hết', '', '', datetime('now'))", args: ['k8-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K8', 'K8-008', 'Khăn lau', 20, 'cái', 'Mới nhập', '', '', datetime('now'))", args: ['k8-8'] },
+      // K9 - Khu Gas/Bếp
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-001', 'Chảo inox 30cm', 3, 'cái', 'Đủ', '', '', datetime('now'))", args: ['k9-1'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-002', 'Nồi inox 20L', 2, 'cái', 'Sắp hết', '', '', datetime('now'))", args: ['k9-2'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-003', 'Muôi inox', 5, 'cái', 'Hết', '', '', datetime('now'))", args: ['k9-3'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-004', 'Dao bếp', 4, 'cái', 'Mới nhập', '', '', datetime('now'))", args: ['k9-4'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-005', 'Thớt nhựa', 3, 'cái', 'Đủ', '', '', datetime('now'))", args: ['k9-5'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-006', 'Vỉ nướng inox', 2, 'cái', 'Sắp hết', '', '', datetime('now'))", args: ['k9-6'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-007', 'Rây lọc', 4, 'cái', 'Hết', '', '', datetime('now'))", args: ['k9-7'] },
+      { sql: "INSERT INTO inventory (id, space_id, code, name, quantity, unit, note, supplier, sub_type, updated_at) VALUES (?, 'K9', 'K9-008', 'Clamp bếp', 2, 'cái', 'Mới nhập', '', '', datetime('now'))", args: ['k9-8'] },
+    ];
+    await batch(data);
+    return { ok: true, seeded: true };
   },
 };

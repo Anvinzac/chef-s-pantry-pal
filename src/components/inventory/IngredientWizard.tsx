@@ -12,6 +12,7 @@ interface Ingredient {
   unit: string;
   category: string;
   subcategory?: string;
+  rarity?: 'common' | 'uncommon' | 'rarely';
 }
 
 interface WizardResult {
@@ -84,19 +85,42 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
   const selectedCatMeta = useMemo(() => categories.find(c => c.id === selectedCategory), [selectedCategory]);
   const hasSubcategories = !!(selectedCatMeta?.subcategories && selectedCatMeta.subcategories.length > 0);
 
+  const RARITY_LABELS: Record<string, string> = { common: 'Phổ biến', uncommon: 'Ít dùng', rarely: 'Hiếm' };
+  const RARITY_ORDER = ['common', 'uncommon', 'rarely'] as const;
+
   const groupedBySubcategory = useMemo(() => {
     if (!hasSubcategories || !selectedCatMeta?.subcategories) return [];
     const subs = selectedCatMeta.subcategories;
-    const groups = subs.map(sub => ({
-      ...sub,
-      items: selectedSubcategory ? (selectedSubcategory === sub.id ? filteredByCategory.filter(i => i.subcategory === sub.id) : []) : filteredByCategory.filter(i => i.subcategory === sub.id),
-    }));
+    const groups = subs.map(sub => {
+      const items = selectedSubcategory
+        ? (selectedSubcategory === sub.id ? filteredByCategory.filter(i => i.subcategory === sub.id) : [])
+        : filteredByCategory.filter(i => i.subcategory === sub.id);
+      const raritySections = RARITY_ORDER.map(rarity => ({
+        rarity,
+        label: RARITY_LABELS[rarity],
+        items: items.filter(i => i.rarity === rarity),
+      })).filter(s => s.items.length > 0);
+      if (items.some(i => !i.rarity)) {
+        raritySections.push({ rarity: 'common' as const, label: RARITY_LABELS.common, items: items.filter(i => !i.rarity) });
+      }
+      return { ...sub, raritySections, items: [] };
+    });
     if (selectedSubcategory) {
       return groups.find(g => g.id === selectedSubcategory) ? [groups.find(g => g.id === selectedSubcategory)!] : [];
     }
     const unmatched = filteredByCategory.filter(i => !i.subcategory || !subs.some(s => s.id === i.subcategory));
-    if (unmatched.length > 0) groups.push({ id: '_other', name: 'Khác', emoji: '📦', items: unmatched });
-    return groups.filter(g => g.items.length > 0);
+    if (unmatched.length > 0) {
+      const raritySections = RARITY_ORDER.map(rarity => ({
+        rarity,
+        label: RARITY_LABELS[rarity],
+        items: unmatched.filter(i => i.rarity === rarity),
+      })).filter(s => s.items.length > 0);
+      if (unmatched.some(i => !i.rarity)) {
+        raritySections.push({ rarity: 'common' as const, label: RARITY_LABELS.common, items: unmatched.filter(i => !i.rarity) });
+      }
+      groups.push({ id: '_other', name: 'Khác', emoji: '📦', raritySections, items: [] });
+    }
+    return groups.filter(g => g.raritySections.length > 0);
   }, [filteredByCategory, hasSubcategories, selectedCatMeta, selectedSubcategory]);
 
   const searchResults = useMemo(() => {
@@ -113,7 +137,9 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
 
   const handleFinish = useCallback(() => {
     if (!picked) return;
-    onSelect({ name: picked.name, emoji: picked.emoji, unit: picked.unit, quantity: quantity || "0", note });
+    const trimmedName = picked.name.trim();
+    if (!trimmedName) return;
+    onSelect({ name: trimmedName, emoji: picked.emoji, unit: picked.unit, quantity: quantity || "0", note });
   }, [picked, quantity, note, onSelect]);
 
   const handleBack = () => {
@@ -228,23 +254,30 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
           </div>
         )}
 
-        {/* Ingredient chips — with subcategory sections */}
+        {/* Ingredient chips — with subcategory + rarity sections */}
         {selectedCategory && hasSubcategories && (
-          <div className="p-2 space-y-3">
+          <div className="p-2 space-y-4">
             {groupedBySubcategory.map((group, gi) => {
               const baseDelay = gi * 3;
               return (
-                <div key={group.id}>
-                  <div className="flex items-center gap-1.5 mb-1.5 px-1 animate-entry" style={stagger(baseDelay)}>
+                <div key={group.id} className="space-y-3">
+                  <div className="flex items-center gap-1.5 px-1 animate-entry" style={stagger(baseDelay)}>
                     <span className="text-sm">{group.emoji}</span>
-                    <span className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-wide">{group.name}</span>
-                    <span className="text-[9px] text-muted-foreground">({group.items.length})</span>
+                    <span className="text-[11px] font-extrabold text-foreground uppercase tracking-wide">{group.name}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {group.items.map((ing, i) => (
-                      <IngredientChip key={ing.id} ing={ing} picked={picked?.id === ing.id} onSelect={handlePick} delay={baseDelay + 1 + i} />
-                    ))}
-                  </div>
+                  {group.raritySections.map((section) => (
+                    <div key={section.rarity} className="ml-3">
+                      <div className="flex items-center gap-1.5 mb-1 px-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{section.label}</span>
+                        <span className="text-[9px] text-muted-foreground">({section.items.length})</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {section.items.map((ing, i) => (
+                          <IngredientChip key={ing.id} ing={ing} picked={picked?.id === ing.id} onSelect={handlePick} delay={baseDelay + i} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               );
             })}
