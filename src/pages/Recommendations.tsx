@@ -4,6 +4,7 @@ import { useRecommendations } from '@/hooks/useRecommendations';
 import { useOrder } from '@/hooks/useOrder';
 import { useDismissals } from '@/hooks/useDismissals';
 import { useAuth } from '@/hooks/useAuth';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { CategoryCard } from '@/components/chef/CategoryCard';
 import { Button } from '@/components/ui/button';
 import { Ingredient } from '@/types/ingredient';
@@ -13,6 +14,7 @@ import { seedDemoIngredients } from '@/lib/seedDemoData';
 
 const Recommendations = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const { user, displayName, restaurantName, signOut, isGuest } = useAuth();
   const groups = useRecommendations();
   const { addToOrder, currentOrder, ingredients, updateIngredient, replaceIngredients } = useOrder();
@@ -248,7 +250,7 @@ const Recommendations = () => {
   };
 
   return (
-    <div className="relative h-screen bg-background flex flex-col overflow-hidden max-w-md mx-auto">
+    <div className={`relative h-screen bg-background flex flex-col overflow-hidden ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
       <header className="shrink-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">

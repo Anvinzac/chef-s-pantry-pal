@@ -1,0 +1,875 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ChefsPantryPalDataSchema",
+  "description": "Complete data schema export for Chef's Pantry Pal - a Vietnamese restaurant kitchen inventory and ordering system. Includes types from ingredients to dishes.",
+  "version": "1.0.0",
+  "exportDate": "2026-05-06",
+
+  "$defs": {
+    "typeDefinitions": {
+      "Ingredient": {
+        "type": "object",
+        "required": ["id", "name", "emoji", "unit", "category", "quickQuantities"],
+        "properties": {
+          "id": { "type": "string", "description": "Stable catalog identifier (e.g., v1, s3, p7)" },
+          "name": { "type": "string", "description": "Human-readable ingredient name in Vietnamese" },
+          "emoji": { "type": "string", "description": "Visual marker used in the UI" },
+          "unit": { "$ref": "#/$defs/enums/UnitOfMeasurement" },
+          "category": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "subcategory": { "type": "string", "description": "Optional subcategory (e.g., root-vegetables, leafy-greens, allium-vegetables, stem-vegetables)" },
+          "referencePrice": { "type": "number", "description": "Reference purchase price in thousands VND" },
+          "supplier": { "type": "string" },
+          "quickQuantities": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Two quick-pick quantities used by the ordering UI"
+          },
+          "lastOrderedQuantity": { "type": "number" },
+          "lastOrderDate": { "type": "string", "format": "date" },
+          "orderFrequencyDays": { "type": "integer", "minimum": 0 },
+          "nextReminder": { "type": "string", "format": "date-time" }
+        }
+      },
+      "EnhancedIngredient": {
+        "allOf": [
+          { "$ref": "#/$defs/typeDefinitions/Ingredient" },
+          {
+            "type": "object",
+            "required": ["metadata", "createdAt", "updatedAt"],
+            "properties": {
+              "exception": { "type": "string" },
+              "metadata": { "type": "object" },
+              "templateId": { "type": "string" },
+              "inferredData": { "$ref": "#/$defs/typeDefinitions/InferredData" },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "InferredData": {
+        "type": "object",
+        "properties": {
+          "unit": { "type": "string" },
+          "category": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "source": { "type": "string", "enum": ["template", "prediction", "user"] }
+        }
+      },
+      "Entry": {
+        "type": "object",
+        "required": ["id", "name", "quantity", "unit", "category", "metadata", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "quantity": { "type": "number" },
+          "unit": { "type": "string" },
+          "category": { "type": "string" },
+          "exception": { "type": "string" },
+          "metadata": { "type": "object" },
+          "templateId": { "type": "string" },
+          "inferredData": { "$ref": "#/$defs/typeDefinitions/InferredData" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "required": ["ingredientId", "name", "quantity", "unit", "timestamp", "category"],
+        "properties": {
+          "ingredientId": { "type": "string" },
+          "name": { "type": "string" },
+          "quantity": { "type": "number" },
+          "unit": { "$ref": "#/$defs/enums/UnitOfMeasurement" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "category": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "subcategory": { "type": "string" },
+          "referencePrice": { "type": "number" },
+          "supplier": { "type": "string" },
+          "emoji": { "type": "string" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "required": ["id", "name", "emoji", "color"],
+        "properties": {
+          "id": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "name": { "type": "string", "description": "Vietnamese display name" },
+          "emoji": { "type": "string" },
+          "color": { "type": "string", "description": "HSL color string for UI theming" },
+          "subcategories": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/Subcategory" }
+          }
+        }
+      },
+      "Subcategory": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "description": "Vietnamese display name" },
+          "emoji": { "type": "string" }
+        }
+      },
+      "PriceEntry": {
+        "type": "object",
+        "required": ["priceK"],
+        "properties": {
+          "priceK": { "type": "number", "description": "Price in thousands VND (e.g., 30 = 30,000 VND)" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "source": { "type": "string", "description": "Price source (e.g., market)" }
+        }
+      },
+      "MenuDish": {
+        "type": "object",
+        "required": ["id", "name", "category"],
+        "properties": {
+          "id": { "type": "string", "description": "Dish identifier (e.g., boiled-1, stew-3)" },
+          "name": { "type": "string", "description": "Vietnamese dish name" },
+          "category": { "$ref": "#/$defs/enums/MenuCategory" }
+        }
+      },
+      "MenuCategoryConfig": {
+        "type": "object",
+        "required": ["id", "name", "vnName", "singleChoice", "dishes"],
+        "properties": {
+          "id": { "$ref": "#/$defs/enums/MenuCategory" },
+          "name": { "type": "string", "description": "English name" },
+          "vnName": { "type": "string", "description": "Vietnamese name" },
+          "singleChoice": { "type": "boolean", "description": "Whether only one dish can be selected from this category" },
+          "dishes": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/MenuDish" }
+          }
+        }
+      },
+      "Template": {
+        "type": "object",
+        "required": ["templateId", "name", "scale", "version", "createdAt", "updatedAt", "categories", "inferenceRules", "metadata"],
+        "properties": {
+          "templateId": { "type": "string" },
+          "name": { "type": "string" },
+          "scale": { "type": "string", "enum": ["small", "medium", "enterprise"] },
+          "version": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/TemplateCategory" }
+          },
+          "inferenceRules": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/InferenceRule" }
+          },
+          "metadata": { "type": "object" }
+        }
+      },
+      "TemplateCategory": {
+        "type": "object",
+        "required": ["id", "name", "items"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/TemplateItem" }
+          },
+          "metadata": { "type": "object" }
+        }
+      },
+      "TemplateItem": {
+        "type": "object",
+        "required": ["id", "name", "defaultUnit", "altUnits", "tags"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "defaultUnit": { "type": "string" },
+          "altUnits": { "type": "array", "items": { "type": "string" } },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "metadata": { "type": "object" }
+        }
+      },
+      "InferenceRule": {
+        "type": "object",
+        "required": ["id", "type", "pattern", "targetField", "replacement", "confidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["fuzzy", "semantic", "regex", "lookup"] },
+          "pattern": { "type": "string" },
+          "targetField": { "type": "string", "enum": ["unit", "category", "metadata"] },
+          "replacement": { "oneOf": [{ "type": "string" }, { "type": "object" }] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "metadata": { "type": "object" }
+        }
+      },
+      "AppInstance": {
+        "type": "object",
+        "required": ["id", "name", "templateId", "ownerId", "members", "settings", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "templateId": { "type": "string" },
+          "ownerId": { "type": "string" },
+          "members": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/InstanceMember" }
+          },
+          "settings": { "$ref": "#/$defs/typeDefinitions/InstanceSettings" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "InstanceMember": {
+        "type": "object",
+        "required": ["userId", "role", "permissions", "joinedAt"],
+        "properties": {
+          "userId": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "chef", "kitchen_staff", "viewer"] },
+          "permissions": { "type": "array", "items": { "type": "string" } },
+          "joinedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "InstanceSettings": {
+        "type": "object",
+        "required": ["parentMode", "editMode", "defaultTemplate", "errorCaptureEnabled"],
+        "properties": {
+          "parentMode": { "type": "boolean" },
+          "editMode": { "type": "boolean" },
+          "defaultTemplate": { "type": "string" },
+          "errorCaptureEnabled": { "type": "boolean" }
+        }
+      },
+      "Recommendation": {
+        "type": "object",
+        "required": ["ingredient", "lastPurchaseDate", "orderFrequencyDays", "remainingCycle"],
+        "properties": {
+          "ingredient": { "$ref": "#/$defs/typeDefinitions/Ingredient" },
+          "lastPurchaseDate": { "type": "string", "format": "date" },
+          "orderFrequencyDays": { "type": "integer", "minimum": 0 },
+          "remainingCycle": { "type": "number" },
+          "referencePrice": { "type": "number" }
+        }
+      },
+      "RecommendationGroup": {
+        "type": "object",
+        "required": ["categoryId", "categoryName", "categoryEmoji", "categoryColor", "items"],
+        "properties": {
+          "categoryId": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "categoryName": { "type": "string" },
+          "categoryEmoji": { "type": "string" },
+          "categoryColor": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/typeDefinitions/Recommendation" }
+          }
+        }
+      },
+      "DayWeightEntry": {
+        "type": "object",
+        "required": ["date", "categoryId", "weight"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "categoryId": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "weight": { "type": "number" }
+        }
+      },
+      "CategorySetting": {
+        "type": "object",
+        "required": ["categoryId", "deliveryOffset"],
+        "properties": {
+          "categoryId": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "deliveryOffset": { "type": "integer", "description": "Days before delivery to generate recommendation" }
+        }
+      },
+      "SpecialDay": {
+        "type": "object",
+        "required": ["date", "label", "emoji", "impact"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "label": { "type": "string", "description": "Vietnamese holiday/event name" },
+          "emoji": { "type": "string" },
+          "impact": { "type": "string", "enum": ["high", "medium", "low"], "description": "Impact on ingredient ordering" }
+        }
+      },
+      "DailyMenu": {
+        "type": "object",
+        "description": "Represents a daily menu for a specific branch/restaurant",
+        "required": ["menuDate", "branchId", "dishes"],
+        "properties": {
+          "menuDate": { "type": "string", "format": "date" },
+          "branchId": { "type": "string", "description": "Branch identifier (e.g., pnt)" },
+          "dishes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Array of dish IDs selected for this day"
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "StockReport": {
+        "type": "object",
+        "description": "Out-of-stock report for an ingredient",
+        "required": ["ingredientId", "name", "emoji", "category", "unit", "reportedAt"],
+        "properties": {
+          "ingredientId": { "type": "string" },
+          "name": { "type": "string" },
+          "emoji": { "type": "string" },
+          "category": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "subcategory": { "type": "string" },
+          "unit": { "$ref": "#/$defs/enums/UnitOfMeasurement" },
+          "reportedAt": { "type": "string", "format": "date-time" },
+          "resolvedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "StockRemaining": {
+        "type": "object",
+        "description": "Current remaining stock level for an ingredient",
+        "required": ["ingredientId", "name", "emoji", "category", "unit", "remainingQuantity", "reportedAt"],
+        "properties": {
+          "ingredientId": { "type": "string" },
+          "name": { "type": "string" },
+          "emoji": { "type": "string" },
+          "category": { "$ref": "#/$defs/enums/IngredientCategory" },
+          "subcategory": { "type": "string" },
+          "unit": { "$ref": "#/$defs/enums/UnitOfMeasurement" },
+          "remainingQuantity": { "type": "number" },
+          "reportedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+
+    "enums": {
+      "UnitOfMeasurement": {
+        "type": "string",
+        "enum": ["kg", "g", "lít", "ml", "cái", "gói", "chai", "hộp", "bịch", "lon", "cuộn", "tá", "bình", "đôi"],
+        "description": "Units of measurement for ingredients"
+      },
+      "UnitLabels": {
+        "type": "object",
+        "description": "Vietnamese labels for each unit",
+        "properties": {
+          "kg": { "const": "kg" },
+          "g": { "const": "g" },
+          "lít": { "const": "lít" },
+          "ml": { "const": "ml" },
+          "cái": { "const": "cái" },
+          "gói": { "const": "gói" },
+          "chai": { "const": "chai" },
+          "hộp": { "const": "hộp" },
+          "bịch": { "const": "bịch" },
+          "lon": { "const": "lon" },
+          "cuộn": { "const": "cuộn" },
+          "tá": { "const": "tá" },
+          "bình": { "const": "bình" },
+          "đôi": { "const": "đôi" }
+        }
+      },
+      "IngredientCategory": {
+        "type": "string",
+        "enum": ["vegetables", "sauces", "spices", "grains", "oils", "tofu", "proteins", "dairy", "gas", "equipment", "tissue"],
+        "description": "Ingredient category identifiers"
+      },
+      "MenuCategory": {
+        "type": "string",
+        "enum": ["boiled", "stew", "fried", "soup", "hotpot", "sweet_soup", "mixed_noodle", "mixed_veg", "stir_fry"],
+        "description": "Cooking method categories for menu dishes"
+      },
+      "AppRole": {
+        "type": "string",
+        "enum": ["chef", "kitchen_member"],
+        "description": "Supabase database roles"
+      },
+      "InstanceRole": {
+        "type": "string",
+        "enum": ["admin", "chef", "kitchen_staff", "viewer"],
+        "description": "App instance member roles"
+      },
+      "TemplateScale": {
+        "type": "string",
+        "enum": ["small", "medium", "enterprise"],
+        "description": "Template scale for different restaurant sizes"
+      },
+      "InferenceRuleType": {
+        "type": "string",
+        "enum": ["fuzzy", "semantic", "regex", "lookup"],
+        "description": "Types of inference rules for template matching"
+      },
+      "SpecialDayImpact": {
+        "type": "string",
+        "enum": ["high", "medium", "low"],
+        "description": "Impact level of special days on ordering"
+      }
+    },
+
+    "categories": [
+      {
+        "id": "vegetables",
+        "name": "Rau Củ",
+        "emoji": "🥬",
+        "color": "hsl(145, 65%, 42%)",
+        "subcategories": [
+          { "id": "root-vegetables", "name": "Củ", "emoji": "🥕" },
+          { "id": "leafy-greens", "name": "Lá", "emoji": "🥬" },
+          { "id": "allium-vegetables", "name": "Rau Thơm", "emoji": "🌿" },
+          { "id": "stem-vegetables", "name": "Thân", "emoji": "🌱" }
+        ]
+      },
+      { "id": "sauces", "name": "Nước Chấm", "emoji": "🫙", "color": "hsl(0, 72%, 55%)" },
+      { "id": "spices", "name": "Gia Vị", "emoji": "🧂", "color": "hsl(32, 90%, 52%)" },
+      { "id": "grains", "name": "Ngũ Cốc", "emoji": "🌾", "color": "hsl(42, 75%, 50%)" },
+      { "id": "oils", "name": "Dầu Mỡ", "emoji": "🫒", "color": "hsl(62, 55%, 42%)" },
+      { "id": "dairy", "name": "Sữa", "emoji": "🧀", "color": "hsl(48, 85%, 60%)" },
+      { "id": "gas", "name": "Gas", "emoji": "⛽", "color": "hsl(210, 65%, 50%)" },
+      { "id": "equipment", "name": "Dụng Cụ", "emoji": "🔧", "color": "hsl(220, 20%, 50%)" },
+      { "id": "tissue", "name": "Vệ Sinh", "emoji": "🧻", "color": "hsl(188, 55%, 48%)" }
+    ],
+
+    "menuCategories": [
+      {
+        "id": "boiled",
+        "name": "Boiled",
+        "vnName": "Luộc",
+        "singleChoice": false,
+        "dishes": [
+          { "id": "boiled-1", "name": "Gà luộc", "category": "boiled" },
+          { "id": "boiled-2", "name": "Bắp bò luộc", "category": "boiled" },
+          { "id": "boiled-3", "name": "Tôm luộc", "category": "boiled" },
+          { "id": "boiled-4", "name": "Trứng luộc", "category": "boiled" },
+          { "id": "boiled-5", "name": "Rau luộc", "category": "boiled" },
+          { "id": "boiled-6", "name": "Heo luộc", "category": "boiled" }
+        ]
+      },
+      {
+        "id": "stew",
+        "name": "Stew",
+        "vnName": "Kho",
+        "singleChoice": false,
+        "dishes": [
+          { "id": "stew-1", "name": "Thịt kho trứng", "category": "stew" },
+          { "id": "stew-2", "name": "Cá kho tộ", "category": "stew" },
+          { "id": "stew-3", "name": "Sườn kho", "category": "stew" },
+          { "id": "stew-4", "name": "Đậu hũ kho", "category": "stew" },
+          { "id": "stew-5", "name": "Thịt kho tiêu", "category": "stew" },
+          { "id": "stew-6", "name": "Gà kho gừng", "category": "stew" }
+        ]
+      },
+      {
+        "id": "fried",
+        "name": "Fried",
+        "vnName": "Chiên",
+        "singleChoice": true,
+        "dishes": [
+          { "id": "fried-1", "name": "Cá chiên", "category": "fried" },
+          { "id": "fried-2", "name": "Đậu hũ chiên", "category": "fried" },
+          { "id": "fried-3", "name": "Gà chiên", "category": "fried" },
+          { "id": "fried-4", "name": "Chả giò", "category": "fried" },
+          { "id": "fried-5", "name": "Tôm chiên", "category": "fried" },
+          { "id": "fried-6", "name": "Nem rán", "category": "fried" }
+        ]
+      },
+      {
+        "id": "soup",
+        "name": "Soup",
+        "vnName": "Canh",
+        "singleChoice": true,
+        "dishes": [
+          { "id": "soup-1", "name": "Canh chua", "category": "soup" },
+          { "id": "soup-2", "name": "Canh bí đao", "category": "soup" },
+          { "id": "soup-3", "name": "Canh rau muống", "category": "soup" },
+          { "id": "soup-4", "name": "Canh khổ qua", "category": "soup" },
+          { "id": "soup-5", "name": "Canh cải", "category": "soup" }
+        ]
+      },
+      {
+        "id": "hotpot",
+        "name": "Hot Pot",
+        "vnName": "Nước",
+        "singleChoice": true,
+        "dishes": [
+          { "id": "hotpot-1", "name": "Lẩu thái", "category": "hotpot" },
+          { "id": "hotpot-2", "name": "Lẩu gà", "category": "hotpot" },
+          { "id": "hotpot-3", "name": "Lẩu hải sản", "category": "hotpot" },
+          { "id": "hotpot-4", "name": "Lẩu nấm", "category": "hotpot" },
+          { "id": "hotpot-5", "name": "Lẩu bò", "category": "hotpot" }
+        ]
+      },
+      {
+        "id": "sweet_soup",
+        "name": "Sweet Soup",
+        "vnName": "Chè",
+        "singleChoice": true,
+        "dishes": [
+          { "id": "sweet-1", "name": "Chè đậu xanh", "category": "sweet_soup" },
+          { "id": "sweet-2", "name": "Chè bắp", "category": "sweet_soup" },
+          { "id": "sweet-3", "name": "Chè thưng", "category": "sweet_soup" },
+          { "id": "sweet-4", "name": "Chè đậu đỏ", "category": "sweet_soup" },
+          { "id": "sweet-5", "name": "Chè khoai môn", "category": "sweet_soup" }
+        ]
+      },
+      {
+        "id": "mixed_noodle",
+        "name": "Mixed Noodle",
+        "vnName": "Trộn",
+        "singleChoice": false,
+        "dishes": [
+          { "id": "noodle-1", "name": "Bún trộn thịt nướng", "category": "mixed_noodle" },
+          { "id": "noodle-2", "name": "Miến trộn", "category": "mixed_noodle" },
+          { "id": "noodle-3", "name": "Phở trộn", "category": "mixed_noodle" },
+          { "id": "noodle-4", "name": "Hủ tiếu trộn", "category": "mixed_noodle" },
+          { "id": "noodle-5", "name": "Bún bò trộn", "category": "mixed_noodle" }
+        ]
+      },
+      {
+        "id": "mixed_veg",
+        "name": "Mixed Vegetables",
+        "vnName": "Gỏi",
+        "singleChoice": false,
+        "dishes": [
+          { "id": "salad-1", "name": "Gỏi gà", "category": "mixed_veg" },
+          { "id": "salad-2", "name": "Gỏi tôm", "category": "mixed_veg" },
+          { "id": "salad-3", "name": "Gỏi đu đủ", "category": "mixed_veg" },
+          { "id": "salad-4", "name": "Gỏi ngó sen", "category": "mixed_veg" },
+          { "id": "salad-5", "name": "Gỏi cuốn", "category": "mixed_veg" }
+        ]
+      },
+      {
+        "id": "stir_fry",
+        "name": "Stir-fry",
+        "vnName": "Xào",
+        "singleChoice": false,
+        "dishes": [
+          { "id": "stirfry-1", "name": "Rau xào thập cẩm", "category": "stir_fry" },
+          { "id": "stirfry-2", "name": "Bò xào", "category": "stir_fry" },
+          { "id": "stirfry-3", "name": "Mì xào", "category": "stir_fry" },
+          { "id": "stirfry-4", "name": "Gà xào sả ớt", "category": "stir_fry" },
+          { "id": "stirfry-5", "name": "Đậu que xào", "category": "stir_fry" },
+          { "id": "stirfry-6", "name": "Mực xào", "category": "stir_fry" }
+        ]
+      }
+    ],
+
+    "referencePrices": {
+      "v1":  { "priceK": 25, "source": "market" },
+      "v2":  { "priceK": 20, "source": "market" },
+      "v3":  { "priceK": 18, "source": "market" },
+      "v4":  { "priceK": 80, "source": "market" },
+      "v5":  { "priceK": 40, "source": "market" },
+      "v6":  { "priceK": 15, "source": "market" },
+      "v7":  { "priceK": 12, "source": "market" },
+      "v8":  { "priceK": 25, "source": "market" },
+      "v9":  { "priceK": 35, "source": "market" },
+      "v10": { "priceK": 40, "source": "market" },
+      "v11": { "priceK": 50, "source": "market" },
+      "v12": { "priceK": 8, "source": "market" },
+      "v13": { "priceK": 25, "source": "market" },
+      "v14": { "priceK": 20, "source": "market" },
+      "v15": { "priceK": 30, "source": "market" },
+      "v16": { "priceK": 25, "source": "market" },
+      "v17": { "priceK": 60, "source": "market" },
+      "v18": { "priceK": 55, "source": "market" },
+      "v19": { "priceK": 100, "source": "market" },
+      "v20": { "priceK": 120, "source": "market" },
+      "v21": { "priceK": 35, "source": "market" },
+      "v22": { "priceK": 40, "source": "market" },
+      "v23": { "priceK": 30, "source": "market" },
+      "v24": { "priceK": 35, "source": "market" },
+      "v25": { "priceK": 50, "source": "market" },
+      "v26": { "priceK": 30, "source": "market" },
+      "v27": { "priceK": 50, "source": "market" },
+      "v28": { "priceK": 45, "source": "market" },
+      "v29": { "priceK": 50, "source": "market" },
+      "v30": { "priceK": 55, "source": "market" },
+      "v31": { "priceK": 30, "source": "market" },
+      "v32": { "priceK": 20, "source": "market" },
+      "v33": { "priceK": 30, "source": "market" },
+      "v34": { "priceK": 40, "source": "market" },
+      "v35": { "priceK": 30, "source": "market" },
+      "v36": { "priceK": 20, "source": "market" },
+      "v37": { "priceK": 50, "source": "market" },
+      "v38": { "priceK": 30, "source": "market" },
+      "v39": { "priceK": 20, "source": "market" },
+      "v40": { "priceK": 40, "source": "market" },
+      "v41": { "priceK": 35, "source": "market" },
+      "v42": { "priceK": 25, "source": "market" },
+      "s1":  { "priceK": 30, "source": "market" },
+      "s2":  { "priceK": 45, "source": "market" },
+      "s3":  { "priceK": 35, "source": "market" },
+      "s4":  { "priceK": 25, "source": "market" },
+      "s5":  { "priceK": 40, "source": "market" },
+      "s6":  { "priceK": 20, "source": "market" },
+      "s7":  { "priceK": 35, "source": "market" },
+      "s8":  { "priceK": 45, "source": "market" },
+      "s9":  { "priceK": 30, "source": "market" },
+      "s10": { "priceK": 55, "source": "market" },
+      "s11": { "priceK": 60, "source": "market" },
+      "s12": { "priceK": 45, "source": "market" },
+      "s13": { "priceK": 50, "source": "market" },
+      "s14": { "priceK": 70, "source": "market" },
+      "s15": { "priceK": 65, "source": "market" },
+      "s16": { "priceK": 40, "source": "market" },
+      "s17": { "priceK": 40, "source": "market" },
+      "s18": { "priceK": 50, "source": "market" },
+      "s19": { "priceK": 45, "source": "market" },
+      "s20": { "priceK": 30, "source": "market" },
+      "sp1":  { "priceK": 12, "source": "market" },
+      "sp2":  { "priceK": 40, "source": "market" },
+      "sp3":  { "priceK": 35, "source": "market" },
+      "sp4":  { "priceK": 40, "source": "market" },
+      "sp5":  { "priceK": 45, "source": "market" },
+      "sp6":  { "priceK": 55, "source": "market" },
+      "sp7":  { "priceK": 35, "source": "market" },
+      "sp8":  { "priceK": 35, "source": "market" },
+      "sp9":  { "priceK": 35, "source": "market" },
+      "sp10": { "priceK": 35, "source": "market" },
+      "sp11": { "priceK": 25, "source": "market" },
+      "sp12": { "priceK": 30, "source": "market" },
+      "sp13": { "priceK": 70, "source": "market" },
+      "sp14": { "priceK": 120, "source": "market" },
+      "sp15": { "priceK": 55, "source": "market" },
+      "sp16": { "priceK": 60, "source": "market" },
+      "sp17": { "priceK": 40, "source": "market" },
+      "sp18": { "priceK": 45, "source": "market" },
+      "sp19": { "priceK": 35, "source": "market" },
+      "sp20": { "priceK": 25, "source": "market" },
+      "g1":  { "priceK": 22, "source": "market" },
+      "g2":  { "priceK": 30, "source": "market" },
+      "g3":  { "priceK": 18, "source": "market" },
+      "g4":  { "priceK": 35, "source": "market" },
+      "g5":  { "priceK": 20, "source": "market" },
+      "g6":  { "priceK": 45, "source": "market" },
+      "g7":  { "priceK": 100, "source": "market" },
+      "g8":  { "priceK": 40, "source": "market" },
+      "g9":  { "priceK": 30, "source": "market" },
+      "g10": { "priceK": 45, "source": "market" },
+      "g11": { "priceK": 40, "source": "market" },
+      "g12": { "priceK": 25, "source": "market" },
+      "g13": { "priceK": 35, "source": "market" },
+      "g14": { "priceK": 20, "source": "market" },
+      "g15": { "priceK": 22, "source": "market" },
+      "o1":  { "priceK": 150, "source": "market" },
+      "o2":  { "priceK": 50, "source": "market" },
+      "o3":  { "priceK": 80, "source": "market" },
+      "o4":  { "priceK": 75, "source": "market" },
+      "o5":  { "priceK": 55, "source": "market" },
+      "o6":  { "priceK": 50, "source": "market" },
+      "o7":  { "priceK": 90, "source": "market" },
+      "o8":  { "priceK": 250, "source": "market" },
+      "o9":  { "priceK": 60, "source": "market" },
+      "o10": { "priceK": 120, "source": "market" },
+      "p1":  { "priceK": 90, "source": "market" },
+      "p2":  { "priceK": 250, "source": "market" },
+      "p3":  { "priceK": 120, "source": "market" },
+      "p4":  { "priceK": 350, "source": "market" },
+      "p5":  { "priceK": 300, "source": "market" },
+      "p6":  { "priceK": 45, "source": "market" },
+      "p7":  { "priceK": 25, "source": "market" },
+      "p8":  { "priceK": 130, "source": "market" },
+      "p9":  { "priceK": 60, "source": "market" },
+      "p10": { "priceK": 80, "source": "market" },
+      "d1":  { "priceK": 35, "source": "market" },
+      "d2":  { "priceK": 70, "source": "market" },
+      "d3":  { "priceK": 55, "source": "market" },
+      "d4":  { "priceK": 30, "source": "market" },
+      "d5":  { "priceK": 60, "source": "market" },
+      "d6":  { "priceK": 100, "source": "market" },
+      "d7":  { "priceK": 40, "source": "market" },
+      "d8":  { "priceK": 50, "source": "market" },
+      "ga1": { "priceK": 450, "source": "market" },
+      "ga2": { "priceK": 50, "source": "market" },
+      "ga3": { "priceK": 120, "source": "market" },
+      "ga4": { "priceK": 60, "source": "market" },
+      "ga5": { "priceK": 500, "source": "market" },
+      "e1":  { "priceK": 120, "source": "market" },
+      "e2":  { "priceK": 180, "source": "market" },
+      "e3":  { "priceK": 60, "source": "market" },
+      "e4":  { "priceK": 45, "source": "market" },
+      "e5":  { "priceK": 55, "source": "market" },
+      "e6":  { "priceK": 45, "source": "market" },
+      "e7":  { "priceK": 80, "source": "market" },
+      "e8":  { "priceK": 30, "source": "market" },
+      "e9":  { "priceK": 40, "source": "market" },
+      "e10": { "priceK": 60, "source": "market" },
+      "t1":  { "priceK": 45, "source": "market" },
+      "t2":  { "priceK": 30, "source": "market" },
+      "t3":  { "priceK": 40, "source": "market" },
+      "t4":  { "priceK": 60, "source": "market" },
+      "t5":  { "priceK": 35, "source": "market" },
+      "t6":  { "priceK": 55, "source": "market" },
+      "t7":  { "priceK": 40, "source": "market" },
+      "t8":  { "priceK": 25, "source": "market" },
+      "t9":  { "priceK": 30, "source": "market" },
+      "t10": { "priceK": 70, "source": "market" }
+    },
+
+    "sampleData": {
+      "sampleIngredient": {
+        "id": "v1",
+        "name": "Cà Rốt",
+        "emoji": "🥕",
+        "unit": "kg",
+        "category": "vegetables",
+        "subcategory": "root-vegetables",
+        "quickQuantities": [1, 2],
+        "referencePrice": 1.5,
+        "orderFrequencyDays": 3
+      },
+      "sampleEnhancedIngredient": {
+        "id": "v1",
+        "name": "Cà Rốt",
+        "emoji": "🥕",
+        "unit": "kg",
+        "category": "vegetables",
+        "subcategory": "root-vegetables",
+        "quickQuantities": [1, 2],
+        "referencePrice": 1.5,
+        "orderFrequencyDays": 3,
+        "exception": null,
+        "metadata": {
+          "emoji": "🥕",
+          "referencePrice": 1.5,
+          "quickQuantities": [1, 2],
+          "subcategory": "root-vegetables"
+        },
+        "templateId": "default-pantry-template",
+        "inferredData": null,
+        "createdAt": "2025-01-01T00:00:00.000Z",
+        "updatedAt": "2025-01-01T00:00:00.000Z"
+      },
+      "sampleOrderItem": {
+        "ingredientId": "v1",
+        "name": "Cà Rốt",
+        "quantity": 2,
+        "unit": "kg",
+        "timestamp": "2025-01-15T10:30:00.000Z",
+        "category": "vegetables",
+        "subcategory": "root-vegetables",
+        "referencePrice": 1.5,
+        "emoji": "🥕"
+      },
+      "sampleDailyMenu": {
+        "menuDate": "2025-01-15",
+        "branchId": "pnt",
+        "dishes": ["boiled-1", "stew-2", "fried-1", "soup-3", "stirfry-1"],
+        "createdAt": "2025-01-14T18:00:00.000Z"
+      },
+      "sampleStockReport": {
+        "ingredientId": "s3",
+        "name": "Nước Mắm",
+        "emoji": "🫙",
+        "category": "sauces",
+        "unit": "bottle",
+        "reportedAt": "2025-01-15T08:00:00.000Z",
+        "resolvedAt": "2025-01-15T14:00:00.000Z"
+      },
+      "sampleStockRemaining": {
+        "ingredientId": "g1",
+        "name": "Gạo",
+        "emoji": "🌾",
+        "category": "grains",
+        "unit": "kg",
+        "remainingQuantity": 5.5,
+        "reportedAt": "2025-01-15T08:00:00.000Z"
+      },
+      "sampleRecommendation": {
+        "ingredient": {
+          "id": "s3",
+          "name": "Nước Mắm",
+          "emoji": "🫙",
+          "unit": "bottle",
+          "category": "sauces",
+          "quickQuantities": [1, 2],
+          "referencePrice": 35,
+          "orderFrequencyDays": 7
+        },
+        "lastPurchaseDate": "2025-01-08",
+        "orderFrequencyDays": 7,
+        "remainingCycle": 0,
+        "referencePrice": 35
+      }
+    },
+
+    "relationships": {
+      "description": "Entity relationships and data flow in the system. Note: There is NO direct relationship between ingredients and dishes. Ingredients are for inventory/ordering; dishes are a separate menu catalog.",
+      "ingredientBelongsTo": ["Category"],
+      "ingredientHasMany": ["OrderItems", "StockReports", "StockRemaining"],
+      "ingredientHas": ["ReferencePrice"],
+      "orderHasMany": ["OrderItems"],
+      "orderItemReferences": ["Ingredient (by ingredientId)"],
+      "orderItemBelongsTo": ["Order"],
+      "categoryHasMany": ["Ingredients", "Subcategories (optional)", "Recommendations"],
+      "categoryHas": ["CategorySettings (delivery offset)"],
+      "dailyMenuBelongsTo": ["Branch", "Restaurant (Supabase only)"],
+      "dailyMenuContains": ["Array of selected dish IDs (stored as JSON/JSONB)"],
+      "menuDishBelongsTo": ["MenuCategory"],
+      "restaurantHasMany": ["Branches", "Orders", "MenuDishes", "UserRoles"],
+      "branchBelongsTo": ["Restaurant"],
+      "branchHasMany": ["DailyMenus"],
+      "templateHasMany": ["TemplateCategories", "InferenceRules"],
+      "appInstanceHas": ["Template (via templateId)", "Settings"],
+      "appInstanceHasMany": ["Members"],
+      "dataFlow": [
+        "1. Chefs select dishes from menu_dishes catalog for daily menus",
+        "2. Ingredients are ordered based on kitchen needs (not directly derived from dish recipes)",
+        "3. Stock levels are tracked per ingredient",
+        "4. Recommendations are generated based on order frequency and last purchase date",
+        "5. Special days (holidays, lunar events) influence ordering impact"
+      ]
+    },
+
+    "idNamingConvention": {
+      "description": "Ingredient ID prefix patterns used in the catalog",
+      "prefixes": {
+        "v1-v42": "Vegetables (root-vegetables, leafy-greens, allium-vegetables, stem-vegetables subcategories)",
+        "s1-s20": "Sauces",
+        "sp1-sp20": "Spices",
+        "g1-g15": "Grains",
+        "o1-o10": "Oils",
+        "p1-p10": "Proteins",
+        "d1-d8": "Dairy",
+        "ga1-ga5": "Gas",
+        "e1-e10": "Equipment",
+        "t1-t10": "Tissue & Cleaning"
+      },
+      "dishIdPattern": "{category}-{number} (e.g., boiled-1, stew-3, fried-2)"
+    },
+
+    "databaseSchema": {
+      "description": "Database table schemas for reference",
+      "turso": {
+        "type": "SQLite (Turso)",
+        "tables": {
+          "users": ["id", "name", "role (default: chef)", "created_at"],
+          "ingredients": ["id", "name", "emoji", "unit", "category", "subcategory", "reference_price", "supplier", "quick_quantities (JSON)", "last_ordered_quantity", "last_order_date", "order_frequency_days", "next_reminder", "updated_at"],
+          "orders": ["id", "order_date", "total_cost_k", "notes", "created_at"],
+          "order_items": ["id", "order_id (FK->orders)", "ingredient_id", "name", "category", "subcategory", "quantity", "unit", "cost_k", "reference_price", "supplier", "emoji", "created_at"],
+          "stock_reports": ["id", "ingredient_id", "name", "emoji", "category", "subcategory", "unit", "reported_at", "resolved_at"],
+          "stock_remaining": ["id", "ingredient_id", "name", "emoji", "category", "subcategory", "unit", "remaining_quantity", "reported_at"],
+          "daily_menus": ["id (autoincrement)", "menu_date", "branch_id (default: pnt)", "dishes (JSON)", "created_at", "UNIQUE(menu_date, branch_id)"],
+          "menu_dishes": ["id", "name", "category", "sort_order", "created_at"],
+          "inventory": ["id", "space_id", "code", "name", "quantity", "unit", "note", "supplier", "sub_type", "updated_at"]
+        }
+      },
+      "supabase": {
+        "type": "PostgreSQL (Supabase)",
+        "tables": {
+          "restaurants": ["id", "name", "slug", "created_at"],
+          "branches": ["id", "name", "sort_order", "restaurant_id (FK->restaurants)", "created_at"],
+          "profiles": ["id", "user_id (FK->auth.users)", "display_name", "created_at"],
+          "user_roles": ["id", "user_id (FK->auth.users)", "role (app_role enum)", "restaurant_id (FK->restaurants)"],
+          "orders": ["id", "order_date", "total_cost_k", "notes", "restaurant_id (FK->restaurants)", "created_at"],
+          "order_items": ["id", "order_id (FK->orders)", "ingredient_id", "name", "category", "quantity", "unit", "cost_k", "restaurant_id (FK->restaurants)", "created_at"],
+          "stock_reports": ["id", "ingredient_id", "name", "emoji", "category", "subcategory", "unit", "reported_at", "resolved_at", "restaurant_id (FK->restaurants)"],
+          "stock_remaining": ["id", "ingredient_id", "name", "emoji", "category", "subcategory", "unit", "remaining_quantity", "reported_by (FK->auth.users)", "reported_at", "restaurant_id (FK->restaurants)"],
+          "daily_menus": ["id", "menu_date", "branch_id", "dishes (JSONB)", "restaurant_id (FK->restaurants)", "created_at", "updated_at"],
+          "menu_dishes": ["id", "name", "category", "sort_order", "restaurant_id (FK->restaurants)", "created_at"]
+        },
+        "enums": {
+          "app_role": ["chef", "kitchen_member"]
+        }
+      }
+    }
+  }
+}

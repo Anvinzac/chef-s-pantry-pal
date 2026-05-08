@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { categories } from '@/data/defaultIngredients';
 import { useDayWeights } from '@/hooks/useDayWeights';
 import { useCategorySettings } from '@/hooks/useCategorySettings';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { getDefaultDayWeight, toIsoDate, getWeightForDay } from '@/lib/purchaseCycle';
 import { getMoonPhaseLabel } from '@/lib/moonPhase';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ function buildMonth(year: number, month: number): CalendarDay[] {
 
 const WeightCalendar = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const { overrides, setWeight, clearWeight, setWeightForAllCategories, clearDate } = useDayWeights();
   const { settings, setDeliveryOffset } = useCategorySettings();
   const [categoryId, setCategoryId] = useState<string>('__all');
@@ -96,7 +98,7 @@ const WeightCalendar = () => {
   const activeCategory = categories.find(c => c.id === categoryId);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto">
+    <div className={`min-h-screen bg-background flex flex-col ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="px-4 py-3 flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

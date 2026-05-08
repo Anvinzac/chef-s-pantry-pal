@@ -1,4 +1,4 @@
-export type UnitOfMeasurement = 'kg' | 'g' | 'liter' | 'ml' | 'piece' | 'pack' | 'bottle' | 'box' | 'bag' | 'can' | 'roll' | 'dozen' | 'tank' | 'pair';
+export type UnitOfMeasurement = 'kg' | 'g' | 'lít' | 'ml' | 'cái' | 'gói' | 'chai' | 'hộp' | 'bịch' | 'lon' | 'cuộn' | 'tá' | 'bình' | 'đôi';
 
 export interface Ingredient {
   id: string;
@@ -46,33 +46,33 @@ export interface Subcategory {
 export const UNIT_LABELS: Record<UnitOfMeasurement, string> = {
   kg: 'kg',
   g: 'g',
-  liter: 'lít',
+  lít: 'lít',
   ml: 'ml',
-  piece: 'cái',
-  pack: 'gói',
-  bottle: 'chai',
-  box: 'hộp',
-  bag: 'bịch',
-  can: 'lon',
-  roll: 'cuộn',
-  dozen: 'tá',
-  tank: 'bình',
-  pair: 'đôi',
+  cái: 'cái',
+  gói: 'gói',
+  chai: 'chai',
+  hộp: 'hộp',
+  bịch: 'bịch',
+  lon: 'lon',
+  cuộn: 'cuộn',
+  tá: 'tá',
+  bình: 'bình',
+  đôi: 'đôi',
 };
 
 export const UNIT_FULL_LABELS: Record<UnitOfMeasurement, string> = {
   kg: 'kg',
   g: 'g',
-  liter: 'lít',
+  lít: 'lít',
   ml: 'ml',
-  piece: 'cái',
-  pack: 'gói',
-  bottle: 'chai',
-  box: 'hộp',
-  bag: 'bịch',
-  can: 'lon',
-  roll: 'cuộn',
-  dozen: 'tá',
-  tank: 'bình',
-  pair: 'đôi',
+  cái: 'cái',
+  gói: 'gói',
+  chai: 'chai',
+  hộp: 'hộp',
+  bịch: 'bịch',
+  lon: 'lon',
+  cuộn: 'cuộn',
+  tá: 'tá',
+  bình: 'bình',
+  đôi: 'đôi',
 };

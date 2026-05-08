@@ -35,6 +35,7 @@ const stagger = (i: number) => ({ animationDelay: `${i * 40}ms` } as React.CSSPr
 export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWizardProps) {
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Ingredient | null>(null);
   const [quantity, setQuantity] = useState("");
@@ -74,6 +75,11 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
     return allIngredients.filter(i => i.category === selectedCategory);
   }, [allIngredients, selectedCategory]);
 
+  const filteredBySubcategory = useMemo(() => {
+    if (!selectedCategory || !selectedSubcategory) return filteredByCategory;
+    return filteredByCategory.filter(i => i.subcategory === selectedSubcategory);
+  }, [filteredByCategory, selectedSubcategory]);
+
   const selectedCatMeta = useMemo(() => categories.find(c => c.id === selectedCategory), [selectedCategory]);
   const hasSubcategories = !!(selectedCatMeta?.subcategories && selectedCatMeta.subcategories.length > 0);
 
@@ -82,12 +88,15 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
     const subs = selectedCatMeta.subcategories;
     const groups = subs.map(sub => ({
       ...sub,
-      items: filteredByCategory.filter(i => i.subcategory === sub.id),
+      items: selectedSubcategory ? (selectedSubcategory === sub.id ? filteredByCategory.filter(i => i.subcategory === sub.id) : []) : filteredByCategory.filter(i => i.subcategory === sub.id),
     }));
+    if (selectedSubcategory) {
+      return groups.find(g => g.id === selectedSubcategory) ? [groups.find(g => g.id === selectedSubcategory)!] : [];
+    }
     const unmatched = filteredByCategory.filter(i => !i.subcategory || !subs.some(s => s.id === i.subcategory));
     if (unmatched.length > 0) groups.push({ id: '_other', name: 'Khác', emoji: '📦', items: unmatched });
     return groups.filter(g => g.items.length > 0);
-  }, [filteredByCategory, hasSubcategories, selectedCatMeta]);
+  }, [filteredByCategory, hasSubcategories, selectedCatMeta, selectedSubcategory]);
 
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
@@ -108,6 +117,7 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
 
   const handleBack = () => {
     if (picked) { setPicked(null); return; }
+    if (selectedSubcategory) { setSelectedSubcategory(null); setSelectedCategory(null); return; }
     if (selectedCategory) { setSelectedCategory(null); return; }
     onCancel();
   };
@@ -120,7 +130,11 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
           <ChevronLeft size={18} className="text-muted-foreground" />
         </button>
         <span className="font-extrabold text-sm text-foreground flex-1 truncate">
-          {selectedCategory ? `${selectedCatMeta?.emoji ?? ''} ${selectedCatMeta?.name ?? ''}` : "Thêm nguyên liệu"}
+          {selectedSubcategory
+            ? `${selectedCatMeta?.subcategories?.find(s => s.id === selectedSubcategory)?.emoji ?? ''} ${selectedCatMeta?.subcategories?.find(s => s.id === selectedSubcategory)?.name ?? ''}`
+            : selectedCategory
+            ? `${selectedCatMeta?.emoji ?? ''} ${selectedCatMeta?.name ?? ''}`
+            : "Thêm nguyên liệu"}
         </span>
         {!picked && !selectedCategory && (
           <button onClick={onCancel} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive/20 transition-colors active:scale-95">
@@ -132,21 +146,75 @@ export function IngredientWizard({ spaceId, onSelect, onCancel }: IngredientWiza
 
       {/* Single scrollable area */}
       <div className="flex-1 overflow-y-auto overscroll-contain min-h-0">
-        {/* Category grid */}
+        {/* Category listing — 3-column layout */}
         {!selectedCategory && (
-          <div className="grid grid-cols-3 gap-1.5 p-2">
-            {categories.map((cat, i) => {
-              const count = allIngredients.filter(ig => ig.category === cat.id).length;
+          <div className="flex gap-1.5 p-2 h-[calc(100vh-160px)]">
+            {/* Left: Vegetables container (40%) */}
+            <div className="w-[50%] shrink-0 rounded-xl border-2 border-primary/30 bg-primary/5 flex flex-col">
+              <div className="px-2 py-2 border-b border-primary/20 shrink-0">
+                <span className="text-xs font-extrabold text-primary uppercase tracking-wide">🥬 Rau củ</span>
+              </div>
+              <div className="flex-1 overflow-y-auto p-1.5">
+                <div className="grid grid-cols-2 gap-1">
+                  {categories.find(c => c.id === 'vegetables')?.subcategories?.map((sub, i) => {
+                    const count = allIngredients.filter(ig => ig.category === 'vegetables' && ig.subcategory === sub.id).length;
+                    return (
+                      <button key={sub.id} onClick={() => { setSelectedCategory('vegetables'); setSelectedSubcategory(sub.id); }}
+                        className="animate-entry flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg border border-border/30 bg-card hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95"
+                        style={stagger(i)}>
+                        <span className="text-base">{sub.emoji}</span>
+                        <span className="text-[9px] font-extrabold text-foreground leading-tight text-center line-clamp-2">{sub.name}</span>
+                        <span className="text-[8px] text-muted-foreground font-semibold">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Middle + Right: remaining categories (~30% each) */}
+            {(() => {
+              const rest = categories.filter(c => c.id !== 'vegetables');
+              const mid = Math.ceil(rest.length / 2);
+              const leftCol = rest.slice(0, mid);
+              const rightCol = rest.slice(mid);
               return (
-                <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                  className="animate-entry flex flex-col items-center justify-center gap-1 p-2 rounded-xl border border-border/50 bg-muted/30 hover:bg-primary/10 hover:border-primary/40 transition-all active:scale-95 min-h-[64px]"
-                  style={stagger(i)}>
-                  <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-[10px] font-extrabold text-foreground leading-tight text-center">{cat.name}</span>
-                  <span className="text-[8px] text-muted-foreground font-semibold">{count}</span>
-                </button>
+                <>
+                   <div className="w-[25%] shrink-0 overflow-y-auto">
+                    <div className="flex flex-col gap-1.5">
+                      {leftCol.map((cat, i) => {
+                        const count = allIngredients.filter(ig => ig.category === cat.id).length;
+                        return (
+                          <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
+                            className="animate-entry flex flex-col items-center justify-center gap-1 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-primary/10 hover:border-primary/40 transition-all active:scale-95"
+                            style={stagger(mid + i)}>
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="text-[11px] font-extrabold text-foreground leading-tight text-center">{cat.name}</span>
+                            <span className="text-[10px] text-muted-foreground font-semibold">{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                   <div className="w-[25%] shrink-0 overflow-y-auto">
+                    <div className="flex flex-col gap-1.5">
+                      {rightCol.map((cat, i) => {
+                        const count = allIngredients.filter(ig => ig.category === cat.id).length;
+                        return (
+                          <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
+                            className="animate-entry flex flex-col items-center justify-center gap-1 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-primary/10 hover:border-primary/40 transition-all active:scale-95"
+                            style={stagger(mid + rightCol.length + i)}>
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="text-[11px] font-extrabold text-foreground leading-tight text-center">{cat.name}</span>
+                            <span className="text-[10px] text-muted-foreground font-semibold">{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
               );
-            })}
+            })()}
           </div>
         )}
 

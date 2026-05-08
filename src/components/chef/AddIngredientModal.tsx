@@ -13,7 +13,7 @@ interface AddIngredientModalProps {
   categoryId: string;
 }
 
-const UNITS: UnitOfMeasurement[] = ['kg', 'g', 'liter', 'ml', 'piece', 'pack', 'bottle', 'box', 'bag', 'can', 'roll', 'dozen', 'tank', 'pair'];
+const UNITS: UnitOfMeasurement[] = ['kg', 'g', 'lít', 'ml', 'cái', 'gói', 'chai', 'hộp', 'bịch', 'lon', 'cuộn', 'tá', 'bình', 'đôi'];
 
 const EMOJIS = ['🍎', '🍐', '🍊', '🍋', '🍌', '🍇', '🍓', '🫐', '🍑', '🥝', '🍍', '🥭', '🥥', '🥑', '🌮', '🍕', '🥗', '🍖', '🧃', '📦', '🧊', '🌡️', '🔪', '🍳', '🥄'];
 

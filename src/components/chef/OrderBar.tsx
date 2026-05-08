@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { estimateCostK, formatPriceK } from '@/data/referencePrices';
 import { categories } from '@/data/defaultIngredients';
 import { useMemo, useEffect, useRef, useState } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface OrderBarProps {
   currentOrder: OrderItem[];
@@ -27,6 +28,7 @@ export function OrderBar({
   getOrderText,
   onSaveOrder,
 }: OrderBarProps) {
+  const { isMobile } = useBreakpoint();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [copiedCategory, setCopiedCategory] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
@@ -123,7 +125,7 @@ export function OrderBar({
     // Generate text for this category only
     const categoryText = categoryGroup.items.map(item => {
       const unitLabel = UNIT_FULL_LABELS[item.unit] || item.unit;
-      if (item.unit === 'piece' || item.unit === 'dozen' || item.unit === 'pair') {
+      if (item.unit === 'cái' || item.unit === 'tá' || item.unit === 'đôi') {
         return `${item.quantity} ${unitLabel}${item.quantity > 1 ? 's' : ''} of ${item.name}${item.supplier ? ` (${item.supplier})` : ''}`;
       }
       return `${item.quantity}${UNIT_LABELS[item.unit]} ${item.name}${item.supplier ? ` (${item.supplier})` : ''}`;
@@ -183,7 +185,7 @@ export function OrderBar({
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+      <div className={`fixed bottom-0 left-0 right-0 z-40 ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
         <AnimatePresence>
           {expanded && (
           <motion.div

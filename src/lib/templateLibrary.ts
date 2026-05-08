@@ -81,10 +81,22 @@ export class TemplateLibrary {
           metadata: { emoji: '🧂', color: 'hsl(32, 90%, 52%)' }
         },
         {
-          id: 'grains',
-          name: 'Ngũ Cốc',
+          id: 'tofu',
+          name: 'Đậu Hũ',
           items: [],
-          metadata: { emoji: '🌾', color: 'hsl(42, 75%, 50%)' }
+          metadata: { emoji: '🧈', color: 'hsl(45, 70%, 55%)' }
+        },
+        {
+          id: 'takeaway',
+          name: 'Mang Đi',
+          items: [],
+          metadata: { emoji: '🥡', color: 'hsl(30, 80%, 55%)' }
+        },
+        {
+          id: 'gas',
+          name: 'Gas',
+          items: [],
+          metadata: { emoji: '⛽', color: 'hsl(210, 65%, 50%)' }
         },
         {
           id: 'oils',

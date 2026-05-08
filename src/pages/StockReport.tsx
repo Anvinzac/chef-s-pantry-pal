@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, Check } from 'lucide-react';
 import { useStockReports, StockReport } from '@/hooks/useStockReports';
 import { useAuth } from '@/hooks/useAuth';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { categories } from '@/data/defaultIngredients';
 import { UNIT_LABELS, UnitOfMeasurement } from '@/types/ingredient';
 
@@ -25,6 +26,7 @@ function groupByCategory(reports: StockReport[]): Record<string, StockReport[]> 
 
 const StockReportPage = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const { restaurantId } = useAuth();
   const { reports, loading, resolveReport } = useStockReports(restaurantId);
   const grouped = groupByCategory(reports);
@@ -38,7 +40,7 @@ const StockReportPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background max-w-md mx-auto">
+    <div className={`min-h-screen bg-background ${isMobile ? 'max-w-md mx-auto' : 'w-full'}`}>
       <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
         <div className="px-4 pt-3 pb-2 flex items-center gap-3">
           <button onClick={() => navigate('/')} className="p-1.5 rounded-lg hover:bg-muted transition-colors">

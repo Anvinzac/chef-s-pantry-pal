@@ -1,0 +1,171 @@
+{
+  "vegetable_categories": [
+    {
+      "category_key": "leafy_greens",
+      "category_name_vi": "Rau lá xanh",
+      "items": [
+        { "key": "rau_muong", "name_vi": "Rau muống" },
+        { "key": "cai_ngot", "name_vi": "Cải ngọt" },
+        { "key": "cai_thia", "name_vi": "Cải thìa" },
+        { "key": "cai_be_xanh", "name_vi": "Cải bẹ xanh" },
+        { "key": "cai_be_trang", "name_vi": "Cải bẹ trắng" },
+        { "key": "cai_bo_xoi", "name_vi": "Cải bó xôi" },
+        { "key": "mong_toi", "name_vi": "Mồng tơi" },
+        { "key": "rau_den_do", "name_vi": "Rau dền đỏ" },
+        { "key": "rau_den_xanh", "name_vi": "Rau dền xanh" },
+        { "key": "tan_o", "name_vi": "Tần ô" },
+        { "key": "xa_lach", "name_vi": "Xà lách" },
+        { "key": "cai_xoan", "name_vi": "Cải xoăn" },
+        { "key": "cai_mam", "name_vi": "Cải mầm" },
+        { "key": "rau_ma", "name_vi": "Rau má" },
+        { "key": "diep_ca", "name_vi": "Diếp cá" }
+      ]
+    },
+    {
+      "category_key": "herbs",
+      "category_name_vi": "Rau gia vị",
+      "items": [
+        { "key": "hung_que", "name_vi": "Húng quế" },
+        { "key": "ngo_ri", "name_vi": "Ngò rí" },
+        { "key": "ngo_gai", "name_vi": "Ngò gai" },
+        { "key": "tia_to", "name_vi": "Tía tô" },
+        { "key": "rau_ram", "name_vi": "Rau răm" },
+        { "key": "kinh_gioi", "name_vi": "Kinh giới" },
+        { "key": "la_lot", "name_vi": "Lá lốt" },
+        { "key": "hanh_la", "name_vi": "Hành lá" },
+        { "key": "he", "name_vi": "Hẹ" },
+        { "key": "thi_la", "name_vi": "Thì là" },
+        { "key": "hung_lui", "name_vi": "Húng lủi" },
+        { "key": "bac_ha", "name_vi": "Bạc hà" },
+        { "key": "la_chanh", "name_vi": "Lá chanh" },
+        { "key": "que", "name_vi": "Quế" },
+        { "key": "sam", "name_vi": "Rau sam" }
+      ]
+    },
+    {
+      "category_key": "root_vegetables",
+      "category_name_vi": "Rau củ",
+      "items": [
+        { "key": "ca_rot", "name_vi": "Cà rốt" },
+        { "key": "cu_cai_trang", "name_vi": "Củ cải trắng" },
+        { "key": "cu_den", "name_vi": "Củ dền" },
+        { "key": "khoai_tay", "name_vi": "Khoai tây" },
+        { "key": "khoai_lang", "name_vi": "Khoai lang" },
+        { "key": "khoai_mon", "name_vi": "Khoai môn" },
+        { "key": "san", "name_vi": "Sắn" },
+        { "key": "gung", "name_vi": "Gừng" },
+        { "key": "nghe", "name_vi": "Nghệ" },
+        { "key": "cu_sen", "name_vi": "Củ sen" },
+        { "key": "su_hao", "name_vi": "Su hào" },
+        { "key": "cu_nang", "name_vi": "Củ năng" },
+        { "key": "hanh_tay", "name_vi": "Hành tây" },
+        { "key": "toi", "name_vi": "Tỏi" },
+        { "key": "cu_kieu", "name_vi": "Củ kiệu" }
+      ]
+    },
+    {
+      "category_key": "fruit_vegetables",
+      "category_name_vi": "Rau ăn quả",
+      "items": [
+        { "key": "ca_chua", "name_vi": "Cà chua" },
+        { "key": "dua_leo", "name_vi": "Dưa leo" },
+        { "key": "bi_do", "name_vi": "Bí đỏ" },
+        { "key": "bi_xanh", "name_vi": "Bí xanh" },
+        { "key": "muop", "name_vi": "Mướp" },
+        { "key": "kho_qua", "name_vi": "Khổ qua" },
+        { "key": "ca_tim", "name_vi": "Cà tím" },
+        { "key": "dau_bap", "name_vi": "Đậu bắp" },
+        { "key": "ot_chuong", "name_vi": "Ớt chuông" },
+        { "key": "ot", "name_vi": "Ớt" },
+        { "key": "su_su", "name_vi": "Su su" },
+        { "key": "bau", "name_vi": "Bầu" },
+        { "key": "dua_hau_non", "name_vi": "Dưa hấu non" },
+        { "key": "ca_phao", "name_vi": "Cà pháo" },
+        { "key": "dau_rong", "name_vi": "Đậu rồng" }
+      ]
+    },
+    {
+      "category_key": "beans_legumes",
+      "category_name_vi": "Đậu và các loại hạt",
+      "items": [
+        { "key": "dau_que", "name_vi": "Đậu que" },
+        { "key": "dau_ha_lan", "name_vi": "Đậu Hà Lan" },
+        { "key": "dau_nanh", "name_vi": "Đậu nành" },
+        { "key": "dau_xanh", "name_vi": "Đậu xanh" },
+        { "key": "dau_den", "name_vi": "Đậu đen" },
+        { "key": "dau_do", "name_vi": "Đậu đỏ" },
+        { "key": "dau_trang", "name_vi": "Đậu trắng" },
+        { "key": "dau_phong", "name_vi": "Đậu phộng" },
+        { "key": "hat_sen", "name_vi": "Hạt sen" },
+        { "key": "hat_dieu", "name_vi": "Hạt điều" },
+        { "key": "me_den", "name_vi": "Mè đen" },
+        { "key": "me_trang", "name_vi": "Mè trắng" },
+        { "key": "hat_chia", "name_vi": "Hạt chia" },
+        { "key": "hat_oc_cho", "name_vi": "Hạt óc chó" },
+        { "key": "hat_huong_duong", "name_vi": "Hạt hướng dương" }
+      ]
+    },
+
+    {
+  "category_key": "tofu_products",
+  "category_name_vi": "Đậu hũ",
+      "items": [
+        { "key": "dau_hu_trang", "name_vi": "Đậu hũ trắng" },
+        { "key": "dau_hu_non", "name_vi": "Đậu hũ non" },
+        { "key": "dau_hu_chien", "name_vi": "Đậu hũ chiên" },
+        { "key": "dau_bi", "name_vi": "Đậu bi" },
+        { "key": "mi_can", "name_vi": "Mì căn" },
+        { "key": "suon_non_chay", "name_vi": "Sườn non chay" }
+      ]
+    },
+    {
+      "category_key": "mushrooms",
+      "category_name_vi": "Nấm",
+      "items": [
+        { "key": "nam_rom", "name_vi": "Nấm rơm" },
+        { "key": "nam_huong", "name_vi": "Nấm hương" },
+        { "key": "nam_bao_ngu", "name_vi": "Nấm bào ngư" },
+        { "key": "nam_kim_cham", "name_vi": "Nấm kim châm" },
+        { "key": "nam_dui_ga", "name_vi": "Nấm đùi gà" },
+        { "key": "nam_mo", "name_vi": "Nấm mỡ" },
+        { "key": "nam_dong_co", "name_vi": "Nấm đông cô" },
+        { "key": "nam_tuyet", "name_vi": "Nấm tuyết" },
+        { "key": "nam_tra", "name_vi": "Nấm tràm" },
+        { "key": "nam_linh_chi", "name_vi": "Nấm linh chi" },
+        { "key": "nam_meo_den", "name_vi": "Nấm mèo đen" },
+        { "key": "nam_meo_trang", "name_vi": "Nấm mèo trắng" }
+      ]
+    },
+    {
+      "category_key": "stems_shoots",
+      "category_name_vi": "Thân và chồi",
+      "items": [
+        { "key": "can_tay", "name_vi": "Cần tây" },
+        { "key": "mang_tre", "name_vi": "Măng tre" },
+        { "key": "mang_tay", "name_vi": "Măng tây" },
+        { "key": "than_chuoi", "name_vi": "Thân chuối" },
+        { "key": "cu_hu_dua", "name_vi": "Củ hủ dừa" },
+        { "key": "bac_ha_doc_mung", "name_vi": "Bạc hà (dọc mùng)" },
+        { "key": "ngo_non", "name_vi": "Ngó non" },
+        { "key": "than_sen", "name_vi": "Thân sen" },
+        { "key": "ngo_ot", "name_vi": "Ngò ôm" },
+        { "key": "bap_chuoi", "name_vi": "Bắp chuối" },
+        { "key": "gia_do", "name_vi": "Giá đỗ" },
+        { "key": "mam_dau_nanh", "name_vi": "Mầm đậu nành" }
+      ]
+    },
+    {
+      "category_key": "sea_vegetables",
+      "category_name_vi": "Rong biển và rau biển",
+      "items": [
+        { "key": "rong_bien_kho", "name_vi": "Rong biển khô" },
+        { "key": "tao_be", "name_vi": "Tảo bẹ" },
+        { "key": "wakame", "name_vi": "Wakame" },
+        { "key": "rong_nho", "name_vi": "Rong nho" },
+        { "key": "kombu", "name_vi": "Kombu" },
+        { "key": "nori", "name_vi": "Nori" },
+        { "key": "tao_xoan", "name_vi": "Tảo xoắn" }
+      ]
+    }
+  ]
+}

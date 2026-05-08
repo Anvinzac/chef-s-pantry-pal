@@ -67,7 +67,7 @@ export function CategoryPage({
       )}
 
       <div className="px-4 pt-2 pb-2 flex items-center justify-between">
-        <h2 className="font-extrabold text-sm text-foreground flex items-center gap-2">
+        <h2 className="font-extrabold text-base md:text-lg text-foreground flex items-center gap-2">
           <span>{category.emoji}</span>
           <span style={{ color: category.color }}>{category.name}</span>
           {activeSubcategory && (
@@ -96,7 +96,7 @@ export function CategoryPage({
         )}
       </div>
 
-      <div className="px-3 pb-32 grid grid-cols-2 gap-1.5">
+      <div className="px-3 pb-32 grid grid-cols-2 gap-1.5 md:grid-cols-3 lg:grid-cols-4">
         {filtered.map(ingredient => {
           const orderQty = orderMap.get(ingredient.id);
           const inOrder = typeof orderQty === 'number';

@@ -10,9 +10,11 @@ import { useStockReports } from '@/hooks/useStockReports';
 import { useStockRemaining } from '@/hooks/useStockRemaining';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { CategoryBar } from '@/components/chef/CategoryBar';
 import { CategoryCloud } from '@/components/chef/CategoryCloud';
 import { CategoryPage } from '@/components/chef/CategoryPage';
+import { TabletOrderingLayout } from '@/components/chef/TabletOrderingLayout';
 import { NumpadModal } from '@/components/chef/NumpadModal';
 import { OrderBar } from '@/components/chef/OrderBar';
 import { AddIngredientModal } from '@/components/chef/AddIngredientModal';
@@ -23,6 +25,7 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const { user, role, displayName, signOut, isGuest, restaurantId, restaurantName } = useAuth();
   const isChef = isGuest ? true : role === 'chef';
   const { editingEnabled } = useAppSettings();
@@ -191,12 +194,157 @@ const Index = () => {
   // layout and paint while keeping the DOM nodes for embla's scroll math.
   const RENDER_WINDOW = 1;
 
-  // Phone-density column, centered at every viewport. The mobile design
-  // sizes (text-xs, p-3, etc.) were sized for a ~448px column — at wider
-  // wrappers the inline meta rows and card headers leave 50%+ empty space
-  // and the small text reads as proportionally tiny. Keeping the column at
-  // max-w-md across breakpoints preserves the intended density; empty
-  // space lives at the viewport edges instead of inside elements.
+  // Tablet/Desktop layout: two-panel with sidebar
+  if (!isMobile) {
+    const catIngredients = ingredientsByCategory[activeCategory];
+    const activeSub = subcategoryByCategory[activeCategory] ?? categories.find(c => c.id === activeCategory)?.subcategories?.[0]?.id ?? null;
+
+    return (
+      <div className="h-screen bg-background relative flex flex-col w-full">
+        <header className="shrink-0 sticky top-0 z-30 bg-background/95 border-b border-border">
+          <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/')}
+                className="bg-primary rounded-xl p-1.5 active:scale-95 transition-transform"
+                title="Trang chủ"
+              >
+                <ChefHat size={20} className="text-primary-foreground" />
+              </button>
+              <div>
+                <h1 className="font-extrabold text-lg text-foreground leading-tight">
+                  {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
+                </h1>
+                <p className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                  {restaurantName ?? 'Đặt Hàng Bếp'}
+                  {isChef && specialDay && (
+                    <span className={specialDay.impact === 'high' ? 'text-destructive' : ''}>
+                      • {specialDay.emoji} {specialDay.label}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {isChef && (
+                <button
+                  onClick={() => navigate('/menu')}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  title="Thực đơn"
+                >
+                  <UtensilsCrossed size={20} className="text-muted-foreground" />
+                </button>
+              )}
+              {isChef && (
+                <button
+                  onClick={() => navigate('/inventory')}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  title="Kho bếp"
+                >
+                  <Warehouse size={20} className="text-muted-foreground" />
+                </button>
+              )}
+              {!isGuest && (
+                <button
+                  onClick={() => navigate('/stock-report')}
+                  className="relative p-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <AlertTriangle size={20} className="text-muted-foreground" />
+                  {outOfStockCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center">
+                      {outOfStockCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {isChef && !isGuest && (
+                <button
+                  onClick={() => navigate('/history')}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <Clock size={20} className="text-muted-foreground" />
+                </button>
+              )}
+              {isGuest ? (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
+                >
+                  <LogIn size={16} />
+                  Đăng nhập
+                </button>
+              ) : (
+                <button
+                  onClick={signOut}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <LogOut size={18} className="text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-hidden">
+          <TabletOrderingLayout
+            categories={categories}
+            activeCategory={activeCategory}
+            onCategorySelect={handleCategorySelect}
+            alertCounts={isChef ? alertCounts : undefined}
+          >
+            <CategoryPage
+              category={categories.find(c => c.id === activeCategory)!}
+              ingredients={catIngredients}
+              activeSubcategory={activeSub}
+              onSelectSubcategory={(subId) => handleSubcategorySelect(activeCategory, subId)}
+              isChef={isChef}
+              editingEnabled={editingEnabled}
+              {...commonCardHandlers}
+            />
+          </TabletOrderingLayout>
+        </div>
+
+        {isChef && (
+          <OrderBar
+            currentOrder={currentOrder}
+            ingredients={ingredients}
+            expanded={expandedOrder}
+            onToggleExpand={() => setExpandedOrder(!expandedOrder)}
+            onRemoveItem={removeFromOrder}
+            onClearOrder={clearOrder}
+            getOrderText={getOrderText}
+            onSaveOrder={handleSaveOrder}
+          />
+        )}
+
+        <NumpadModal
+          ingredient={numpadIngredient}
+          onConfirm={(qty) => numpadIngredient && addToOrder(numpadIngredient, qty)}
+          onClose={() => setNumpadIngredient(null)}
+        />
+
+        <NumpadModal
+          ingredient={remainingNumpadIngredient}
+          onConfirm={(qty) => remainingNumpadIngredient && reportRemaining(remainingNumpadIngredient, qty)}
+          onClose={() => setRemainingNumpadIngredient(null)}
+        />
+
+        <AddIngredientModal
+          isOpen={addModalOpen}
+          onClose={() => { setAddModalOpen(false); setEditIngredient(null); }}
+          onAdd={addIngredient}
+          onUpdate={updateIngredient}
+          onDelete={deleteIngredient}
+          editIngredient={editIngredient}
+          categoryId={activeCategory}
+        />
+
+        <EditingModeToggle />
+      </div>
+    );
+  }
+
+  // Mobile layout: single column with embla carousel
   return (
     <div className="min-h-screen bg-background relative flex flex-col max-w-md mx-auto">
       <header className="sticky top-0 z-30 bg-background/95 border-b border-border">
@@ -210,11 +358,11 @@ const Index = () => {
               <ChefHat size={20} className="text-primary-foreground" />
             </button>
             <div>
-              <h1 className="font-extrabold text-base text-foreground leading-tight">
-                {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
+                <h1 className="font-extrabold text-lg md:text-xl text-foreground leading-tight">
+                  {isChef ? `Đặt hàng ${tomorrowFormatted}` : 'Báo Hết Hàng'}
               </h1>
-              <p className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                {restaurantName ?? 'Đặt Hàng Bếp'}
+                <p className="text-xs md:text-sm text-muted-foreground font-semibold flex items-center gap-1">
+                  {restaurantName ?? 'Đặt Hàng Bếp'}
                 {isChef && specialDay && (
                   <span className={specialDay.impact === 'high' ? 'text-destructive' : ''}>
                     • {specialDay.emoji} {specialDay.label}

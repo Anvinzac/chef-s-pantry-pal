@@ -70,6 +70,16 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Scale base font size on tablets+ for readability.
+     Galaxy Tab A11 portrait ~719px catches this at 700px.
+     All rem-based Tailwind text sizes scale proportionally. */
+  @media (min-width: 700px) {
+    html { font-size: 17px; }
+  }
+  @media (min-width: 1024px) {
+    html { font-size: 18px; }
+  }
 }
 
 @layer utilities {

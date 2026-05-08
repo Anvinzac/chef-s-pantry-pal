@@ -67,14 +67,17 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Load ingredients from API, fallback to local
     api.getIngredients().then(serverIngredients => {
+      console.log('[useOrder] Turso returned', serverIngredients.length, 'ingredients');
       if (serverIngredients.length > 0) {
+        const vegs = serverIngredients.filter(i => i.category === 'vegetables');
+        console.log('[useOrder] Vegetables:', vegs.length, '| Subcategories:', [...new Set(vegs.map(i => i.subcategory || '(none)'))]);
         setIngredients(serverIngredients);
       } else {
-        // Seed server with defaults
+        console.log('[useOrder] Turso returned 0 ingredients, seeding defaults');
         api.saveIngredients(defaultIngredients).catch(() => {});
       }
-    }).catch(() => {
-      // Server unavailable, use local
+    }).catch((err) => {
+      console.error('[useOrder] Turso fetch FAILED:', err);
     });
   }, []);
 
@@ -176,7 +179,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
     return items.map(item => {
       const unitLabel = UNIT_FULL_LABELS[item.unit] || item.unit;
-      if (item.unit === 'piece' || item.unit === 'dozen' || item.unit === 'pair') {
+      if (item.unit === 'cái' || item.unit === 'tá' || item.unit === 'đôi') {
         return `${item.quantity} ${unitLabel}${item.quantity > 1 ? 's' : ''} of ${item.name}`;
       }
       return `${item.quantity}${UNIT_LABELS[item.unit]} ${item.name}`;

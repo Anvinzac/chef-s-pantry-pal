@@ -66,13 +66,13 @@ export class SimplePredictionEngine implements PredictionEngine {
         if (inferenceResults.length > 0) {
           const bestInference = inferenceResults[0];
           return {
-            unit: bestInference.unit || 'piece',
+            unit: bestInference.unit || 'cái',
             category: bestInference.category || 'uncategorized',
             metadata: bestInference.metadata || {},
             confidence: bestInference.confidence || 0.7,
             source: 'inference_rule',
             alternatives: inferenceResults.slice(1).map(result => ({
-              unit: result.unit || 'piece',
+              unit: result.unit || 'cái',
               category: result.category || 'uncategorized',
               confidence: result.confidence || 0.5,
             })),
@@ -82,7 +82,7 @@ export class SimplePredictionEngine implements PredictionEngine {
       
       // Default fallback
       return {
-        unit: 'piece',
+        unit: 'cái',
         category: 'uncategorized',
         metadata: {},
         confidence: 0.3,
@@ -156,16 +156,16 @@ export class SimplePredictionEngine implements PredictionEngine {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('kg') || lowerName.includes('kilo')) return 'kg';
     if (lowerName.includes('g') || lowerName.includes('gram')) return 'g';
-    if (lowerName.includes('liter') || lowerName.includes('l')) return 'liter';
+    if (lowerName.includes('lít') || lowerName.includes('liter') || lowerName.includes('l')) return 'lít';
     if (lowerName.includes('ml') || lowerName.includes('milli')) return 'ml';
-    if (lowerName.includes('piece') || lowerName.includes('pc')) return 'piece';
-    if (lowerName.includes('pack') || lowerName.includes('package')) return 'pack';
-    if (lowerName.includes('bottle')) return 'bottle';
-    if (lowerName.includes('box')) return 'box';
-    if (lowerName.includes('bag')) return 'bag';
-    if (lowerName.includes('can')) return 'can';
-    if (lowerName.includes('dozen')) return 'dozen';
-    return 'piece';
+    if (lowerName.includes('cái') || lowerName.includes('piece') || lowerName.includes('pc')) return 'cái';
+    if (lowerName.includes('gói') || lowerName.includes('pack') || lowerName.includes('package')) return 'gói';
+    if (lowerName.includes('chai') || lowerName.includes('bottle')) return 'chai';
+    if (lowerName.includes('hộp') || lowerName.includes('box')) return 'hộp';
+    if (lowerName.includes('bịch') || lowerName.includes('bag')) return 'bịch';
+    if (lowerName.includes('lon') || lowerName.includes('can')) return 'lon';
+    if (lowerName.includes('tá') || lowerName.includes('dozen')) return 'tá';
+    return 'cái';
   }
 
   private guessCategoryFromName(name: string): string {
@@ -185,8 +185,11 @@ export class SimplePredictionEngine implements PredictionEngine {
     if (lowerName.includes('oil') || lowerName.includes('dau mo') || lowerName.includes('oil') || lowerName.includes('butter')) {
       return 'oils';
     }
-    if (lowerName.includes('dairy') || lowerName.includes('sua') || lowerName.includes('milk') || lowerName.includes('cheese')) {
-      return 'dairy';
+    if (lowerName.includes('dairy') || lowerName.includes('sua') || lowerName.includes('milk') || lowerName.includes('cheese') || lowerName.includes('pho mai')) {
+      return 'tofu';
+    }
+    if (lowerName.includes('thit') || lowerName.includes('ca') || lowerName.includes('meat') || lowerName.includes('fish') || lowerName.includes('protein')) {
+      return 'takeaway';
     }
     return 'uncategorized';
   }

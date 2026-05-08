@@ -81,16 +81,16 @@ export const IngredientCard = memo(function IngredientCard({
         {/* Name row with remaining label */}
         <div className="flex items-center gap-1.5">
           <span className="text-xl leading-none">{ingredient.emoji}</span>
-          <span className="text-[16px] font-bold text-card-foreground leading-tight flex-1">
+          <span className="text-base md:text-lg font-bold text-card-foreground leading-tight flex-1">
             {ingredient.name}
           </span>
           {remainingQuantity != null ? (
-            <span className="text-[14px] font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
+            <span className="text-sm md:text-base font-extrabold text-primary bg-primary/10 rounded-full px-2 py-0.5 shrink-0">
               còn {remainingQuantity}
               {unit}
             </span>
           ) : (
-            <span className="text-[14px] text-muted-foreground/50 italic shrink-0">còn ...</span>
+            <span className="text-sm md:text-base text-muted-foreground/50 italic shrink-0">còn ...</span>
           )}
         </div>
 
@@ -136,7 +136,7 @@ export const IngredientCard = memo(function IngredientCard({
             e.stopPropagation();
             onClear();
           }}
-          className="absolute -top-2 -left-1.5 bg-primary text-primary-foreground text-[10px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in gap-0.5 z-10 hover:bg-destructive transition-colors"
+          className="absolute -top-2 -left-1.5 bg-primary text-primary-foreground text-[10px] md:text-xs font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md animate-pop-in gap-0.5 z-10 hover:bg-destructive transition-colors"
         >
           <span>
             {orderQuantity}
@@ -145,7 +145,7 @@ export const IngredientCard = memo(function IngredientCard({
           <X size={10} />
         </button>
       ) : hasRemaining ? (
-        <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-[14px] font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
+        <span className="absolute -top-2 -left-1.5 bg-[hsl(160,60%,40%)] text-white text-sm md:text-base font-extrabold rounded-full h-5 px-1.5 flex items-center justify-center shadow-md z-10">
           {remainingQuantity}
           {unit}
         </span>
@@ -156,11 +156,11 @@ export const IngredientCard = memo(function IngredientCard({
         <span className="relative text-xl leading-none shrink-0 w-6 h-6 flex items-center justify-center">
           {ingredient.emoji}
         </span>
-        <span className="text-[16px] font-bold text-card-foreground leading-tight flex-1">
+          <span className="text-base md:text-lg font-bold text-card-foreground leading-tight flex-1">
           {ingredient.name}
         </span>
         {priceK !== undefined && (
-          <span className="text-[14px] text-foreground font-semibold flex-shrink-0">{formatPriceK(priceK)}</span>
+          <span className="text-sm md:text-base text-foreground font-semibold flex-shrink-0">{formatPriceK(priceK)}</span>
         )}
         <button
           onClick={(e) => {
@@ -204,7 +204,7 @@ export const IngredientCard = memo(function IngredientCard({
           title="Nhấn để xác nhận đã xem"
         >
           <AlertTriangle size={12} />
-          <span className="text-[10px] font-extrabold">Hết hàng • Nhấn để xoá</span>
+          <span className="text-[10px] md:text-xs font-extrabold">Hết hàng • Nhấn để xoá</span>
         </button>
       )}
     </div>

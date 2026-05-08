@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import type { MenuCategoryConfig } from "@/data/menuDishes";
+import type { Category } from "@/types/ingredient";
 
 export interface TabletOrderingLayoutProps {
-  categories: MenuCategoryConfig[];
+  categories: Category[];
   activeCategory: string;
   onCategorySelect: (categoryId: string) => void;
   alertCounts?: Record<string, number>;
@@ -26,7 +26,7 @@ export function TabletOrderingLayout({
   return (
     <div className="flex h-full overflow-hidden">
       {/* Category Sidebar */}
-      <aside className="w-52 border-r border-border bg-card overflow-y-auto flex flex-col">
+      <aside className="w-52 shrink-0 border-r border-border bg-card overflow-y-auto flex flex-col">
         <div className="flex-1 overflow-y-auto">
           {categories.map((category) => {
             const isActive = category.id === activeCategory;
