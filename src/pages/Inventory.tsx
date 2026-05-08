@@ -124,7 +124,7 @@ const Inventory = () => {
   // knob nav were tuned for a ~448px width; widening the column made
   // each cell ~700px which left text and table rows looking sparse.
   return (
-    <div className={`min-h-screen bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`} style={{ position: 'relative' }}>
+    <div className={`h-dvh bg-background relative flex flex-col overflow-hidden ${isMobile ? "max-w-md mx-auto" : "w-full"}`} style={{ position: 'relative' }}>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/95 border-b border-border px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">

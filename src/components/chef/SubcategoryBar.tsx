@@ -16,7 +16,7 @@ export function SubcategoryBar({ subcategories, activeSubcategory, onSelect }: S
           key={sub.id}
           onClick={() => onSelect(sub.id)}
           className={cn(
-            "px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all shrink-0 flex items-center gap-1",
+            "px-3 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shrink-0 flex items-center gap-1.5 min-h-[36px]",
             activeSubcategory === sub.id
               ? "bg-secondary text-secondary-foreground"
               : "bg-muted text-muted-foreground hover:bg-secondary/30"
